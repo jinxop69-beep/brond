@@ -73,7 +73,9 @@ Cómo rellenar cada tarea:
 
 // Se recorta por si al pegar la clave en Supabase se coló un espacio o salto de línea
 const API_KEY = (Deno.env.get("ANTHROPIC_API_KEY") || "").trim();
-const client = new Anthropic({ apiKey: API_KEY });
+// Las claves de organización (no de un workspace) necesitan decir qué workspace usar
+const WORKSPACE = (Deno.env.get("ANTHROPIC_WORKSPACE_ID") || "").trim();
+const client = new Anthropic({ apiKey: API_KEY, defaultHeaders: WORKSPACE ? { "anthropic-workspace-id": WORKSPACE } : undefined });
 
 const okDate = (s: unknown) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(Date.parse(s));
 
@@ -149,7 +151,8 @@ Deno.serve(async (req) => {
     if (err instanceof Anthropic.BadRequestError) {
       // Sin saldo la API responde 400 con un mensaje de crédito
       console.error("bad request:", err.message);
-      return json({ error: /credit|balance/i.test(err.message) ? "no_credit" : "claude" }, 502);
+      const code = /workspace/i.test(err.message) ? "workspace" : /credit|balance/i.test(err.message) ? "no_credit" : "claude";
+      return json({ error: code }, 502);
     }
     if (err instanceof Anthropic.APIError) { console.error(`API error ${err.status}:`, err.message); return json({ error: "claude" }, 502); }
     if (err instanceof SyntaxError) return json({ error: "parse" }, 502);

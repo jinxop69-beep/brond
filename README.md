@@ -36,4 +36,5 @@ y Claude lo convierte en tareas. Antes de guardar se muestra una vista previa pa
 - Funciona con la función de Supabase `supabase/functions/kawaii-parse` (necesita sesión iniciada).
 - Secretos en Supabase → Edge Functions → Secrets:
   - `ANTHROPIC_API_KEY`: la clave de la API de Claude (obligatoria).
+  - `ANTHROPIC_WORKSPACE_ID` (solo si la clave es de organización y no de un workspace): el ID `wrkspc_…`.
   - `CLAUDE_MODEL` (opcional): por defecto `claude-haiku-5-5` (barato y suficiente); `claude-opus-5-5` si hace falta más precisión.
