@@ -296,6 +296,22 @@
   .saved { font-size: 12px; color: var(--muted); font-weight: 600; text-align: right; min-height: 1em; margin-top: 4px; }
   .food-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .food-btns .toggle-big { padding: 12px 8px; font-size: 15px; }
+  .box[data-id] > h2 { cursor: pointer; user-select: none; }
+  .box[data-id] > h2 .fold { font-size: 14px; color: var(--muted); margin-left: 6px; transition: transform .2s; display: inline-block; }
+  .box.collapsed > *:not(h2) { display: none !important; }
+  .box.collapsed > h2 { margin-bottom: 0; }
+  .box.collapsed > h2 .fold { transform: rotate(-90deg); }
+  .ord { display: none; gap: 6px; }
+  .ord button { border: 2px solid color-mix(in srgb, var(--c) 45%, #fff); background: #fff; border-radius: 12px; width: 38px; height: 34px;
+    font-size: 16px; cursor: pointer; }
+  .ord button:disabled { opacity: .3; cursor: default; }
+  body.ordering .box[data-id] > *:not(h2) { display: none !important; }
+  body.ordering .box[data-id] > h2 { margin-bottom: 0; }
+  body.ordering .box[data-id] .ord { display: flex; }
+  body.ordering .box[data-id] .count, body.ordering .box[data-id] .fold { display: none; }
+  body.ordering .box[data-id] { animation: wiggle .5s ease-in-out infinite alternate; }
+  @keyframes wiggle { from { transform: rotate(-.6deg); } to { transform: rotate(.6deg); } }
+  .extras-toggle button.order-on { background: var(--pink-500); color: #fff; border-color: var(--pink-500); }
   .extras-toggle { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: -6px 0 20px; font-size: 13px; color: var(--muted); font-weight: 700; }
   .extras-toggle button { border: 2px solid var(--pink-200); background: #fff; color: var(--muted); border-radius: 999px; padding: 6px 12px; font: 700 13px "Quicksand"; cursor: pointer; }
   .clog { display: grid; gap: 8px; }
@@ -362,7 +378,8 @@
     body { padding: 0 24px 60px; }
     .wrap { max-width: 1100px; }
     .cols { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
-    body[data-tab] #tab-day { display: block; position: sticky; top: 16px; }
+    body[data-tab] #tab-day { display: block; }
+    #sideBoxes { margin-top: 20px; }
     body[data-tab=day] #tab-week { display: block; }
     .tabs button[data-tab=day] { display: none; }
     .tabs { max-width: 420px; margin-left: auto; }
@@ -468,7 +485,6 @@
     </div>
 
     <div id="dayBoxes"></div>
-    <div id="dayExtras"></div>
     <div class="extras-toggle" id="extrasToggle"></div>
   </section>
 
@@ -581,6 +597,7 @@
     </div>
   </section>
   </main>
+  <div id="sideBoxes"></div>
 
   <footer id="footNote">Hecho con 💗 · tus datos se guardan solo en este dispositivo</footer>
 </div>
@@ -605,10 +622,10 @@
   const catOf = id => CATS.find(c => c.id === id) || CATS[0];
   // Cuadraditos de "Mi día": cada uno agrupa unas categorías; el último recoge todo lo demás
   const BOXES = [
-    { emoji: "🧺", name: "Casa", cats: ["casa", "compras"], add: "casa", ph: "¿Qué toca en casa? (lavadora, limpiar…)", empty: "Nada de casa hoy ✨" },
-    { emoji: "📚", name: "Estudios", cats: ["estudio"], add: "estudio", ph: "¿Qué vas a estudiar? (tema 3, catalán…)", empty: "Hoy sin estudios 🌸" },
-    { emoji: "💪", name: "Deporte", cats: ["ejercicio"], add: "ejercicio", ph: "¿Qué deporte? (pilates, paseo…)", empty: "Hoy toca descanso 🧘‍♀️" },
-    { emoji: "🧁", name: "Vida social y otros", cats: null, add: "social", ph: "Quedadas, citas, recados…", empty: "Nada más por hoy 🍓" },
+    { id: "casa", emoji: "🧺", name: "Casa", cats: ["casa", "compras"], add: "casa", ph: "¿Qué toca en casa? (lavadora, limpiar…)", empty: "Nada de casa hoy ✨" },
+    { id: "estudio", emoji: "📚", name: "Estudios", cats: ["estudio"], add: "estudio", ph: "¿Qué vas a estudiar? (tema 3, catalán…)", empty: "Hoy sin estudios 🌸" },
+    { id: "deporte", emoji: "💪", name: "Deporte", cats: ["ejercicio"], add: "ejercicio", ph: "¿Qué deporte? (pilates, paseo…)", empty: "Hoy toca descanso 🧘‍♀️" },
+    { id: "otros", emoji: "🧁", name: "Vida social y otros", cats: null, add: "social", ph: "Quedadas, citas, recados…", empty: "Nada más por hoy 🍓" },
   ];
   // Lunes primero
   const DAY_SHORT = ["L", "M", "X", "J", "V", "S", "D"];
@@ -723,8 +740,6 @@
     $("#goToday").classList.toggle("hidden", isToday);
 
     const list = tasksOn(d);
-    const wrap = $("#dayBoxes");
-    wrap.innerHTML = "";
     const inBox = (b, t) => b.cats ? b.cats.includes(t.cat) : !BOXES.some(o => o.cats && o.cats.includes(t.cat));
     for (const b of BOXES) {
       const items = list.filter(t => inBox(b, t));
@@ -745,11 +760,12 @@
         data.tasks.push({ id: uid(), title, cat: b.add, time: "", repeat: "once", date: ymd(d) });
         save();
         renderAll();
-        const again = $("#dayBoxes").querySelectorAll("form input")[BOXES.indexOf(b)];
+        const again = document.querySelector(`.box[data-id="${b.id}"] form input`);
         if (again) again.focus();
       });
-      wrap.appendChild(card);
+      putBox(b.id, card);
     }
+    layoutBoxes();
 
     const n = list.length, k = list.filter(t => isDone(t, d)).length;
     const pct = n ? Math.round(k / n * 100) : 0;
@@ -944,10 +960,71 @@
   }
   const fmtDay = k => { const d = parseYmd(k); return `${DAY_SHORT[weekIdx(d)]} ${d.getDate()}`; };
 
+  /* ---------- Colocar los cuadraditos: orden propio, plegar y reparto en dos columnas ---------- */
+  const DEFAULT_ORDER = ["casa", "estudio", "deporte", "otros", "read", "food", "cycle"];
+  const boxEls = {};
+  let ordering = false;
+  function putBox(id, card) { card.dataset.id = id; boxEls[id] = card; }
+  function boxOrder() {
+    const saved = (data.settings.order || []).filter(id => DEFAULT_ORDER.includes(id));
+    return [...saved, ...DEFAULT_ORDER.filter(id => !saved.includes(id))];
+  }
+  function layoutBoxes() {
+    const left = $("#dayBoxes"), side = $("#sideBoxes");
+    const order = boxOrder().filter(id => boxEls[id]);
+    const collapsed = data.settings.collapsed || {};
+    order.forEach((id, i) => {
+      const el = boxEls[id], h2 = el.querySelector("h2");
+      el.classList.toggle("collapsed", !!collapsed[id]);
+      if (!h2.querySelector(".ord")) {
+        h2.firstElementChild.insertAdjacentHTML("beforeend", `<span class="fold">▾</span>`);
+        h2.insertAdjacentHTML("beforeend", `<span class="ord"><button data-move="-1" aria-label="Subir">⬆️</button><button data-move="1" aria-label="Bajar">⬇️</button></span>`);
+      }
+      h2.querySelector('[data-move="-1"]').disabled = i === 0;
+      h2.querySelector('[data-move="1"]').disabled = i === order.length - 1;
+    });
+    left.innerHTML = ""; side.innerHTML = "";
+    // En pantalla ancha, los cuadraditos van debajo de la columna derecha visible
+    const wide = matchMedia("(min-width: 600px)").matches;
+    const tab = document.body.dataset.tab;
+    const mid = wide && $("#tab-" + (tab === "day" ? "week" : tab));
+    if (mid && mid.offsetParent !== null) { mid.appendChild(side); } else { document.body.appendChild(side); }
+    for (const id of order) {
+      const el = boxEls[id];
+      if (!wide || !mid || mid.offsetParent === null || mid === $("#tab-day")) { left.appendChild(el); continue; }
+      // A la columna que acabe más arriba, para que las dos queden igualadas
+      const lb = left.getBoundingClientRect().bottom, sb = side.getBoundingClientRect().bottom;
+      (sb + 20 < lb ? side : left).appendChild(el);
+    }
+  }
+  function moveBox(id, dir) {
+    const order = boxOrder(), visible = order.filter(x => boxEls[x]);
+    const i = visible.indexOf(id), j = i + dir;
+    if (j < 0 || j >= visible.length) return;
+    const a = order.indexOf(visible[i]), b = order.indexOf(visible[j]);
+    [order[a], order[b]] = [order[b], order[a]];
+    data.settings.order = order;
+    save();
+    layoutBoxes();
+    boxEls[id].scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+  document.addEventListener("click", e => {
+    const h2 = e.target.closest(".box[data-id] > h2");
+    if (!h2) return;
+    const id = h2.parentElement.dataset.id;
+    const mv = e.target.closest("[data-move]");
+    if (mv) { moveBox(id, Number(mv.dataset.move)); return; }
+    if (ordering) return;
+    const c = data.settings.collapsed = data.settings.collapsed || {};
+    c[id] = !c[id];
+    save();
+    layoutBoxes();
+  });
+
   function renderExtras() {
-    const d = current, k = ymd(d), wrap = $("#dayExtras");
-    wrap.innerHTML = "";
+    const d = current, k = ymd(d);
     const st = data.settings;
+    for (const id of ["read", "food", "cycle"]) delete boxEls[id];
 
     if (!st.hideRead) {
       const r = getLog(k).read || {};
@@ -973,7 +1050,7 @@
         setLog(k, "read", x => ({ ...x, note: inp.value.trim(), done: x.done || !!inp.value.trim() }));
         renderExtras(); renderMonth();
       });
-      wrap.appendChild(card);
+      putBox("read", card);
     }
 
     if (!st.hideFood) {
@@ -998,7 +1075,7 @@
       }));
       const inp = card.querySelector("input");
       inp.addEventListener("change", () => { setLog(k, "food", x => ({ ...x, note: inp.value.trim() })); renderMonth(); });
-      wrap.appendChild(card);
+      putBox("food", card);
     }
 
     if (!st.hideCycle) {
@@ -1048,16 +1125,25 @@
         saved.textContent = "…";
         tmr = setTimeout(() => { setLog(k, "cycle", x => ({ ...x, note: ta.value.trim() })); saved.textContent = "Guardado ♡"; renderMonth(); }, 700);
       });
-      wrap.appendChild(card);
+      putBox("cycle", card);
     }
 
     $("#extrasToggle").innerHTML =
       `<button data-t="hideRead">${st.hideRead ? "➕ Mostrar 📖 Lectura" : "Ocultar 📖 Lectura"}</button>` +
       `<button data-t="hideFood">${st.hideFood ? "➕ Mostrar 🥦 Fruta y verdura" : "Ocultar 🥦 Fruta y verdura"}</button>` +
-      `<button data-t="hideCycle">${st.hideCycle ? "➕ Mostrar 🌙 Mi ciclo" : "Ocultar 🌙 Mi ciclo"}</button>`;
+      `<button data-t="hideCycle">${st.hideCycle ? "➕ Mostrar 🌙 Mi ciclo" : "Ocultar 🌙 Mi ciclo"}</button>` +
+      `<button data-t="order" class="${ordering ? "order-on" : ""}">${ordering ? "✓ Listo" : "↕️ Ordenar cuadraditos"}</button>`;
+    layoutBoxes();
   }
   $("#extrasToggle").addEventListener("click", e => {
     const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.t === "order") {
+      ordering = !ordering;
+      document.body.classList.toggle("ordering", ordering);
+      if (ordering) toast("Usa ⬆️ ⬇️ para colocar cada cuadradito 🎀");
+      renderExtras();
+      return;
+    }
     data.settings[b.dataset.t] = !data.settings[b.dataset.t];
     save(); renderExtras(); renderMonth();
   });
@@ -1657,7 +1743,9 @@
     });
   }
 
-  function renderAll() { renderDay(); renderExtras(); renderWeek(); renderMonth(); renderRoutines(); buildForm(); }
+  // layoutBoxes al final: mide las columnas cuando ya está todo dibujado
+  function renderAll() { renderDay(); renderExtras(); renderWeek(); renderMonth(); renderRoutines(); buildForm(); layoutBoxes(); }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => layoutBoxes());
 
   // Cambio de día automático: si la app sigue abierta a medianoche
   // (o vuelves a ella al día siguiente), salta sola al nuevo "hoy".
