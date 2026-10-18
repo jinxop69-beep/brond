@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ff8fb8">
+<title>Mi Día Kawaii</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fff0f6;
+    --bg-dots: #ffd6e7;
+    --card: #ffffff;
+    --pink-50: #fff5f9;
+    --pink-100: #ffe3ee;
+    --pink-200: #ffc6dc;
+    --pink-300: #ffa3c6;
+    --pink-400: #ff7eb0;
+    --pink-500: #ff5c9a;
+    --red-bow: #ff3d7f;
+    --text: #6b3a52;
+    --muted: #b07a93;
+    --shadow: 0 6px 0 #ffc6dc, 0 10px 24px rgba(255, 92, 154, .15);
+    --radius: 26px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh;
+    font-family: "Quicksand", system-ui, sans-serif;
+    color: var(--text);
+    background-color: var(--bg);
+    background-image: radial-gradient(var(--bg-dots) 2.5px, transparent 2.6px),
+                      radial-gradient(var(--bg-dots) 2.5px, transparent 2.6px);
+    background-size: 34px 34px;
+    background-position: 0 0, 17px 17px;
+    padding: 0 16px 120px;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  h1, h2, h3, .pop { font-family: "Mochiy Pop One", "Quicksand", sans-serif; font-weight: 400; }
+
+  /* ---------- Header ---------- */
+  header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 22px 0 10px;
+  }
+  .kitty { width: 84px; height: 84px; flex: none; animation: bob 3s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(-4px) rotate(-3deg); } }
+  header h1 { margin: 0; font-size: clamp(24px, 6vw, 34px); color: var(--pink-500);
+    text-shadow: 3px 3px 0 #fff, 5px 5px 0 var(--pink-200); }
+  header p { margin: 4px 0 0; color: var(--muted); font-weight: 600; }
+
+  /* ---------- Tabs ---------- */
+  .tabs {
+    display: flex; gap: 8px; background: var(--card); padding: 6px;
+    border-radius: 999px; box-shadow: var(--shadow); margin: 12px 0 20px;
+    border: 3px solid var(--pink-200);
+  }
+  .tabs button {
+    flex: 1; border: 0; background: transparent; padding: 12px 8px;
+    border-radius: 999px; font: 700 16px "Quicksand", sans-serif; color: var(--muted); cursor: pointer;
+  }
+  .tabs button.active { background: var(--pink-400); color: #fff; box-shadow: inset 0 -3px 0 var(--pink-500); }
+
+  /* ---------- Cards ---------- */
+  .card {
+    background: var(--card); border-radius: var(--radius); padding: 18px;
+    box-shadow: var(--shadow); border: 3px solid var(--pink-200); margin-bottom: 20px;
+    position: relative;
+  }
+  .card h2 { margin: 0 0 12px; font-size: 19px; color: var(--pink-500); display: flex; align-items: center; gap: 8px; }
+
+  /* ---------- Day nav ---------- */
+  .daynav { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .daynav .label { text-align: center; flex: 1; }
+  .daynav .label .big { font-family: "Mochiy Pop One", sans-serif; font-size: 20px; color: var(--pink-500); text-transform: capitalize; }
+  .daynav .label .small { font-size: 14px; color: var(--muted); font-weight: 600; }
+  .round {
+    width: 46px; height: 46px; border-radius: 50%; border: 3px solid var(--pink-200);
+    background: var(--pink-50); color: var(--pink-500); font-size: 20px; cursor: pointer; flex: none;
+    font-weight: 700;
+  }
+  .round:active { transform: scale(.94); }
+  .today-btn {
+    display: block; margin: 10px auto 0; border: 0; background: var(--pink-100); color: var(--pink-500);
+    font: 700 13px "Quicksand"; padding: 6px 14px; border-radius: 999px; cursor: pointer;
+  }
+
+  /* ---------- Progress ---------- */
+  .progress { margin-top: 16px; }
+  .bar { height: 22px; background: var(--pink-100); border-radius: 999px; overflow: hidden; border: 3px solid var(--pink-200); }
+  .bar > div {
+    height: 100%; width: 0; border-radius: 999px; transition: width .5s cubic-bezier(.3,1.6,.5,1);
+    background: repeating-linear-gradient(45deg, var(--pink-400) 0 12px, var(--pink-300) 12px 24px);
+  }
+  .progress .msg { text-align: center; margin-top: 8px; font-weight: 700; color: var(--pink-500); }
+
+  /* ---------- Task list ---------- */
+  ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .task {
+    display: flex; align-items: center; gap: 12px; padding: 12px 12px;
+    background: var(--pink-50); border-radius: 18px; border: 2px dashed var(--pink-200);
+    transition: background .2s;
+  }
+  .task.done { background: #fff; opacity: .75; }
+  .check {
+    width: 34px; height: 34px; flex: none; border-radius: 50%; border: 3px solid var(--pink-300);
+    background: #fff; cursor: pointer; display: grid; place-items: center; font-size: 18px; padding: 0;
+    color: #fff; transition: transform .15s;
+  }
+  .task.done .check { background: var(--pink-400); border-color: var(--pink-400); }
+  .check:active { transform: scale(.85); }
+  .task .info { flex: 1; min-width: 0; }
+  .task .title { font-weight: 700; font-size: 16px; word-break: break-word; }
+  .task.done .title { text-decoration: line-through wavy var(--pink-400); color: var(--muted); }
+  .task .meta { font-size: 12.5px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+  .emoji { font-size: 24px; flex: none; }
+  .del {
+    border: 0; background: transparent; color: var(--pink-300); font-size: 18px; cursor: pointer; padding: 6px;
+    border-radius: 10px;
+  }
+  .del:hover { background: var(--pink-100); color: var(--pink-500); }
+  .empty { text-align: center; color: var(--muted); padding: 18px 8px; font-weight: 600; }
+  .empty .pop { font-size: 34px; display: block; margin-bottom: 6px; }
+
+  /* ---------- Form ---------- */
+  form { display: grid; gap: 12px; }
+  label.field { display: grid; gap: 6px; font-weight: 700; font-size: 14px; color: var(--muted); }
+  input[type=text], input[type=time], input[type=date], select {
+    width: 100%; font: 600 16px "Quicksand", sans-serif; color: var(--text);
+    padding: 12px 14px; border-radius: 16px; border: 3px solid var(--pink-200); background: var(--pink-50);
+    outline: none;
+  }
+  input:focus, select:focus { border-color: var(--pink-400); background: #fff; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .cats, .repeat, .days { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    border: 2px solid var(--pink-200); background: #fff; color: var(--text);
+    border-radius: 999px; padding: 8px 12px; font: 700 14px "Quicksand"; cursor: pointer;
+  }
+  .chip.on { background: var(--pink-400); color: #fff; border-color: var(--pink-400); }
+  .days { flex-wrap: nowrap; gap: 6px; }
+  .days .chip { flex: 1; max-width: 48px; aspect-ratio: 1; padding: 0; display: grid; place-items: center; }
+  .btn {
+    border: 0; border-radius: 999px; padding: 14px 18px; cursor: pointer;
+    font: 400 17px "Mochiy Pop One", sans-serif; color: #fff; background: var(--pink-500);
+    box-shadow: 0 5px 0 #d93d7a; transition: transform .1s, box-shadow .1s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #d93d7a; }
+  .hidden { display: none !important; }
+
+  /* ---------- Week ---------- */
+  .alerts { display: grid; gap: 10px; }
+  .alert {
+    display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 18px;
+    background: var(--pink-100); font-weight: 700;
+  }
+  .alert .emoji { font-size: 28px; }
+  .alert small { display: block; font-weight: 600; color: var(--muted); }
+  .stats { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .stat { background: var(--pink-50); border: 2px solid var(--pink-200); border-radius: 999px; padding: 6px 12px; font-weight: 700; font-size: 14px; }
+  .week { display: grid; gap: 12px; }
+  .wday {
+    background: var(--card); border-radius: 22px; border: 3px solid var(--pink-200); padding: 12px 14px;
+    box-shadow: 0 4px 0 var(--pink-200); cursor: pointer;
+  }
+  .wday.is-today { border-color: var(--pink-400); box-shadow: 0 4px 0 var(--pink-400); }
+  .wday .head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .wday .name { font-family: "Mochiy Pop One", sans-serif; color: var(--pink-500); text-transform: capitalize; }
+  .wday .count { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .wday .pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .pill { font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--pink-50); border: 2px solid var(--pink-100); }
+  .pill.done { text-decoration: line-through; opacity: .55; }
+  .weeknav { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .weeknav .label { flex: 1; text-align: center; font-family: "Mochiy Pop One", sans-serif; color: var(--pink-500); }
+
+  /* ---------- Hearts ---------- */
+  .heart {
+    position: fixed; pointer-events: none; font-size: 26px; z-index: 50;
+    animation: floatUp 1.6s ease-out forwards;
+  }
+  @keyframes floatUp {
+    0% { transform: translate(0, 0) scale(.6); opacity: 1; }
+    100% { transform: translate(var(--dx), -220px) scale(1.3) rotate(var(--rot)); opacity: 0; }
+  }
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(120px);
+    background: var(--pink-500); color: #fff; padding: 12px 20px; border-radius: 999px;
+    font-weight: 700; box-shadow: 0 5px 0 #d93d7a; transition: transform .35s cubic-bezier(.3,1.6,.5,1);
+    z-index: 60; max-width: calc(100% - 32px); text-align: center;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  footer { text-align: center; color: var(--muted); font-weight: 600; font-size: 13px; margin-top: 10px; }
+
+  @media (max-width: 420px) {
+    .row { grid-template-columns: 1fr; }
+    .kitty { width: 68px; height: 68px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <!-- Gatita original con lazo -->
+    <svg class="kitty" viewBox="0 0 120 120" aria-hidden="true">
+      <path d="M22 44 L18 12 L48 30 Z" fill="#fff" stroke="#6b3a52" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M98 44 L102 12 L72 30 Z" fill="#fff" stroke="#6b3a52" stroke-width="4" stroke-linejoin="round"/>
+      <ellipse cx="60" cy="66" rx="48" ry="40" fill="#fff" stroke="#6b3a52" stroke-width="4"/>
+      <ellipse cx="42" cy="68" rx="5" ry="7" fill="#6b3a52"/>
+      <ellipse cx="78" cy="68" rx="5" ry="7" fill="#6b3a52"/>
+      <ellipse cx="60" cy="78" rx="6" ry="4.5" fill="#ffc94d" stroke="#6b3a52" stroke-width="2.5"/>
+      <ellipse cx="32" cy="82" rx="7" ry="4" fill="#ffc6dc"/>
+      <ellipse cx="88" cy="82" rx="7" ry="4" fill="#ffc6dc"/>
+      <g stroke="#6b3a52" stroke-width="3.5" stroke-linecap="round">
+        <line x1="8" y1="66" x2="24" y2="70"/><line x1="6" y1="78" x2="23" y2="78"/><line x1="9" y1="90" x2="24" y2="85"/>
+        <line x1="112" y1="66" x2="96" y2="70"/><line x1="114" y1="78" x2="97" y2="78"/><line x1="111" y1="90" x2="96" y2="85"/>
+      </g>
+      <g transform="translate(86 30) rotate(18)">
+        <path d="M0 0 C-22 -18 -26 12 0 4 Z" fill="#ff3d7f" stroke="#6b3a52" stroke-width="3.5" stroke-linejoin="round"/>
+        <path d="M0 0 C22 -18 26 12 0 4 Z" fill="#ff3d7f" stroke="#6b3a52" stroke-width="3.5" stroke-linejoin="round"/>
+        <circle cx="0" cy="2" r="6" fill="#ff3d7f" stroke="#6b3a52" stroke-width="3.5"/>
+      </g>
+    </svg>
+    <div>
+      <h1>Mi Día Kawaii</h1>
+      <p id="greeting">¡Hola, preciosa! ♡</p>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="active" data-tab="day" role="tab">🎀 Mi día</button>
+    <button data-tab="week" role="tab">🗓️ Semana</button>
+    <button data-tab="add" role="tab">➕ Añadir</button>
+  </nav>
+
+  <!-- ============ DÍA ============ -->
+  <section id="tab-day">
+    <div class="card">
+      <div class="daynav">
+        <button class="round" id="prevDay" aria-label="Día anterior">‹</button>
+        <div class="label">
+          <div class="big" id="dayName"></div>
+          <div class="small" id="dayDate"></div>
+        </div>
+        <button class="round" id="nextDay" aria-label="Día siguiente">›</button>
+      </div>
+      <button class="today-btn hidden" id="goToday">Volver a hoy ♡</button>
+      <div class="progress">
+        <div class="bar"><div id="barFill"></div></div>
+        <div class="msg" id="progressMsg"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>✨ Cosas por hacer</h2>
+      <ul class="tasks" id="dayList"></ul>
+      <form id="quickAdd" style="margin-top:14px; grid-template-columns: 1fr auto;">
+        <input type="text" id="quickTitle" placeholder="Añadir algo rapidito a este día…" maxlength="80" aria-label="Tarea rápida">
+        <button class="btn" type="submit" aria-label="Añadir">♡</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============ SEMANA ============ -->
+  <section id="tab-week" class="hidden">
+    <div class="weeknav">
+      <button class="round" id="prevWeek" aria-label="Semana anterior">‹</button>
+      <div class="label" id="weekLabel"></div>
+      <button class="round" id="nextWeek" aria-label="Semana siguiente">›</button>
+    </div>
+    <div class="card">
+      <h2>🔔 Esta semana tienes…</h2>
+      <div class="alerts" id="weekAlerts"></div>
+      <div class="stats" id="weekStats"></div>
+    </div>
+    <div class="week" id="weekGrid"></div>
+  </section>
+
+  <!-- ============ AÑADIR ============ -->
+  <section id="tab-add" class="hidden">
+    <div class="card">
+      <h2>🌸 Nueva tarea</h2>
+      <form id="addForm">
+        <label class="field">¿Qué vas a hacer?
+          <input type="text" id="fTitle" placeholder="Ej: Pilates, cita con la doctora…" maxlength="80" required>
+        </label>
+
+        <div class="field" style="display:grid; gap:6px; font-weight:700; font-size:14px; color:var(--muted)">Categoría
+          <div class="cats" id="fCats"></div>
+        </div>
+
+        <div class="field" style="display:grid; gap:6px; font-weight:700; font-size:14px; color:var(--muted)">¿Cuándo se repite?
+          <div class="repeat" id="fRepeat">
+            <button type="button" class="chip on" data-v="once">Un solo día</button>
+            <button type="button" class="chip" data-v="daily">Todos los días</button>
+            <button type="button" class="chip" data-v="weekly">Algunos días de la semana</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <label class="field" id="dateWrap">Día
+            <input type="date" id="fDate">
+          </label>
+          <label class="field">Hora (opcional)
+            <input type="time" id="fTime">
+          </label>
+        </div>
+
+        <div class="field hidden" id="daysWrap" style="display:grid; gap:6px; font-weight:700; font-size:14px; color:var(--muted)">Días
+          <div class="days" id="fDays"></div>
+        </div>
+
+        <button class="btn" type="submit">Guardar ♡</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>🔁 Mis rutinas</h2>
+      <ul class="tasks" id="routineList"></ul>
+    </div>
+  </section>
+
+  <footer>Hecho con 💗 · tus datos se guardan solo en este dispositivo</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  /* ---------- Datos ---------- */
+  const CATS = [
+    { id: "general",  emoji: "🎀", name: "General" },
+    { id: "ejercicio",emoji: "💪", name: "Ejercicio" },
+    { id: "medico",   emoji: "🩺", name: "Médico" },
+    { id: "estudio",  emoji: "📚", name: "Estudio" },
+    { id: "trabajo",  emoji: "💼", name: "Trabajo" },
+    { id: "compras",  emoji: "🛍️", name: "Compras" },
+    { id: "casa",     emoji: "🧺", name: "Casa" },
+    { id: "cuidado",  emoji: "🧴", name: "Autocuidado" },
+    { id: "social",   emoji: "🧁", name: "Planes" },
+  ];
+  const catOf = id => CATS.find(c => c.id === id) || CATS[0];
+  // Lunes primero
+  const DAY_SHORT = ["L", "M", "X", "J", "V", "S", "D"];
+  const DAY_LONG = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
+  const MONTHS = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+
+  const KEY = "miDiaKawaii.v1";
+  const store = {
+    load() {
+      try { return JSON.parse(localStorage.getItem(KEY)) || null; } catch { return null; }
+    },
+    save(data) {
+      try { localStorage.setItem(KEY, JSON.stringify(data)); } catch { /* sin almacenamiento */ }
+    }
+  };
+
+  const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+  const pad = n => String(n).padStart(2, "0");
+  const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const parseYmd = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+  const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+  const weekIdx = d => (d.getDay() + 6) % 7; // 0 = lunes
+  const startOfWeek = d => addDays(new Date(d.getFullYear(), d.getMonth(), d.getDate()), -weekIdx(d));
+  const today = () => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); };
+
+  function seed() {
+    const t = today();
+    const mon = startOfWeek(t);
+    return {
+      tasks: [
+        { id: uid(), title: "Beber 8 vasitos de agua", cat: "cuidado", time: "", repeat: "daily", from: ymd(t) },
+        { id: uid(), title: "Hacer la cama", cat: "casa", time: "", repeat: "daily", from: ymd(t) },
+        { id: uid(), title: "Pilates", cat: "ejercicio", time: "18:00", repeat: "weekly", days: [0, 2, 4], from: ymd(mon) },
+        { id: uid(), title: "Cita con la doctora", cat: "medico", time: "10:30", repeat: "once", date: ymd(addDays(mon, 3)) },
+      ],
+      done: {}
+    };
+  }
+
+  let data = store.load() || seed();
+  const save = () => store.save(data);
+
+  function occursOn(task, date) {
+    const key = ymd(date);
+    if (task.repeat === "once") return task.date === key;
+    if (task.from && key < task.from) return false;
+    if (task.repeat === "daily") return true;
+    if (task.repeat === "weekly") return (task.days || []).includes(weekIdx(date));
+    return false;
+  }
+  const tasksOn = date => data.tasks
+    .filter(t => occursOn(t, date))
+    .sort((a, b) => (a.time || "99").localeCompare(b.time || "99") || a.title.localeCompare(b.title));
+  const isDone = (task, date) => (data.done[ymd(date)] || []).includes(task.id);
+  function toggleDone(task, date) {
+    const k = ymd(date);
+    const list = new Set(data.done[k] || []);
+    list.has(task.id) ? list.delete(task.id) : list.add(task.id);
+    if (list.size) data.done[k] = [...list]; else delete data.done[k];
+    save();
+    return list.has(task.id);
+  }
+  const repeatText = t => t.repeat === "daily" ? "todos los días"
+    : t.repeat === "weekly" ? (t.days || []).slice().sort().map(i => DAY_SHORT[i]).join(" · ")
+    : "un solo día";
+
+  /* ---------- Estado UI ---------- */
+  let current = today();
+  let weekStart = startOfWeek(today());
+  const $ = s => document.querySelector(s);
+  const esc = s => s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  function greet() {
+    const h = new Date().getHours();
+    const g = h < 6 ? "¡Dulces sueños! 🌙" : h < 13 ? "¡Buenos días, preciosa! ☀️" : h < 21 ? "¡Buenas tardes, bonita! 🌷" : "¡Buenas noches, cielo! ✨";
+    $("#greeting").textContent = g;
+  }
+
+  /* ---------- Vista día ---------- */
+  function renderDay() {
+    const d = current;
+    const isToday = ymd(d) === ymd(today());
+    $("#dayName").textContent = isToday ? "Hoy · " + DAY_LONG[weekIdx(d)] : DAY_LONG[weekIdx(d)];
+    $("#dayDate").textContent = `${d.getDate()} de ${MONTHS[d.getMonth()]} de ${d.getFullYear()}`;
+    $("#goToday").classList.toggle("hidden", isToday);
+
+    const list = tasksOn(d);
+    const ul = $("#dayList");
+    ul.innerHTML = "";
+    if (!list.length) {
+      ul.innerHTML = `<li class="empty"><span class="pop">🍓</span>Nada por aquí… ¡día libre para mimarte!</li>`;
+    }
+    for (const t of list) {
+      const done = isDone(t, d);
+      const c = catOf(t.cat);
+      const li = document.createElement("li");
+      li.className = "task" + (done ? " done" : "");
+      li.innerHTML = `
+        <button class="check" aria-label="${done ? "Desmarcar" : "Tachar"}">${done ? "✓" : ""}</button>
+        <span class="emoji">${c.emoji}</span>
+        <div class="info">
+          <div class="title">${esc(t.title)}</div>
+          <div class="meta">${t.time ? "⏰ " + t.time + " · " : ""}${c.name}${t.repeat !== "once" ? " · 🔁 " + repeatText(t) : ""}</div>
+        </div>
+        <button class="del" aria-label="Borrar">✕</button>`;
+      li.querySelector(".check").addEventListener("click", e => {
+        const nowDone = toggleDone(t, d);
+        if (nowDone) hearts(e.clientX, e.clientY, 6);
+        renderDay();
+        const all = tasksOn(d);
+        if (nowDone && all.length && all.every(x => isDone(x, d))) {
+          hearts(innerWidth / 2, innerHeight * .7, 22);
+          toast("¡Lo has tachado TODO! Eres increíble 💖");
+        }
+      });
+      li.querySelector(".del").addEventListener("click", () => removeTask(t, d));
+      ul.appendChild(li);
+    }
+
+    const n = list.length, k = list.filter(t => isDone(t, d)).length;
+    const pct = n ? Math.round(k / n * 100) : 0;
+    $("#barFill").style.width = pct + "%";
+    $("#progressMsg").textContent = !n ? "Añade cositas para tu día ♡"
+      : k === n ? `¡${k}/${n} hecho! Día perfecto 🌈`
+      : k === 0 ? `0/${n} · ¡Tú puedes! 🎀`
+      : pct >= 50 ? `${k}/${n} · ¡Ya casi! 🍰` : `${k}/${n} · ¡Vas genial! 🌸`;
+  }
+
+  function removeTask(t, d) {
+    if (t.repeat !== "once") {
+      const ok = confirm(`"${t.title}" es una rutina (${repeatText(t)}).\n¿Borrarla de todos los días?`);
+      if (!ok) return;
+    }
+    data.tasks = data.tasks.filter(x => x.id !== t.id);
+    for (const k of Object.keys(data.done)) {
+      data.done[k] = data.done[k].filter(id => id !== t.id);
+      if (!data.done[k].length) delete data.done[k];
+    }
+    save();
+    toast("Tarea borrada 🫧");
+    renderAll();
+  }
+
+  /* ---------- Vista semana ---------- */
+  function renderWeek() {
+    const end = addDays(weekStart, 6);
+    const isThis = ymd(weekStart) === ymd(startOfWeek(today()));
+    $("#weekLabel").textContent = isThis ? "Esta semana"
+      : `${weekStart.getDate()} ${MONTHS[weekStart.getMonth()].slice(0, 3)} – ${end.getDate()} ${MONTHS[end.getMonth()].slice(0, 3)}`;
+
+    const grid = $("#weekGrid");
+    grid.innerHTML = "";
+    const counts = {};
+    const special = { medico: [], ejercicio: [] };
+    let total = 0, doneTotal = 0;
+
+    for (let i = 0; i < 7; i++) {
+      const d = addDays(weekStart, i);
+      const list = tasksOn(d);
+      const doneN = list.filter(t => isDone(t, d)).length;
+      total += list.length; doneTotal += doneN;
+      for (const t of list) {
+        counts[t.cat] = (counts[t.cat] || 0) + 1;
+        if (special[t.cat]) special[t.cat].push({ t, d });
+      }
+      const box = document.createElement("div");
+      box.className = "wday" + (ymd(d) === ymd(today()) ? " is-today" : "");
+      box.innerHTML = `
+        <div class="head">
+          <span class="name">${DAY_LONG[i]} ${d.getDate()}</span>
+          <span class="count">${list.length ? `${doneN}/${list.length} ✓` : "libre 🍡"}</span>
+        </div>
+        <div class="pills">${list.map(t =>
+          `<span class="pill${isDone(t, d) ? " done" : ""}">${catOf(t.cat).emoji} ${esc(t.title)}${t.time ? " · " + t.time : ""}</span>`
+        ).join("")}</div>`;
+      box.addEventListener("click", () => { current = d; switchTab("day"); });
+      grid.appendChild(box);
+    }
+
+    const alerts = $("#weekAlerts");
+    const fmt = ({ t, d }) => `${DAY_LONG[weekIdx(d)]}${t.time ? " a las " + t.time : ""}${isDone(t, d) ? " ✓" : ""}`;
+    let html = "";
+    if (special.medico.length) {
+      html += `<div class="alert"><span class="emoji">🩺</span><div>¡Tienes médico esta semana!
+        <small>${special.medico.map(x => esc(x.t.title) + " – " + fmt(x)).join("<br>")}</small></div></div>`;
+    } else {
+      html += `<div class="alert"><span class="emoji">🩺</span><div>Sin médico esta semana<small>¡Qué bien! A cuidarse igual ♡</small></div></div>`;
+    }
+    if (special.ejercicio.length) {
+      const ex = special.ejercicio, exDone = ex.filter(x => isDone(x.t, x.d)).length;
+      const days = [...new Set(ex.map(x => DAY_LONG[weekIdx(x.d)]))];
+      html += `<div class="alert"><span class="emoji">💪</span><div>${ex.length} ${ex.length === 1 ? "sesión" : "sesiones"} de ejercicio (${exDone} hechas)
+        <small>${days.join(", ")}</small></div></div>`;
+    } else {
+      html += `<div class="alert"><span class="emoji">💪</span><div>Sin ejercicio planeado<small>¿Un paseíto rosa? 🌸</small></div></div>`;
+    }
+    alerts.innerHTML = html;
+
+    $("#weekStats").innerHTML =
+      `<span class="stat">✓ ${doneTotal}/${total} tachadas</span>` +
+      CATS.filter(c => counts[c.id]).map(c => `<span class="stat">${c.emoji} ${counts[c.id]}</span>`).join("");
+  }
+
+  /* ---------- Formulario ---------- */
+  let fCat = "general", fRepeat = "once", fDays = new Set([weekIdx(today())]);
+
+  function buildForm() {
+    $("#fCats").innerHTML = CATS.map(c =>
+      `<button type="button" class="chip${c.id === fCat ? " on" : ""}" data-v="${c.id}">${c.emoji} ${c.name}</button>`).join("");
+    $("#fDays").innerHTML = DAY_SHORT.map((s, i) =>
+      `<button type="button" class="chip${fDays.has(i) ? " on" : ""}" data-v="${i}" aria-label="${DAY_LONG[i]}">${s}</button>`).join("");
+    $("#fRepeat").querySelectorAll(".chip").forEach(b => b.classList.toggle("on", b.dataset.v === fRepeat));
+    $("#daysWrap").classList.toggle("hidden", fRepeat !== "weekly");
+    $("#dateWrap").firstChild.textContent = fRepeat === "once" ? "Día" : "Empieza el";
+  }
+
+  $("#fCats").addEventListener("click", e => {
+    const b = e.target.closest(".chip"); if (!b) return;
+    fCat = b.dataset.v; buildForm();
+  });
+  $("#fRepeat").addEventListener("click", e => {
+    const b = e.target.closest(".chip"); if (!b) return;
+    fRepeat = b.dataset.v; buildForm();
+  });
+  $("#fDays").addEventListener("click", e => {
+    const b = e.target.closest(".chip"); if (!b) return;
+    const i = Number(b.dataset.v);
+    fDays.has(i) ? fDays.delete(i) : fDays.add(i);
+    buildForm();
+  });
+
+  $("#addForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const title = $("#fTitle").value.trim();
+    if (!title) return;
+    const date = $("#fDate").value || ymd(current);
+    if (fRepeat === "weekly" && !fDays.size) { toast("Elige al menos un día 🗓️"); return; }
+    const task = { id: uid(), title, cat: fCat, time: $("#fTime").value, repeat: fRepeat };
+    if (fRepeat === "once") task.date = date;
+    else task.from = date;
+    if (fRepeat === "weekly") task.days = [...fDays].sort();
+    data.tasks.push(task);
+    save();
+    $("#fTitle").value = ""; $("#fTime").value = "";
+    toast(`${catOf(fCat).emoji} ¡"${title}" guardado!`);
+    hearts(innerWidth / 2, innerHeight * .6, 10);
+    renderAll();
+  });
+
+  $("#quickAdd").addEventListener("submit", e => {
+    e.preventDefault();
+    const title = $("#quickTitle").value.trim();
+    if (!title) return;
+    data.tasks.push({ id: uid(), title, cat: "general", time: "", repeat: "once", date: ymd(current) });
+    save();
+    $("#quickTitle").value = "";
+    renderAll();
+  });
+
+  function renderRoutines() {
+    const ul = $("#routineList");
+    const list = data.tasks.filter(t => t.repeat !== "once");
+    ul.innerHTML = list.length ? "" : `<li class="empty"><span class="pop">🧸</span>Aún no tienes rutinas</li>`;
+    for (const t of list) {
+      const c = catOf(t.cat);
+      const li = document.createElement("li");
+      li.className = "task";
+      li.innerHTML = `<span class="emoji">${c.emoji}</span>
+        <div class="info"><div class="title">${esc(t.title)}</div>
+        <div class="meta">🔁 ${repeatText(t)}${t.time ? " · ⏰ " + t.time : ""}</div></div>
+        <button class="del" aria-label="Borrar">✕</button>`;
+      li.querySelector(".del").addEventListener("click", () => removeTask(t, current));
+      ul.appendChild(li);
+    }
+  }
+
+  /* ---------- Navegación ---------- */
+  function switchTab(name) {
+    document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
+    ["day", "week", "add"].forEach(n => $("#tab-" + n).classList.toggle("hidden", n !== name));
+    if (name === "add") $("#fDate").value = ymd(current);
+    if (name === "week") weekStart = startOfWeek(current);
+    renderAll();
+    scrollTo({ top: 0, behavior: "smooth" });
+  }
+  document.querySelector(".tabs").addEventListener("click", e => {
+    const b = e.target.closest("button"); if (b) switchTab(b.dataset.tab);
+  });
+  $("#prevDay").onclick = () => { current = addDays(current, -1); renderDay(); };
+  $("#nextDay").onclick = () => { current = addDays(current, 1); renderDay(); };
+  $("#goToday").onclick = () => { current = today(); renderDay(); };
+  $("#prevWeek").onclick = () => { weekStart = addDays(weekStart, -7); renderWeek(); };
+  $("#nextWeek").onclick = () => { weekStart = addDays(weekStart, 7); renderWeek(); };
+
+  /* ---------- Efectos ---------- */
+  const HEARTS = ["💖", "💗", "🎀", "🌸", "✨", "💕", "🍓"];
+  function hearts(x, y, n) {
+    for (let i = 0; i < n; i++) {
+      const s = document.createElement("span");
+      s.className = "heart";
+      s.textContent = HEARTS[Math.floor(Math.random() * HEARTS.length)];
+      s.style.left = (x - 13 + (Math.random() * 40 - 20)) + "px";
+      s.style.top = (y - 13) + "px";
+      s.style.setProperty("--dx", (Math.random() * 160 - 80) + "px");
+      s.style.setProperty("--rot", (Math.random() * 90 - 45) + "deg");
+      s.style.animationDelay = (Math.random() * .25) + "s";
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 2000);
+    }
+  }
+  let toastTimer;
+  function toast(msg) {
+    const t = $("#toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove("show"), 2400);
+  }
+
+  function renderAll() { renderDay(); renderWeek(); renderRoutines(); buildForm(); }
+
+  greet();
+  $("#fDate").value = ymd(current);
+  renderAll();
+})();
+</script>
+</body>
+</html>
