@@ -71,7 +71,9 @@ Cómo rellenar cada tarea:
 - Los campos que no aplican van vacíos: date "", days [], dates [].
 - Si una parte no se entiende, sáltala y explícalo en note en una frase corta; si todo está claro, note "".`;
 
-const client = new Anthropic(); // lee ANTHROPIC_API_KEY de los secretos
+// Se recorta por si al pegar la clave en Supabase se coló un espacio o salto de línea
+const API_KEY = (Deno.env.get("ANTHROPIC_API_KEY") || "").trim();
+const client = new Anthropic({ apiKey: API_KEY });
 
 const okDate = (s: unknown) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(Date.parse(s));
 
@@ -113,7 +115,7 @@ Deno.serve(async (req) => {
   const { data: u, error: authErr } = await sb.auth.getUser(token);
   if (authErr || !u?.user) return json({ error: "login" }, 401);
 
-  if (!Deno.env.get("ANTHROPIC_API_KEY")) return json({ error: "no_key" }, 500);
+  if (!API_KEY) return json({ error: "no_key" }, 500);
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "bad_json" }, 400); }
@@ -139,7 +141,11 @@ Deno.serve(async (req) => {
     return json(clean(JSON.parse(out)));
   } catch (err) {
     if (err instanceof Anthropic.RateLimitError) return json({ error: "quota" }, 429);
-    if (err instanceof Anthropic.AuthenticationError) return json({ error: "bad_key" }, 500);
+    if (err instanceof Anthropic.AuthenticationError || err instanceof Anthropic.PermissionDeniedError) {
+      // Nunca se escribe la clave: solo su forma, para saber si se pegó la correcta
+      console.error(`auth error ${err.status}: ${err.message} | key shape: ${API_KEY.startsWith("sk-ant-api") ? "sk-ant-api…" : API_KEY.startsWith("sk-ant-") ? "sk-ant- (no es de API)" : "no empieza por sk-ant-"}, length ${API_KEY.length}`);
+      return json({ error: "bad_key" }, 502);
+    }
     if (err instanceof Anthropic.BadRequestError) {
       // Sin saldo la API responde 400 con un mensaje de crédito
       console.error("bad request:", err.message);

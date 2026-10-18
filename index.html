@@ -656,11 +656,11 @@
     const mon = startOfWeek(t);
     return {
       tasks: [
-        { id: uid(), title: "Beber 8 vasitos de agua", cat: "cuidado", time: "", repeat: "daily", from: ymd(t) },
-        { id: uid(), title: "Hacer la cama", cat: "casa", time: "", repeat: "daily", from: ymd(t) },
-        { id: uid(), title: "Pilates", cat: "ejercicio", time: "18:00", repeat: "weekly", days: [0, 2, 4], from: ymd(mon) },
-        { id: uid(), title: "Cita con la doctora", cat: "medico", time: "10:30", repeat: "once", date: ymd(addDays(mon, 3)) },
-        { id: uid(), title: "Turno de trabajo", cat: "trabajo", time: "09:00", repeat: "dates",
+        { id: uid(), seed: true, title: "Beber 8 vasitos de agua", cat: "cuidado", time: "", repeat: "daily", from: ymd(t) },
+        { id: uid(), seed: true, title: "Hacer la cama", cat: "casa", time: "", repeat: "daily", from: ymd(t) },
+        { id: uid(), seed: true, title: "Pilates", cat: "ejercicio", time: "18:00", repeat: "weekly", days: [0, 2, 4], from: ymd(mon) },
+        { id: uid(), seed: true, title: "Cita con la doctora", cat: "medico", time: "10:30", repeat: "once", date: ymd(addDays(mon, 3)) },
+        { id: uid(), seed: true, title: "Turno de trabajo", cat: "trabajo", time: "09:00", repeat: "dates",
           dates: [1, 2, 5, 8, 9, 12, 15, 16, 19].map(n => ymd(addDays(mon, n))) },
       ],
       done: {},
@@ -1046,10 +1046,13 @@
         renderExtras(); renderMonth();
       });
       const inp = card.querySelector("input");
-      inp.addEventListener("change", () => {
-        setLog(k, "read", x => ({ ...x, note: inp.value.trim(), done: x.done || !!inp.value.trim() }));
-        renderExtras(); renderMonth();
+      // Se guarda mientras escribes (sin redibujar para no perder el foco)
+      let rt;
+      inp.addEventListener("input", () => {
+        clearTimeout(rt);
+        rt = setTimeout(() => { setLog(k, "read", x => ({ ...x, note: inp.value.trim(), done: x.done || !!inp.value.trim() })); renderMonth(); }, 700);
       });
+      inp.addEventListener("change", () => { clearTimeout(rt); setLog(k, "read", x => ({ ...x, note: inp.value.trim(), done: x.done || !!inp.value.trim() })); renderExtras(); renderMonth(); });
       putBox("read", card);
     }
 
@@ -1074,7 +1077,9 @@
         renderExtras(); renderMonth();
       }));
       const inp = card.querySelector("input");
-      inp.addEventListener("change", () => { setLog(k, "food", x => ({ ...x, note: inp.value.trim() })); renderMonth(); });
+      let ft;
+      inp.addEventListener("input", () => { clearTimeout(ft); ft = setTimeout(() => { setLog(k, "food", x => ({ ...x, note: inp.value.trim() })); renderMonth(); }, 700); });
+      inp.addEventListener("change", () => { clearTimeout(ft); setLog(k, "food", x => ({ ...x, note: inp.value.trim() })); renderMonth(); });
       putBox("food", card);
     }
 
@@ -1482,6 +1487,18 @@
     auth: { persistSession: true, autoRefreshToken: true, storageKey: "miDiaKawaii.auth" }
   }) : null;
 
+  // Junta lo usado sin cuenta en este dispositivo con lo que ya había en la nube
+  function mergeData(remote, local) {
+    const r = normalize(JSON.parse(JSON.stringify(remote)));
+    const ids = new Set(r.tasks.map(t => t.id));
+    for (const t of local.tasks || []) if (!t.seed && !ids.has(t.id)) r.tasks.push(t);
+    for (const [k, v] of Object.entries(local.done || {})) r.done[k] = [...new Set([...(r.done[k] || []), ...v])];
+    for (const [k, v] of Object.entries(local.log || {})) r.log[k] = { ...v, ...(r.log[k] || {}) };
+    r.cycleStarts = [...new Set([...r.cycleStarts, ...(local.cycleStarts || [])])].sort();
+    r.updatedAt = Date.now();
+    return r;
+  }
+
   const cloud = {
     user: null, timer: null, pending: false, busy: false,
     status(kind) {
@@ -1521,14 +1538,26 @@
         const { data: row, error } = await sb.from("kawaii_state").select("data").maybeSingle();
         if (error) { this.status("error"); return; }
         const remote = row && row.data;
-        if (remote && (remote.updatedAt || 0) > (data.updatedAt || 0)) {
-          data = normalize({ ...remote });
-          store.save(data);
-          renderAll();
-          this.status("ok");
-        } else if (!remote || (data.updatedAt || 0) > (remote.updatedAt || 0) || this.pending) {
-          await this.push();
-        } else this.status("ok");
+        const uidNow = this.user.id, owner = data.owner;
+        const lt = data.updatedAt || 0, rt = remote ? remote.updatedAt || 0 : 0;
+        let next = null, upload = false;
+        if (owner && owner !== uidNow) {
+          // Lo que hay en este dispositivo es de otra cuenta: nunca se mezcla
+          next = remote ? normalize({ ...remote }) : normalize(seed());
+          upload = !remote;
+        } else if (!remote) {
+          upload = true;
+        } else if (rt > lt) {
+          next = normalize({ ...remote });
+        } else if (lt > rt || this.pending) {
+          if (owner === uidNow) upload = true;
+          else { next = mergeData(remote, data); upload = true; } // datos usados sin cuenta: se suman, no pisan la nube
+        }
+        if (next) { data = next; }
+        if (data.owner !== uidNow) { data.owner = uidNow; }
+        store.save(data);
+        if (next) renderAll();
+        if (upload) await this.push(); else this.status("ok");
       } finally { this.busy = false; }
     },
     async setUser(user) {
@@ -1603,7 +1632,7 @@
       const a = e.target.closest("button") && e.target.closest("button").dataset.a;
       if (a === "close") close();
       if (a === "sync") { close(); await cloud.pull(); toast("¡Sincronizado! ☁️"); }
-      if (a === "out") { close(); await sb.auth.signOut(); toast("Sesión cerrada 🫧 (tus tareas siguen en este móvil)"); }
+      if (a === "out") { close(); await sb.auth.signOut({ scope: "local" }); toast("Sesión cerrada 🫧 (tus tareas siguen en este móvil)"); }
     });
     document.body.appendChild(back);
     requestAnimationFrame(() => back.classList.add("show"));
