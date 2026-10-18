@@ -274,6 +274,36 @@
   .box form input { padding: 10px 12px; font-size: 15px; border-color: color-mix(in srgb, var(--c) 35%, #fff); }
   .box form .btn { background: var(--c); box-shadow: 0 4px 0 color-mix(in srgb, var(--c) 70%, #6b3a52); padding: 10px 16px; }
 
+  /* ---------- Lectura y ciclo ---------- */
+  .toggle-big { width: 100%; border: 3px dashed color-mix(in srgb, var(--c) 50%, #fff); background: color-mix(in srgb, var(--c) 8%, #fff);
+    color: color-mix(in srgb, var(--c) 75%, #6b3a52); border-radius: 18px; padding: 14px; font: 700 16px "Quicksand", sans-serif; cursor: pointer; }
+  .toggle-big.on { background: var(--c); border-style: solid; border-color: var(--c); color: #fff; }
+  .xlabel { font-weight: 700; font-size: 13.5px; color: var(--muted); margin: 14px 0 6px; }
+  .xchips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .xchips .chip { font-size: 13.5px; padding: 7px 11px; }
+  .xchips .chip.on { background: var(--c); border-color: var(--c); color: #fff; }
+  .moods .chip { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 8px; min-width: 62px; font-size: 12px; }
+  .moods .chip b { font-size: 24px; line-height: 1; font-weight: 400; }
+  .box textarea, .box .xinput { width: 100%; font: 600 15px "Quicksand", sans-serif; color: var(--text); padding: 10px 12px; border-radius: 14px;
+    border: 3px solid color-mix(in srgb, var(--c) 30%, #fff); background: var(--pink-50); outline: none; resize: vertical; margin-top: 10px; }
+  .box textarea:focus, .box .xinput:focus { border-color: var(--c); background: #fff; }
+  .cycle-day { text-align: center; margin: 2px 0 12px; }
+  .cycle-day .big { font-family: "Mochiy Pop One", sans-serif; font-size: 22px; color: color-mix(in srgb, var(--c) 80%, #6b3a52); }
+  .cycle-day .small { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .day1 { display: block; margin: 0 auto; border: 2px solid color-mix(in srgb, var(--c) 40%, #fff); background: #fff; color: color-mix(in srgb, var(--c) 80%, #6b3a52);
+    border-radius: 999px; padding: 8px 14px; font: 700 14px "Quicksand"; cursor: pointer; }
+  .day1.on { background: var(--c); color: #fff; border-color: var(--c); }
+  .saved { font-size: 12px; color: var(--muted); font-weight: 600; text-align: right; min-height: 1em; margin-top: 4px; }
+  .extras-toggle { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: -6px 0 20px; font-size: 13px; color: var(--muted); font-weight: 700; }
+  .extras-toggle button { border: 2px solid var(--pink-200); background: #fff; color: var(--muted); border-radius: 999px; padding: 6px 12px; font: 700 13px "Quicksand"; cursor: pointer; }
+  .clog { display: grid; gap: 8px; }
+  .clog .row { padding: 9px 12px; border-radius: 14px; background: color-mix(in srgb, var(--c) 9%, #fff); }
+  .clog .row .t { font-weight: 700; }
+  .clog .row .d { font-size: 13px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+  .clog .row.period { background: color-mix(in srgb, #ff5f7e 16%, #fff); }
+  .statline { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .statline .stat { background: color-mix(in srgb, var(--c) 10%, #fff); border-color: color-mix(in srgb, var(--c) 35%, #fff); }
+
   /* ---------- Escribir y colocar ---------- */
   .magic { display: grid; gap: 12px; }
   .magic h2 { margin: 0; }
@@ -436,6 +466,8 @@
     </div>
 
     <div id="dayBoxes"></div>
+    <div id="dayExtras"></div>
+    <div class="extras-toggle" id="extrasToggle"></div>
   </section>
 
   <!-- ============ SEMANA ============ -->
@@ -467,6 +499,14 @@
     <div class="card">
       <h2 id="monthSumTitle">✨ Este mes</h2>
       <div class="monthsum" id="monthSum"></div>
+    </div>
+    <div class="card box" id="monthCycleCard" style="--c:#e05a8a">
+      <h2><span id="monthCycleTitle">🌙 Mi ciclo</span></h2>
+      <div id="monthCycle"></div>
+    </div>
+    <div class="card box" id="monthReadCard" style="--c:#8f7cf0">
+      <h2><span id="monthReadTitle">📖 Lectura</span></h2>
+      <div id="monthRead"></div>
     </div>
   </section>
 
@@ -606,6 +646,13 @@
   }
 
   let data = store.load() || seed();
+  // Registros por día (lectura, ciclo) y ajustes; pueden faltar en datos antiguos
+  function normalize(d) {
+    d.tasks = d.tasks || []; d.done = d.done || {};
+    d.log = d.log || {}; d.cycleStarts = d.cycleStarts || []; d.settings = d.settings || {};
+    return d;
+  }
+  normalize(data);
   function save() {
     data.updatedAt = Date.now();
     store.save(data);
@@ -846,6 +893,195 @@
       CATS.filter(c => counts[c.id]).map(c => `<span class="stat">${c.emoji} ${counts[c.id]}</span>`).join("");
   }
 
+  /* ---------- Lectura y diario del ciclo ---------- */
+  const MOODS = [
+    { id: "genial", e: "🥰", n: "Genial" }, { id: "bien", e: "😊", n: "Bien" }, { id: "normal", e: "😐", n: "Normal" },
+    { id: "cansada", e: "😴", n: "Cansada" }, { id: "triste", e: "😢", n: "Triste" }, { id: "irritable", e: "😤", n: "Irritable" },
+    { id: "ansiosa", e: "😰", n: "Ansiosa" }, { id: "mal", e: "🤒", n: "Mal" },
+  ];
+  const moodOf = id => MOODS.find(m => m.id === id);
+  const FLOWS = ["Nada", "Ligera 💧", "Media 💧💧", "Abundante 💧💧💧"];
+  const SYMPTOMS = ["Cólicos", "Dolor de cabeza", "Hinchazón", "Antojos", "Acné", "Pecho sensible", "Dolor de espalda",
+    "Náuseas", "Insomnio", "Mucho sueño", "Mucha energía", "Sensible emocionalmente"];
+  const CYCLE_COLOR = "#e05a8a", READ_COLOR = "#8f7cf0";
+
+  const getLog = k => data.log[k] || {};
+  function setLog(k, part, fn) {
+    const day = data.log[k] = data.log[k] || {};
+    day[part] = fn(day[part] || {});
+    save();
+  }
+  const daysBetween = (a, b) => Math.round((parseYmd(b) - parseYmd(a)) / 86400000);
+  // Día del ciclo: días desde el último "día 1" marcado (o null si no hay o pasó demasiado)
+  function cycleDay(k) {
+    const start = data.cycleStarts.filter(x => x <= k).sort().pop();
+    if (!start) return null;
+    const n = daysBetween(start, k) + 1;
+    return n <= 60 ? n : null;
+  }
+  function avgCycle() {
+    const st = [...data.cycleStarts].sort();
+    const gaps = st.slice(1).map((x, i) => daysBetween(st[i], x)).filter(g => g >= 18 && g <= 45);
+    return gaps.length ? Math.round(gaps.reduce((a, b) => a + b, 0) / gaps.length) : null;
+  }
+  function nextPeriod() {
+    const avg = avgCycle(), last = [...data.cycleStarts].sort().pop();
+    return avg && last ? addDays(parseYmd(last), avg) : null;
+  }
+  const isRead = k => !!(getLog(k).read && getLog(k).read.done);
+  function readStreak(k) {
+    let d = parseYmd(k), n = 0;
+    if (!isRead(k)) d = addDays(d, -1); // si hoy aún no, cuenta hasta ayer
+    while (isRead(ymd(d))) { n++; d = addDays(d, -1); }
+    return n;
+  }
+  const fmtDay = k => { const d = parseYmd(k); return `${DAY_SHORT[weekIdx(d)]} ${d.getDate()}`; };
+
+  function renderExtras() {
+    const d = current, k = ymd(d), wrap = $("#dayExtras");
+    wrap.innerHTML = "";
+    const st = data.settings;
+
+    if (!st.hideRead) {
+      const r = getLog(k).read || {};
+      const monthKey = k.slice(0, 7);
+      const monthDays = Object.keys(data.log).filter(x => x.startsWith(monthKey) && isRead(x)).length;
+      const streak = readStreak(k);
+      const card = document.createElement("div");
+      card.className = "card box";
+      card.style.setProperty("--c", READ_COLOR);
+      card.innerHTML = `
+        <h2><span>📖 Lectura</span><span class="count${r.done ? " full" : ""}">${streak ? `🔥 ${streak} ${streak === 1 ? "día" : "días"}` : `${monthDays} este mes`}</span></h2>
+        <button class="toggle-big${r.done ? " on" : ""}" data-a="read">${r.done ? "✓ ¡Hoy has leído! 📚" : "📖 Hoy he leído"}</button>
+        <input class="xinput" maxlength="120" placeholder="¿Qué has leído? (libro, páginas, minutos…)" value="${esc(r.note || "")}">
+        <div class="saved"></div>`;
+      card.querySelector("[data-a=read]").addEventListener("click", e => {
+        const was = !!r.done;
+        setLog(k, "read", x => ({ ...x, done: !was }));
+        if (!was) { hearts(e.clientX, e.clientY, 8); toast(`¡A leer! ${readStreak(k) > 1 ? `🔥 ${readStreak(k)} días seguidos` : "📚"}`); }
+        renderExtras(); renderMonth();
+      });
+      const inp = card.querySelector("input");
+      inp.addEventListener("change", () => {
+        setLog(k, "read", x => ({ ...x, note: inp.value.trim(), done: x.done || !!inp.value.trim() }));
+        renderExtras(); renderMonth();
+      });
+      wrap.appendChild(card);
+    }
+
+    if (!st.hideCycle) {
+      const c = getLog(k).cycle || {};
+      const cd = cycleDay(k), isStart = data.cycleStarts.includes(k), np = nextPeriod();
+      const card = document.createElement("div");
+      card.className = "card box";
+      card.style.setProperty("--c", CYCLE_COLOR);
+      card.innerHTML = `
+        <h2><span>🌙 Mi ciclo</span><span class="count">${cd ? `Día ${cd}` : "—"}</span></h2>
+        <div class="cycle-day">
+          <div class="big">${cd ? `Día ${cd} del ciclo` : "¿Cuándo te vino la regla?"}</div>
+          <div class="small">${cd ? (np ? `Próxima regla aprox. ${fmtDay(ymd(np))} de ${MONTHS[np.getMonth()]}` : "Marca el día 1 cada vez que te venga para calcular la próxima")
+            : "Ve al día en que empezó y pulsa el botón 🩸"}</div>
+        </div>
+        <button class="day1${isStart ? " on" : ""}" data-a="start">${isStart ? "🩸 Día 1 marcado · quitar" : "🩸 Hoy es el día 1 de mi regla"}</button>
+        <div class="xlabel">¿Cómo te sientes?</div>
+        <div class="xchips moods">${MOODS.map(m => `<button class="chip${c.mood === m.id ? " on" : ""}" data-mood="${m.id}"><b>${m.e}</b>${m.n}</button>`).join("")}</div>
+        <div class="xlabel">Regla</div>
+        <div class="xchips">${FLOWS.map((f, i) => `<button class="chip${(c.flow || 0) === i && c.flow !== undefined ? " on" : ""}" data-flow="${i}">${f}</button>`).join("")}</div>
+        <div class="xlabel">Síntomas</div>
+        <div class="xchips">${SYMPTOMS.map(x => `<button class="chip${(c.symptoms || []).includes(x) ? " on" : ""}" data-sym="${esc(x)}">${x}</button>`).join("")}</div>
+        <textarea rows="3" maxlength="1000" placeholder="¿Cómo ha ido el día? Lo que quieras apuntar…">${esc(c.note || "")}</textarea>
+        <div class="saved"></div>`;
+      card.addEventListener("click", e => {
+        const b = e.target.closest("button"); if (!b) return;
+        if (b.dataset.a === "start") {
+          data.cycleStarts = isStart ? data.cycleStarts.filter(x => x !== k) : [...new Set([...data.cycleStarts, k])].sort();
+          if (!isStart) setLog(k, "cycle", x => ({ ...x, flow: x.flow || 2 }));
+          else save();
+          toast(isStart ? "Día 1 quitado 🫧" : "Día 1 apuntado 🩸 ¡cuídate mucho!");
+        } else if (b.dataset.mood) {
+          setLog(k, "cycle", x => ({ ...x, mood: x.mood === b.dataset.mood ? undefined : b.dataset.mood }));
+        } else if (b.dataset.flow !== undefined) {
+          const f = Number(b.dataset.flow);
+          setLog(k, "cycle", x => ({ ...x, flow: x.flow === f ? undefined : f }));
+        } else if (b.dataset.sym) {
+          const sym = b.dataset.sym;
+          setLog(k, "cycle", x => { const set = new Set(x.symptoms || []); set.has(sym) ? set.delete(sym) : set.add(sym); return { ...x, symptoms: [...set] }; });
+        } else return;
+        renderExtras(); renderMonth();
+      });
+      const ta = card.querySelector("textarea"), saved = card.querySelector(".saved");
+      let tmr;
+      ta.addEventListener("input", () => {
+        clearTimeout(tmr);
+        saved.textContent = "…";
+        tmr = setTimeout(() => { setLog(k, "cycle", x => ({ ...x, note: ta.value.trim() })); saved.textContent = "Guardado ♡"; renderMonth(); }, 700);
+      });
+      wrap.appendChild(card);
+    }
+
+    $("#extrasToggle").innerHTML =
+      `<button data-t="hideRead">${st.hideRead ? "➕ Mostrar 📖 Lectura" : "Ocultar 📖 Lectura"}</button>` +
+      `<button data-t="hideCycle">${st.hideCycle ? "➕ Mostrar 🌙 Mi ciclo" : "Ocultar 🌙 Mi ciclo"}</button>`;
+  }
+  $("#extrasToggle").addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    data.settings[b.dataset.t] = !data.settings[b.dataset.t];
+    save(); renderExtras(); renderMonth();
+  });
+
+  function renderMonthLogs() {
+    const m = monthCursor.getMonth(), key = ymd(monthCursor).slice(0, 7), mName = MONTHS[m];
+    // Ciclo
+    $("#monthCycleCard").classList.toggle("hidden", !!data.settings.hideCycle);
+    const entries = Object.keys(data.log).filter(k => k.startsWith(key) && data.log[k].cycle &&
+      Object.values(data.log[k].cycle).some(v => v !== undefined && v !== "" && !(Array.isArray(v) && !v.length))).sort();
+    const starts = data.cycleStarts.filter(k => k.startsWith(key));
+    $("#monthCycleTitle").textContent = `🌙 Mi ciclo en ${mName}`;
+    if (!entries.length && !starts.length) {
+      $("#monthCycle").innerHTML = `<div class="empty">Aún no has apuntado nada este mes. Hazlo cada día desde "Mi día" 🌸</div>`;
+    } else {
+      const moods = {}, syms = {};
+      let periodDays = 0;
+      for (const k of entries) {
+        const c = data.log[k].cycle;
+        if (c.mood) moods[c.mood] = (moods[c.mood] || 0) + 1;
+        for (const x of c.symptoms || []) syms[x] = (syms[x] || 0) + 1;
+        if (c.flow > 0) periodDays++;
+      }
+      const np = nextPeriod(), avg = avgCycle();
+      const moodLine = MOODS.filter(x => moods[x.id]).sort((a, b) => moods[b.id] - moods[a.id])
+        .map(x => `<span class="stat">${x.e} ${x.n} · ${moods[x.id]}</span>`).join("");
+      const symLine = Object.entries(syms).sort((a, b) => b[1] - a[1]).slice(0, 5)
+        .map(([x, n]) => `<span class="stat">${esc(x)} · ${n}</span>`).join("");
+      $("#monthCycle").innerHTML = `
+        <div class="statline">
+          ${starts.length ? `<span class="stat">🩸 Regla empezó: ${starts.map(fmtDay).join(", ")}</span>` : ""}
+          ${periodDays ? `<span class="stat">💧 ${periodDays} ${periodDays === 1 ? "día" : "días"} de regla</span>` : ""}
+          ${avg ? `<span class="stat">🔄 Ciclo medio: ${avg} días</span>` : ""}
+          ${np ? `<span class="stat">📅 Próxima aprox.: ${fmtDay(ymd(np))} ${MONTHS[np.getMonth()].slice(0, 3)}</span>` : ""}
+        </div>
+        ${moodLine ? `<div class="xlabel" style="margin-top:4px">Cómo te has sentido</div><div class="statline">${moodLine}</div>` : ""}
+        ${symLine ? `<div class="xlabel" style="margin-top:4px">Síntomas más repetidos</div><div class="statline">${symLine}</div>` : ""}
+        <div class="xlabel">Día a día</div>
+        <div class="clog">${entries.map(k => {
+          const c = data.log[k].cycle, cd = cycleDay(k), mo = moodOf(c.mood);
+          const bits = [mo && `${mo.e} ${mo.n}`, c.flow > 0 && FLOWS[c.flow], (c.symptoms || []).join(", ")].filter(Boolean).join(" · ");
+          return `<div class="row${c.flow > 0 ? " period" : ""}"><div class="t">${fmtDay(k)}${cd ? ` · día ${cd} del ciclo` : ""}${bits ? " — " + esc(bits) : ""}</div>
+            ${c.note ? `<div class="d">“${esc(c.note)}”</div>` : ""}</div>`;
+        }).join("")}</div>`;
+    }
+    // Lectura
+    $("#monthReadCard").classList.toggle("hidden", !!data.settings.hideRead);
+    const reads = Object.keys(data.log).filter(k => k.startsWith(key) && isRead(k)).sort();
+    $("#monthReadTitle").textContent = `📖 Lectura en ${mName} · ${reads.length} ${reads.length === 1 ? "día" : "días"}`;
+    let best = 0, run = 0;
+    for (const d of monthDays(monthCursor).filter(x => x.getMonth() === m)) { run = isRead(ymd(d)) ? run + 1 : 0; best = Math.max(best, run); }
+    $("#monthRead").innerHTML = reads.length ? `
+      <div class="statline"><span class="stat">📚 ${reads.length} días leyendo</span>${best > 1 ? `<span class="stat">🔥 Mejor racha: ${best} días</span>` : ""}</div>
+      <div class="clog">${reads.map(k => `<div class="row"><div class="t">${fmtDay(k)}</div>${data.log[k].read.note ? `<div class="d">${esc(data.log[k].read.note)}</div>` : ""}</div>`).join("")}</div>`
+      : `<div class="empty">Ningún día de lectura apuntado este mes 📖</div>`;
+  }
+
   /* ---------- Vista mes ---------- */
   let monthCursor = firstOfMonth(today()), monthFilter = null;
 
@@ -876,13 +1112,16 @@
       const cats = [...new Set(list.filter(x => x.repeat !== "daily").map(x => x.cat))].map(catOf);
       const hit = monthFilter && cats.some(c => c.id === monthFilter);
       const allDone = list.length && list.every(x => isDone(x, d));
-      const ems = cats.slice(0, 3).map(c => c.emoji).join("");
+      const lg = getLog(k), marks = [];
+      if (!data.settings.hideCycle && lg.cycle && lg.cycle.flow > 0) marks.push("🩸");
+      if (!data.settings.hideRead && isRead(k)) marks.push("📖");
+      const ems = [...marks, ...cats.map(c => c.emoji)].slice(0, 3).join("");
       const cls = ["cell", d.getMonth() !== m && "out", k === t && "today",
         monthFilter && (hit ? "hit" : "dim")].filter(Boolean).join(" ");
       const fc = monthFilter ? catOf(monthFilter).color : "";
       return `<button class="${cls}" data-k="${k}" style="${hit ? "--c:" + fc : ""}" aria-label="${d.getDate()} ${MONTHS[d.getMonth()]}: ${list.map(x => esc(x.title)).join(", ") || "libre"}">
         <span class="n">${d.getDate()}</span>
-        <span class="ems">${ems}</span>${cats.length > 3 ? `<span class="more">+${cats.length - 3}</span>` : ""}
+        <span class="ems">${ems}</span>${marks.length + cats.length > 3 ? `<span class="more">+${marks.length + cats.length - 3}</span>` : ""}
         ${allDone ? `<span class="ok">💖</span>` : ""}
         <span class="bars">${cats.map(c => `<b style="--c:${c.color}"></b>`).join("")}</span>
       </button>`;
@@ -905,6 +1144,7 @@
     const daily = [...taskDays.keys()].filter(x => x.repeat === "daily" && (!monthFilter || x.cat === monthFilter));
     if (daily.length) $("#monthSum").innerHTML += `<div class="msum" style="--c:var(--pink-300)"><div class="t">🔁 Todos los días</div>
       <div class="d">${daily.map(x => catOf(x.cat).emoji + " " + esc(x.title)).join(" · ")}</div></div>`;
+    renderMonthLogs();
   }
 
   $("#monthLegend").addEventListener("click", e => {
@@ -1063,9 +1303,9 @@
   document.querySelector(".tabs").addEventListener("click", e => {
     const b = e.target.closest("button"); if (b) switchTab(b.dataset.tab);
   });
-  $("#prevDay").onclick = () => { current = addDays(current, -1); renderDay(); };
-  $("#nextDay").onclick = () => { current = addDays(current, 1); renderDay(); };
-  $("#goToday").onclick = () => { current = today(); renderDay(); };
+  $("#prevDay").onclick = () => { current = addDays(current, -1); renderDay(); renderExtras(); };
+  $("#nextDay").onclick = () => { current = addDays(current, 1); renderDay(); renderExtras(); };
+  $("#goToday").onclick = () => { current = today(); renderDay(); renderExtras(); };
   $("#prevWeek").onclick = () => { weekStart = addDays(weekStart, -7); renderWeek(); };
   $("#nextWeek").onclick = () => { weekStart = addDays(weekStart, 7); renderWeek(); };
 
@@ -1143,7 +1383,7 @@
         if (error) { this.status("error"); return; }
         const remote = row && row.data;
         if (remote && (remote.updatedAt || 0) > (data.updatedAt || 0)) {
-          data = { tasks: remote.tasks || [], done: remote.done || {}, updatedAt: remote.updatedAt };
+          data = normalize({ ...remote });
           store.save(data);
           renderAll();
           this.status("ok");
@@ -1364,7 +1604,7 @@
     });
   }
 
-  function renderAll() { renderDay(); renderWeek(); renderMonth(); renderRoutines(); buildForm(); }
+  function renderAll() { renderDay(); renderExtras(); renderWeek(); renderMonth(); renderRoutines(); buildForm(); }
 
   // Cambio de día automático: si la app sigue abierta a medianoche
   // (o vuelves a ella al día siguiente), salta sola al nuevo "hoy".

@@ -4,6 +4,8 @@ App rosa y kawaii para organizar el día a día y **tachar** lo que vas haciendo
 
 ## Qué hace
 - **Mi día**: el día dividido en cuadraditos (🧺 Casa, 📚 Estudios, 💪 Deporte, 🧁 Vida social y otros); en cada uno añades lo que toca ese día y lo tachas, barra de progreso y corazoncitos al completar. Navega a días anteriores o siguientes.
+- **📖 Lectura**: marca cada día que lees y qué has leído; lleva la racha de días seguidos.
+- **🌙 Mi ciclo**: diario de la regla. Marca el día 1 y cada día apunta cómo te sientes, cuánta regla, síntomas y una nota. En **Mes** ves el resumen y la próxima regla aproximada. Lectura y ciclo se pueden ocultar.
 - **Semana**: resumen de lunes a domingo con avisos de *“¡Tienes médico esta semana!”* y cuántas sesiones de ejercicio tienes (y cuántas llevas hechas).
 - **Añadir**: crea tareas con categoría (🎀 General, 💪 Ejercicio, 🩺 Médico, 📚 Estudio, 💼 Trabajo, 🛍️ Compras, 🧺 Casa, 🧴 Autocuidado, 🧁 Planes), hora opcional y repetición:
   - un solo día,
