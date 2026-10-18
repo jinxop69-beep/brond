@@ -44,6 +44,10 @@
     padding: 0 16px 120px;
   }
   .wrap { max-width: 720px; margin: 0 auto; }
+  .cols > section { min-width: 0; }
+  body[data-tab=day] #tab-week, body[data-tab=day] #tab-add,
+  body[data-tab=week] #tab-day, body[data-tab=week] #tab-add,
+  body[data-tab=add] #tab-day, body[data-tab=add] #tab-week { display: none; }
   h1, h2, h3, .pop { font-family: "Mochiy Pop One", "Quicksand", sans-serif; font-weight: 400; }
 
   /* ---------- Header ---------- */
@@ -229,13 +233,51 @@
   .sbtn:active { transform: translateY(3px); box-shadow: none; }
   footer { text-align: center; color: var(--muted); font-weight: 600; font-size: 13px; margin-top: 10px; }
 
+  /* ---------- Móvil abierto (Fold), tablet ---------- */
+  @media (min-width: 600px) {
+    body { padding: 0 24px 60px; }
+    .wrap { max-width: 1100px; }
+    .cols { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+    body[data-tab] #tab-day { display: block; position: sticky; top: 16px; }
+    body[data-tab=day] #tab-week { display: block; }
+    .tabs button[data-tab=day] { display: none; }
+    .tabs { max-width: 420px; margin-left: auto; }
+    header { padding-top: 28px; }
+    .sheet-back { align-items: center; }
+  }
+  /* Fold abierto: dos columnas más compactas */
+  @media (min-width: 600px) and (max-width: 899px) {
+    body { padding: 0 12px 40px; }
+    .cols { gap: 14px; }
+    .card { padding: 14px; border-radius: 22px; }
+    .card h2 { font-size: 17px; }
+    .round { width: 38px; height: 38px; font-size: 17px; }
+    .daynav { gap: 6px; }
+    .daynav .label .big { font-size: 17px; }
+    .task { padding: 10px; gap: 8px; }
+    .task .title { font-size: 15px; }
+    .emoji { font-size: 20px; }
+    .check { width: 30px; height: 30px; }
+    .alert { padding: 10px; gap: 8px; font-size: 14px; }
+    .alert .emoji { font-size: 22px; }
+    #quickAdd .btn { padding: 12px 14px; }
+  }
+  /* ---------- Escritorio ---------- */
+  @media (min-width: 1100px) {
+    .wrap { max-width: 1440px; }
+    .cols { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr); }
+    body[data-tab] #tab-week, body[data-tab] #tab-add { display: block; }
+    .tabs { display: none; }
+    .kitty { width: 96px; height: 96px; }
+  }
+
   @media (max-width: 420px) {
     .row { grid-template-columns: 1fr; }
     .kitty { width: 68px; height: 68px; }
   }
 </style>
 </head>
-<body>
+<body data-tab="day">
 <div class="wrap">
   <header>
     <!-- Gatita original con lazo -->
@@ -271,6 +313,7 @@
   </nav>
 
   <!-- ============ DÍA ============ -->
+  <main class="cols">
   <section id="tab-day">
     <div class="card">
       <div class="daynav">
@@ -299,7 +342,7 @@
   </section>
 
   <!-- ============ SEMANA ============ -->
-  <section id="tab-week" class="hidden">
+  <section id="tab-week">
     <div class="weeknav">
       <button class="round" id="prevWeek" aria-label="Semana anterior">‹</button>
       <div class="label" id="weekLabel"></div>
@@ -314,7 +357,7 @@
   </section>
 
   <!-- ============ AÑADIR ============ -->
-  <section id="tab-add" class="hidden">
+  <section id="tab-add">
     <div class="card">
       <h2>🌸 Nueva tarea</h2>
       <form id="addForm">
@@ -356,6 +399,7 @@
       <ul class="tasks" id="routineList"></ul>
     </div>
   </section>
+  </main>
 
   <footer>Hecho con 💗 · tus datos se guardan solo en este dispositivo</footer>
 </div>
@@ -688,12 +732,14 @@
 
   /* ---------- Navegación ---------- */
   function switchTab(name) {
-    document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
-    ["day", "week", "add"].forEach(n => $("#tab-" + n).classList.toggle("hidden", n !== name));
+    document.body.dataset.tab = name;
+    // Pantalla ancha: "Mi día" siempre se ve; la pestaña activa es la de la derecha
+    const shown = name === "day" && matchMedia("(min-width: 600px)").matches ? "week" : name;
+    document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === shown));
     if (name === "add") $("#fDate").value = ymd(current);
     if (name === "week") weekStart = startOfWeek(current);
     renderAll();
-    scrollTo({ top: 0, behavior: "smooth" });
+    if (!matchMedia("(min-width: 600px)").matches) scrollTo({ top: 0, behavior: "smooth" });
   }
   document.querySelector(".tabs").addEventListener("click", e => {
     const b = e.target.closest("button"); if (b) switchTab(b.dataset.tab);
@@ -778,7 +824,8 @@
 
   greet();
   $("#fDate").value = ymd(current);
-  renderAll();
+  switchTab("day");
+  matchMedia("(min-width: 600px)").addEventListener("change", () => switchTab(document.body.dataset.tab));
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
