@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#ff8fb8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mi Día">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Mi Día Kawaii</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -662,9 +667,30 @@
 
   function renderAll() { renderDay(); renderWeek(); renderRoutines(); buildForm(); }
 
+  // Cambio de día automático: si la app sigue abierta a medianoche
+  // (o vuelves a ella al día siguiente), salta sola al nuevo "hoy".
+  let lastToday = ymd(today());
+  function checkNewDay() {
+    const now = today();
+    if (ymd(now) === lastToday) { greet(); return; }
+    if (ymd(current) === lastToday) current = now;
+    if (ymd(weekStart) === ymd(startOfWeek(parseYmd(lastToday)))) weekStart = startOfWeek(now);
+    lastToday = ymd(now);
+    greet();
+    renderAll();
+    toast("¡Nuevo día, nuevas cositas! 🌞");
+  }
+  setInterval(checkNewDay, 30000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) checkNewDay(); });
+  addEventListener("focus", checkNewDay);
+
   greet();
   $("#fDate").value = ymd(current);
   renderAll();
+
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
 })();
 </script>
 </body>
