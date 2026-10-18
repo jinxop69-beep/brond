@@ -5,8 +5,9 @@ import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 
 const CATS = ["general", "ejercicio", "medico", "estudio", "trabajo", "compras", "casa", "cuidado", "social"];
 const DAYS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
-// Se puede cambiar sin tocar el código con el secreto CLAUDE_MODEL (p. ej. claude-haiku-5-5, más barato)
-const MODEL = Deno.env.get("CLAUDE_MODEL") || "claude-opus-5-5";
+// Haiku 5.5 basta para sacar fechas y horas de un texto corto y es mucho más barato.
+// Se puede cambiar sin tocar el código con el secreto CLAUDE_MODEL (p. ej. claude-opus-5-5)
+const MODEL = Deno.env.get("CLAUDE_MODEL") || "claude-haiku-5-5";
 // Reintento automático en otro modelo si el filtro de seguridad rechaza la petición (no existe en Haiku)
 const SUPPORTS_FALLBACK = /^claude-(opus-5|fable-5|sonnet-5-5)/.test(MODEL);
 
