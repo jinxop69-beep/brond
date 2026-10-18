@@ -10,7 +10,14 @@ App rosa y kawaii para organizar el día a día y **tachar** lo que vas haciendo
   - todos los días,
   - algunos días de la semana (p. ej. Pilates L · X · V).
 
-Los datos se guardan en el navegador (`localStorage`) de tu dispositivo.
+Los datos se guardan primero en el dispositivo (`localStorage`) y, si inicias sesión con el botón ☁️,
+se copian a Supabase (tabla `kawaii_state`, una fila por usuaria y protegida con RLS). Así no se pierden
+si se borra el navegador y se ven igual en el móvil y en el ordenador.
+
+## Pantallas
+- Móvil: una columna con pestañas.
+- Móvil plegable abierto o tablet (≥ 600 px): dos columnas (Mi día + Semana/Añadir).
+- Escritorio (≥ 1100 px): tres columnas, todo a la vista.
 
 ## Cómo usarla
 Abre `index.html` en el navegador (móvil u ordenador). No necesita instalar nada.

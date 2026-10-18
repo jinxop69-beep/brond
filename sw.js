@@ -1,5 +1,5 @@
 // Service worker: guarda la app para que funcione sin conexión.
-const CACHE = "mi-dia-kawaii-v3";
+const CACHE = "mi-dia-kawaii-v5";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png"];
 
 self.addEventListener("install", e => {
@@ -15,10 +15,14 @@ self.addEventListener("activate", e => {
 // Red primero (para recibir actualizaciones); si no hay conexión, usa la copia guardada.
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
+  const url = e.request.url;
+  // Solo la app, las fuentes y la librería; la nube (Supabase) va siempre directa.
+  const mine = url.startsWith(self.location.origin) || url.includes("fonts.") || url.includes("cdn.jsdelivr.net");
+  if (!mine) return;
   e.respondWith(
     fetch(e.request)
       .then(res => {
-        if (res.ok && (e.request.url.startsWith(self.location.origin) || e.request.url.includes("fonts."))) {
+        if (res.ok) {
           const copy = res.clone();
           caches.open(CACHE).then(c => c.put(e.request, copy));
         }

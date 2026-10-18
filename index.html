@@ -57,6 +57,19 @@
   }
   .kitty { width: 84px; height: 84px; flex: none; animation: bob 3s ease-in-out infinite; }
   @keyframes bob { 50% { transform: translateY(-4px) rotate(-3deg); } }
+  .htext { flex: 1; min-width: 0; }
+  .cloud {
+    flex: none; display: flex; align-items: center; gap: 6px; cursor: pointer;
+    border: 3px solid var(--pink-200); background: #fff; color: var(--pink-500);
+    border-radius: 999px; padding: 8px 12px; font: 700 13px "Quicksand", sans-serif;
+    box-shadow: 0 4px 0 var(--pink-200); max-width: 46vw; position: relative;
+  }
+  .cloud span:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cloud.on { border-color: var(--pink-400); }
+  .cloud.warn { background: var(--pink-100); }
+  .cloud-ico { font-size: 18px; }
+  .sheet input { margin-bottom: 10px; text-align: center; }
+  .sheet .err { color: var(--red-bow); font-weight: 700; min-height: 1.2em; margin: 0 0 10px; }
   header h1 { margin: 0; font-size: clamp(24px, 6vw, 34px); color: var(--pink-500);
     text-shadow: 3px 3px 0 #fff, 5px 5px 0 var(--pink-200); }
   header p { margin: 4px 0 0; color: var(--muted); font-weight: 600; }
@@ -137,7 +150,7 @@
   /* ---------- Form ---------- */
   form { display: grid; gap: 12px; }
   label.field { display: grid; gap: 6px; font-weight: 700; font-size: 14px; color: var(--muted); }
-  input[type=text], input[type=time], input[type=date], select {
+  input[type=text], input[type=email], input[type=password], input[type=time], input[type=date], select {
     width: 100%; font: 600 16px "Quicksand", sans-serif; color: var(--text);
     padding: 12px 14px; border-radius: 16px; border: 3px solid var(--pink-200); background: var(--pink-50);
     outline: none;
@@ -271,6 +284,13 @@
     .kitty { width: 96px; height: 96px; }
   }
 
+  @media (max-width: 520px) {
+    .cloud { padding: 0; width: 46px; height: 46px; justify-content: center; align-self: flex-start; margin-top: 6px; }
+    .cloud #cloudText { display: none; }
+    .cloud.on::after { content: "✓"; position: absolute; right: -4px; bottom: -4px; background: var(--pink-400); color: #fff;
+      border-radius: 50%; width: 18px; height: 18px; font-size: 11px; display: grid; place-items: center; }
+    .cloud.warn::after { content: "!"; background: var(--red-bow); }
+  }
   @media (max-width: 420px) {
     .row { grid-template-columns: 1fr; }
     .kitty { width: 68px; height: 68px; }
@@ -300,10 +320,13 @@
         <circle cx="0" cy="2" r="6" fill="#ff3d7f" stroke="#6b3a52" stroke-width="3.5"/>
       </g>
     </svg>
-    <div>
+    <div class="htext">
       <h1>Mi Día Kawaii</h1>
       <p id="greeting">¡Hola, preciosa! ♡</p>
     </div>
+    <button class="cloud" id="cloudBtn" aria-label="Cuenta y nube">
+      <span class="cloud-ico">☁️</span><span id="cloudText">Guardar en la nube</span>
+    </button>
   </header>
 
   <nav class="tabs" role="tablist">
@@ -401,11 +424,12 @@
   </section>
   </main>
 
-  <footer>Hecho con 💗 · tus datos se guardan solo en este dispositivo</footer>
+  <footer id="footNote">Hecho con 💗 · tus datos se guardan solo en este dispositivo</footer>
 </div>
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 (() => {
   /* ---------- Datos ---------- */
@@ -455,12 +479,17 @@
         { id: uid(), title: "Pilates", cat: "ejercicio", time: "18:00", repeat: "weekly", days: [0, 2, 4], from: ymd(mon) },
         { id: uid(), title: "Cita con la doctora", cat: "medico", time: "10:30", repeat: "once", date: ymd(addDays(mon, 3)) },
       ],
-      done: {}
+      done: {},
+      updatedAt: 0
     };
   }
 
   let data = store.load() || seed();
-  const save = () => store.save(data);
+  function save() {
+    data.updatedAt = Date.now();
+    store.save(data);
+    cloud.schedule();
+  }
 
   function occursOn(task, date) {
     const key = ymd(date);
@@ -775,6 +804,143 @@
     toastTimer = setTimeout(() => t.classList.remove("show"), 2400);
   }
 
+  /* ---------- Nube (Supabase) ---------- */
+  // Se guarda primero en el móvil y se copia a la nube; si borras el navegador,
+  // al volver a entrar con tu cuenta se recupera todo.
+  const SB_URL = "https://sdusjqdiighwqhjoxtto.supabase.co";
+  const SB_KEY = "sb_publishable_2BvNFc-joAok32YopRcDRw_FD4aQijc";
+  const sb = window.supabase ? window.supabase.createClient(SB_URL, SB_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, storageKey: "miDiaKawaii.auth" }
+  }) : null;
+
+  const cloud = {
+    user: null, timer: null, pending: false, busy: false,
+    status(kind) {
+      const btn = $("#cloudBtn"), txt = $("#cloudText");
+      btn.classList.toggle("on", !!this.user);
+      btn.classList.toggle("warn", kind === "offline" || kind === "error");
+      txt.textContent = !this.user ? "Guardar en la nube"
+        : kind === "saving" ? "Guardando…"
+        : kind === "offline" ? "Sin conexión"
+        : kind === "error" ? "Reintentando…"
+        : "Guardado ✓";
+      $("#footNote").textContent = this.user
+        ? `Hecho con 💗 · guardado en tu nube (${this.user.email})`
+        : "Hecho con 💗 · tus datos se guardan solo en este dispositivo";
+    },
+    schedule() {
+      if (!this.user) return;
+      this.pending = true;
+      this.status("saving");
+      clearTimeout(this.timer);
+      this.timer = setTimeout(() => this.push(), 800);
+    },
+    async push() {
+      if (!this.user || !sb) return;
+      if (!navigator.onLine) { this.status("offline"); return; }
+      this.pending = false;
+      const { error } = await sb.from("kawaii_state")
+        .upsert({ user_id: this.user.id, data, updated_at: new Date().toISOString() });
+      if (error) { this.pending = true; this.status("error"); setTimeout(() => this.pending && this.push(), 5000); }
+      else this.status(this.pending ? "saving" : "ok");
+    },
+    async pull() {
+      if (!this.user || !sb || this.busy) return;
+      if (!navigator.onLine) { this.status("offline"); return; }
+      this.busy = true;
+      try {
+        const { data: row, error } = await sb.from("kawaii_state").select("data").maybeSingle();
+        if (error) { this.status("error"); return; }
+        const remote = row && row.data;
+        if (remote && (remote.updatedAt || 0) > (data.updatedAt || 0)) {
+          data = { tasks: remote.tasks || [], done: remote.done || {}, updatedAt: remote.updatedAt };
+          store.save(data);
+          renderAll();
+          this.status("ok");
+        } else if (!remote || (data.updatedAt || 0) > (remote.updatedAt || 0) || this.pending) {
+          await this.push();
+        } else this.status("ok");
+      } finally { this.busy = false; }
+    },
+    async setUser(user) {
+      const was = this.user && this.user.id;
+      this.user = user || null;
+      this.status("ok");
+      if (this.user && this.user.id !== was) await this.pull();
+    }
+  };
+
+  if (sb) {
+    sb.auth.getSession().then(({ data: d }) => cloud.setUser(d.session && d.session.user));
+    sb.auth.onAuthStateChange((_e, session) => cloud.setUser(session && session.user));
+    addEventListener("online", () => cloud.pull());
+  }
+
+  function accountSheet() {
+    const back = document.createElement("div");
+    back.className = "sheet-back";
+    const close = () => { back.classList.remove("show"); setTimeout(() => back.remove(), 250); };
+    if (cloud.user) {
+      back.innerHTML = `
+        <div class="sheet" role="dialog" aria-modal="true">
+          <div class="sheet-emoji">☁️</div>
+          <h3>¡Tus cositas están a salvo!</h3>
+          <p>Conectada como <b>${esc(cloud.user.email)}</b>. Entra con esta cuenta en otro móvil u ordenador y verás lo mismo.</p>
+          <div class="sheet-btns">
+            <button class="sbtn" data-a="sync">🔄 Sincronizar ahora</button>
+            <button class="sbtn soft" data-a="out">Cerrar sesión</button>
+            <button class="sbtn soft" data-a="close">Cerrar ♡</button>
+          </div>
+        </div>`;
+    } else {
+      back.innerHTML = `
+        <form class="sheet" role="dialog" aria-modal="true">
+          <div class="sheet-emoji">☁️</div>
+          <h3>Guarda tu día en la nube</h3>
+          <p>Así no pierdes nada si borras el navegador o cambias de móvil.</p>
+          <input type="email" name="email" placeholder="tu@email.com" autocomplete="email" required>
+          <input type="password" name="pass" placeholder="Contraseña (mín. 6)" autocomplete="current-password" minlength="6" required>
+          <p class="err"></p>
+          <div class="sheet-btns">
+            <button class="sbtn danger" type="submit" data-a="in">💖 Entrar</button>
+            <button class="sbtn" type="submit" data-a="up">🌸 Crear cuenta nueva</button>
+            <button class="sbtn soft" type="button" data-a="close">Ahora no ♡</button>
+          </div>
+        </form>`;
+      const form = back.querySelector("form");
+      let mode = "in";
+      form.querySelectorAll("[type=submit]").forEach(b => b.addEventListener("click", () => { mode = b.dataset.a; }));
+      form.addEventListener("submit", async e => {
+        e.preventDefault();
+        const err = form.querySelector(".err");
+        if (!sb) { err.textContent = "No hay conexión con la nube ahora mismo 🥺"; return; }
+        const email = form.email.value.trim(), password = form.pass.value;
+        err.textContent = mode === "in" ? "Entrando…" : "Creando tu cuenta…";
+        if (mode === "in") {
+          const { error } = await sb.auth.signInWithPassword({ email, password });
+          if (error) { err.textContent = /confirm/i.test(error.message) ? "Primero confirma tu email 💌" : "Email o contraseña incorrectos 🥺"; return; }
+          close(); toast("¡Bienvenida! Todo se guarda en tu nube ☁️💖");
+        } else {
+          const { data: r, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: location.origin } });
+          if (error) { err.textContent = /registered|exists/i.test(error.message) ? "Ese email ya tiene cuenta: pulsa Entrar 💖" : "No se pudo crear: " + error.message; return; }
+          if (r.session) { close(); toast("¡Cuenta creada! Todo se guarda en tu nube ☁️💖"); }
+          else err.textContent = "💌 Te hemos enviado un email: confírmalo y luego pulsa Entrar.";
+        }
+      });
+    }
+    back.addEventListener("click", async e => {
+      if (e.target === back) return close();
+      const a = e.target.closest("button") && e.target.closest("button").dataset.a;
+      if (a === "close") close();
+      if (a === "sync") { close(); await cloud.pull(); toast("¡Sincronizado! ☁️"); }
+      if (a === "out") { close(); await sb.auth.signOut(); toast("Sesión cerrada 🫧 (tus tareas siguen en este móvil)"); }
+    });
+    document.body.appendChild(back);
+    requestAnimationFrame(() => back.classList.add("show"));
+    const first = back.querySelector("input"); if (first) setTimeout(() => first.focus(), 300);
+  }
+  $("#cloudBtn").addEventListener("click", accountSheet);
+
   /* ---------- Ventanita kawaii (en lugar de confirm) ---------- */
   function sheet({ emoji, title, text, buttons }) {
     return new Promise(resolve => {
@@ -819,7 +985,7 @@
     toast("¡Nuevo día, nuevas cositas! 🌞");
   }
   setInterval(checkNewDay, 30000);
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) checkNewDay(); });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) { checkNewDay(); cloud.pull(); } });
   addEventListener("focus", checkNewDay);
 
   greet();
