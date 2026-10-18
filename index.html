@@ -262,6 +262,18 @@
     border-radius: 14px; padding: 8px 12px; font-weight: 700; color: var(--pink-500); }
   .editing-bar button { border: 0; background: #fff; color: var(--pink-500); border-radius: 999px; padding: 6px 12px; font: 700 13px "Quicksand"; cursor: pointer; }
 
+  /* ---------- Cuadraditos del día ---------- */
+  .box { border-color: color-mix(in srgb, var(--c) 45%, #fff); box-shadow: 0 6px 0 color-mix(in srgb, var(--c) 35%, #fff), 0 10px 24px rgba(255, 92, 154, .12); }
+  .box h2 { justify-content: space-between; color: color-mix(in srgb, var(--c) 70%, #6b3a52); margin-bottom: 10px; }
+  .box h2 .count { font: 700 13px "Quicksand", sans-serif; color: var(--muted); background: color-mix(in srgb, var(--c) 15%, #fff);
+    padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+  .box h2 .count.full { background: var(--c); color: #fff; }
+  .box.plain .task .emoji { display: none; }
+  .box .empty { padding: 6px 4px 2px; font-size: 14px; }
+  .box form { grid-template-columns: 1fr auto; gap: 8px; margin-top: 10px; }
+  .box form input { padding: 10px 12px; font-size: 15px; border-color: color-mix(in srgb, var(--c) 35%, #fff); }
+  .box form .btn { background: var(--c); box-shadow: 0 4px 0 color-mix(in srgb, var(--c) 70%, #6b3a52); padding: 10px 16px; }
+
   /* ---------- Escribir y colocar ---------- */
   .magic { display: grid; gap: 12px; }
   .magic h2 { margin: 0; }
@@ -340,7 +352,7 @@
     .check { width: 30px; height: 30px; }
     .alert { padding: 10px; gap: 8px; font-size: 14px; }
     .alert .emoji { font-size: 22px; }
-    #quickAdd .btn { padding: 12px 14px; }
+    .box form .btn { padding: 10px 14px; }
   }
   /* ---------- Escritorio ---------- */
   @media (min-width: 1100px) {
@@ -423,14 +435,7 @@
       </div>
     </div>
 
-    <div class="card">
-      <h2>✨ Cosas por hacer</h2>
-      <ul class="tasks" id="dayList"></ul>
-      <form id="quickAdd" style="margin-top:14px; grid-template-columns: 1fr auto;">
-        <input type="text" id="quickTitle" placeholder="Añadir algo rapidito a este día…" maxlength="80" aria-label="Tarea rápida">
-        <button class="btn" type="submit" aria-label="Añadir">♡</button>
-      </form>
-    </div>
+    <div id="dayBoxes"></div>
   </section>
 
   <!-- ============ SEMANA ============ -->
@@ -552,6 +557,13 @@
     { id: "social",   emoji: "🧁", name: "Planes",      color: "#ff5f7e" },
   ];
   const catOf = id => CATS.find(c => c.id === id) || CATS[0];
+  // Cuadraditos de "Mi día": cada uno agrupa unas categorías; el último recoge todo lo demás
+  const BOXES = [
+    { emoji: "🧺", name: "Casa", cats: ["casa", "compras"], add: "casa", ph: "¿Qué toca en casa? (lavadora, limpiar…)", empty: "Nada de casa hoy ✨" },
+    { emoji: "📚", name: "Estudios", cats: ["estudio"], add: "estudio", ph: "¿Qué vas a estudiar? (tema 3, catalán…)", empty: "Hoy sin estudios 🌸" },
+    { emoji: "💪", name: "Deporte", cats: ["ejercicio"], add: "ejercicio", ph: "¿Qué deporte? (pilates, paseo…)", empty: "Hoy toca descanso 🧘‍♀️" },
+    { emoji: "🧁", name: "Vida social y otros", cats: null, add: "social", ph: "Quedadas, citas, recados…", empty: "Nada más por hoy 🍓" },
+  ];
   // Lunes primero
   const DAY_SHORT = ["L", "M", "X", "J", "V", "S", "D"];
   const DAY_LONG = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
@@ -658,12 +670,45 @@
     $("#goToday").classList.toggle("hidden", isToday);
 
     const list = tasksOn(d);
-    const ul = $("#dayList");
-    ul.innerHTML = "";
-    if (!list.length) {
-      ul.innerHTML = `<li class="empty"><span class="pop">🍓</span>Nada por aquí… ¡día libre para mimarte!</li>`;
+    const wrap = $("#dayBoxes");
+    wrap.innerHTML = "";
+    const inBox = (b, t) => b.cats ? b.cats.includes(t.cat) : !BOXES.some(o => o.cats && o.cats.includes(t.cat));
+    for (const b of BOXES) {
+      const items = list.filter(t => inBox(b, t));
+      const k = items.filter(t => isDone(t, d)).length;
+      const card = document.createElement("div");
+      card.className = "card box" + (b.cats ? " plain" : "");
+      card.style.setProperty("--c", catOf(b.add).color);
+      card.innerHTML = `
+        <h2><span>${b.emoji} ${b.name}</span><span class="count${items.length && k === items.length ? " full" : ""}">${items.length ? `${k}/${items.length}${k === items.length ? " ✓" : ""}` : "—"}</span></h2>
+        <ul class="tasks">${items.length ? "" : `<li class="empty">${b.empty}</li>`}</ul>
+        <form><input type="text" maxlength="80" placeholder="${b.ph}" aria-label="Añadir a ${b.name}"><button class="btn" type="submit" aria-label="Añadir a ${b.name}">♡</button></form>`;
+      const ul = card.querySelector("ul");
+      for (const t of items) ul.appendChild(taskItem(t, d));
+      card.querySelector("form").addEventListener("submit", e => {
+        e.preventDefault();
+        const inp = e.target.querySelector("input"), title = inp.value.trim();
+        if (!title) { inp.focus(); return; }
+        data.tasks.push({ id: uid(), title, cat: b.add, time: "", repeat: "once", date: ymd(d) });
+        save();
+        renderAll();
+        const again = $("#dayBoxes").querySelectorAll("form input")[BOXES.indexOf(b)];
+        if (again) again.focus();
+      });
+      wrap.appendChild(card);
     }
-    for (const t of list) {
+
+    const n = list.length, k = list.filter(t => isDone(t, d)).length;
+    const pct = n ? Math.round(k / n * 100) : 0;
+    $("#barFill").style.width = pct + "%";
+    $("#progressMsg").textContent = !n ? "Añade cositas en cada cuadradito ♡"
+      : k === n ? `¡${k}/${n} hecho! Día perfecto 🌈`
+      : k === 0 ? `0/${n} · ¡Tú puedes! 🎀`
+      : pct >= 50 ? `${k}/${n} · ¡Ya casi! 🍰` : `${k}/${n} · ¡Vas genial! 🌸`;
+  }
+
+  // Una tarea de la lista del día (con tachar, editar y borrar)
+  function taskItem(t, d) {
       const done = isDone(t, d);
       const c = catOf(t.cat);
       const li = document.createElement("li");
@@ -690,16 +735,7 @@
         }
       });
       li.querySelector(".del").addEventListener("click", () => removeTask(t, d));
-      ul.appendChild(li);
-    }
-
-    const n = list.length, k = list.filter(t => isDone(t, d)).length;
-    const pct = n ? Math.round(k / n * 100) : 0;
-    $("#barFill").style.width = pct + "%";
-    $("#progressMsg").textContent = !n ? "Añade cositas para tu día ♡"
-      : k === n ? `¡${k}/${n} hecho! Día perfecto 🌈`
-      : k === 0 ? `0/${n} · ¡Tú puedes! 🎀`
-      : pct >= 50 ? `${k}/${n} · ¡Ya casi! 🍰` : `${k}/${n} · ¡Vas genial! 🌸`;
+      return li;
   }
 
   async function removeTask(t, d, fromRoutines = false) {
@@ -987,15 +1023,6 @@
     renderAll();
   });
 
-  $("#quickAdd").addEventListener("submit", e => {
-    e.preventDefault();
-    const title = $("#quickTitle").value.trim();
-    if (!title) return;
-    data.tasks.push({ id: uid(), title, cat: "general", time: "", repeat: "once", date: ymd(current) });
-    save();
-    $("#quickTitle").value = "";
-    renderAll();
-  });
 
   function renderRoutines() {
     const ul = $("#routineList");
