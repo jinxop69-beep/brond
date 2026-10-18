@@ -8,7 +8,10 @@ App rosa y kawaii para organizar el día a día y **tachar** lo que vas haciendo
 - **Añadir**: crea tareas con categoría (🎀 General, 💪 Ejercicio, 🩺 Médico, 📚 Estudio, 💼 Trabajo, 🛍️ Compras, 🧺 Casa, 🧴 Autocuidado, 🧁 Planes), hora opcional y repetición:
   - un solo día,
   - todos los días,
-  - algunos días de la semana (p. ej. Pilates L · X · V).
+  - algunos días de la semana (p. ej. Pilates L · X · V),
+  - días elegidos en un calendario (turnos de trabajo, citas sueltas…).
+- **Mes**: calendario con el icono y el color de cada categoría en los días que la tienes. Toca una categoría para resaltar sus días y abajo verás la lista de qué días tienes cada cosa.
+- Todas las tareas se pueden editar con ✏️.
 
 Los datos se guardan primero en el dispositivo (`localStorage`) y, si inicias sesión con el botón ☁️,
 se copian a Supabase (tabla `kawaii_state`, una fila por usuaria y protegida con RLS). Así no se pierden

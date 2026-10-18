@@ -45,9 +45,9 @@
   }
   .wrap { max-width: 720px; margin: 0 auto; }
   .cols > section { min-width: 0; }
-  body[data-tab=day] #tab-week, body[data-tab=day] #tab-add,
-  body[data-tab=week] #tab-day, body[data-tab=week] #tab-add,
-  body[data-tab=add] #tab-day, body[data-tab=add] #tab-week { display: none; }
+  .cols > section { display: none; }
+  body[data-tab=day] #tab-day, body[data-tab=week] #tab-week,
+  body[data-tab=month] #tab-month, body[data-tab=add] #tab-add { display: block; }
   h1, h2, h3, .pop { font-family: "Mochiy Pop One", "Quicksand", sans-serif; font-weight: 400; }
 
   /* ---------- Header ---------- */
@@ -81,9 +81,10 @@
     border: 3px solid var(--pink-200);
   }
   .tabs button {
-    flex: 1; border: 0; background: transparent; padding: 12px 8px;
-    border-radius: 999px; font: 700 16px "Quicksand", sans-serif; color: var(--muted); cursor: pointer;
+    flex: 1; border: 0; background: transparent; padding: 12px 4px; white-space: nowrap;
+    border-radius: 999px; font: 700 15px "Quicksand", sans-serif; color: var(--muted); cursor: pointer;
   }
+  @media (max-width: 400px) { .tabs { gap: 2px; } .tabs button { font-size: 13.5px; padding: 11px 2px; } }
   .tabs button.active { background: var(--pink-400); color: #fff; box-shadow: inset 0 -3px 0 var(--pink-500); }
 
   /* ---------- Cards ---------- */
@@ -214,6 +215,53 @@
     z-index: 60; max-width: calc(100% - 32px); text-align: center;
   }
   .toast.show { transform: translateX(-50%) translateY(0); }
+  /* ---------- Colores por categoría ---------- */
+  .task { border-left: 7px solid var(--c, var(--pink-300)); }
+  .pill { background: color-mix(in srgb, var(--c, #ffc6dc) 18%, #fff); border-color: color-mix(in srgb, var(--c, #ffc6dc) 45%, #fff); }
+  .edit { border: 0; background: transparent; color: var(--pink-300); font-size: 16px; cursor: pointer; padding: 6px; border-radius: 10px; }
+  .edit:hover { background: var(--pink-100); color: var(--pink-500); }
+
+  /* ---------- Mes ---------- */
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .legend .chip { display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 6px 10px; }
+  .legend .chip i { width: 12px; height: 12px; border-radius: 50%; background: var(--c); flex: none; }
+  .legend .chip.on { background: var(--c); border-color: var(--c); color: #fff; }
+  .legend .chip.on i { background: #fff; }
+  .cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+  .cal .dow { text-align: center; font-weight: 700; font-size: 12px; color: var(--muted); padding-bottom: 2px; }
+  .cell {
+    aspect-ratio: 1 / 1.08; min-height: 48px; border-radius: 14px; background: var(--pink-50); border: 2px solid var(--pink-100);
+    padding: 3px; display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: pointer;
+    position: relative; overflow: hidden; font: inherit; color: inherit; min-width: 0;
+  }
+  .cell.out { opacity: .35; }
+  .cell.today { border-color: var(--pink-500); box-shadow: 0 0 0 2px var(--pink-200); }
+  .cell.sel { background: var(--pink-400); border-color: var(--pink-500); color: #fff; }
+  .cell.dim { opacity: .3; }
+  .cell.hit { background: color-mix(in srgb, var(--c) 22%, #fff); border-color: var(--c); }
+  .cell .n { font-weight: 700; font-size: 13px; line-height: 1.2; }
+  .cell .ems { font-size: 12px; line-height: 1.15; display: flex; flex-wrap: wrap; justify-content: center; max-width: 100%; }
+  .cell .more { font-size: 10px; font-weight: 700; color: var(--muted); }
+  .cell .bars { margin-top: auto; width: 100%; display: flex; gap: 2px; height: 4px; flex: none; }
+  .cell .bars b { flex: 1; border-radius: 4px; background: var(--c); }
+  .cell .ok { position: absolute; top: 1px; right: 3px; font-size: 10px; }
+  .monthsum { display: grid; gap: 10px; }
+  .msum { padding: 10px 12px; border-radius: 16px; background: color-mix(in srgb, var(--c) 12%, #fff); border-left: 7px solid var(--c); }
+  .msum .t { font-weight: 700; }
+  .msum .d { font-size: 13px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+  .picker { background: var(--pink-50); border: 2px dashed var(--pink-200); border-radius: 18px; padding: 10px; }
+  .picker .pnav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .picker .pnav b { font-family: "Mochiy Pop One", sans-serif; font-weight: 400; color: var(--pink-500); text-transform: capitalize; }
+  .picker .round { width: 36px; height: 36px; font-size: 16px; }
+  .picker .cell { aspect-ratio: 1; justify-content: center; background: #fff; }
+  .picker .cell .n { font-size: 14px; }
+  .picker .cell.sel { background: var(--pink-400); border-color: var(--pink-500); color: #fff; }
+  .picker .cell { min-height: 0; }
+  .picker .hint { font-size: 13px; color: var(--muted); font-weight: 700; margin-top: 8px; text-align: center; }
+  .editing-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--pink-100);
+    border-radius: 14px; padding: 8px 12px; font-weight: 700; color: var(--pink-500); }
+  .editing-bar button { border: 0; background: #fff; color: var(--pink-500); border-radius: 999px; padding: 6px 12px; font: 700 13px "Quicksand"; cursor: pointer; }
+
   /* ---------- Ventanita ---------- */
   .sheet-back {
     position: fixed; inset: 0; z-index: 70; display: flex; align-items: flex-end; justify-content: center;
@@ -279,8 +327,9 @@
   @media (min-width: 1100px) {
     .wrap { max-width: 1440px; }
     .cols { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr); }
-    body[data-tab] #tab-week, body[data-tab] #tab-add { display: block; }
-    .tabs { display: none; }
+    body[data-tab] #tab-add, body[data-tab=add] #tab-week { display: block; }
+    .tabs button[data-tab=add] { display: none; }
+    .tabs { max-width: 320px; }
     .kitty { width: 96px; height: 96px; }
   }
 
@@ -332,6 +381,7 @@
   <nav class="tabs" role="tablist">
     <button class="active" data-tab="day" role="tab">🎀 Mi día</button>
     <button data-tab="week" role="tab">🗓️ Semana</button>
+    <button data-tab="month" role="tab">📅 Mes</button>
     <button data-tab="add" role="tab">➕ Añadir</button>
   </nav>
 
@@ -379,11 +429,29 @@
     <div class="week" id="weekGrid"></div>
   </section>
 
+  <!-- ============ MES ============ -->
+  <section id="tab-month">
+    <div class="weeknav">
+      <button class="round" id="prevMonth" aria-label="Mes anterior">‹</button>
+      <div class="label" id="monthLabel" style="text-transform:capitalize"></div>
+      <button class="round" id="nextMonth" aria-label="Mes siguiente">›</button>
+    </div>
+    <div class="card">
+      <div class="legend" id="monthLegend"></div>
+      <div class="cal" id="monthGrid"></div>
+    </div>
+    <div class="card">
+      <h2 id="monthSumTitle">✨ Este mes</h2>
+      <div class="monthsum" id="monthSum"></div>
+    </div>
+  </section>
+
   <!-- ============ AÑADIR ============ -->
   <section id="tab-add">
     <div class="card">
-      <h2>🌸 Nueva tarea</h2>
+      <h2 id="formTitle">🌸 Nueva tarea</h2>
       <form id="addForm">
+        <div class="editing-bar hidden" id="editingBar"><span>✏️ Editando</span><button type="button" id="cancelEdit">Cancelar</button></div>
         <label class="field">¿Qué vas a hacer?
           <input type="text" id="fTitle" placeholder="Ej: Pilates, cita con la doctora…" maxlength="80" required>
         </label>
@@ -397,6 +465,7 @@
             <button type="button" class="chip on" data-v="once">Un solo día</button>
             <button type="button" class="chip" data-v="daily">Todos los días</button>
             <button type="button" class="chip" data-v="weekly">Algunos días de la semana</button>
+            <button type="button" class="chip" data-v="dates">📅 Elegir días en el calendario</button>
           </div>
         </div>
 
@@ -409,16 +478,28 @@
           </label>
         </div>
 
+        <div class="field hidden" id="datesWrap" style="display:grid; gap:6px; font-weight:700; font-size:14px; color:var(--muted)">Toca los días que tienes (turnos, citas…)
+          <div class="picker">
+            <div class="pnav">
+              <button type="button" class="round" id="pPrev" aria-label="Mes anterior">‹</button>
+              <b id="pLabel"></b>
+              <button type="button" class="round" id="pNext" aria-label="Mes siguiente">›</button>
+            </div>
+            <div class="cal" id="pGrid"></div>
+            <div class="hint" id="pHint"></div>
+          </div>
+        </div>
+
         <div class="field hidden" id="daysWrap" style="display:grid; gap:6px; font-weight:700; font-size:14px; color:var(--muted)">Días
           <div class="days" id="fDays"></div>
         </div>
 
-        <button class="btn" type="submit">Guardar ♡</button>
+        <button class="btn" type="submit" id="saveBtn">Guardar ♡</button>
       </form>
     </div>
 
     <div class="card">
-      <h2>🔁 Mis rutinas</h2>
+      <h2>🔁 Mis rutinas y días marcados</h2>
       <ul class="tasks" id="routineList"></ul>
     </div>
   </section>
@@ -434,15 +515,15 @@
 (() => {
   /* ---------- Datos ---------- */
   const CATS = [
-    { id: "general",  emoji: "🎀", name: "General" },
-    { id: "ejercicio",emoji: "💪", name: "Ejercicio" },
-    { id: "medico",   emoji: "🩺", name: "Médico" },
-    { id: "estudio",  emoji: "📚", name: "Estudio" },
-    { id: "trabajo",  emoji: "💼", name: "Trabajo" },
-    { id: "compras",  emoji: "🛍️", name: "Compras" },
-    { id: "casa",     emoji: "🧺", name: "Casa" },
-    { id: "cuidado",  emoji: "🧴", name: "Autocuidado" },
-    { id: "social",   emoji: "🧁", name: "Planes" },
+    { id: "general",  emoji: "🎀", name: "General",     color: "#ff7eb0" },
+    { id: "ejercicio",emoji: "💪", name: "Ejercicio",   color: "#ff9a62" },
+    { id: "medico",   emoji: "🩺", name: "Médico",      color: "#5bbbe6" },
+    { id: "estudio",  emoji: "📚", name: "Estudio",     color: "#a98bff" },
+    { id: "trabajo",  emoji: "💼", name: "Trabajo",     color: "#5fc48a" },
+    { id: "compras",  emoji: "🛍️", name: "Compras",     color: "#f5bf3d" },
+    { id: "casa",     emoji: "🧺", name: "Casa",        color: "#c49a76" },
+    { id: "cuidado",  emoji: "🧴", name: "Autocuidado", color: "#f27ad6" },
+    { id: "social",   emoji: "🧁", name: "Planes",      color: "#ff5f7e" },
   ];
   const catOf = id => CATS.find(c => c.id === id) || CATS[0];
   // Lunes primero
@@ -478,6 +559,8 @@
         { id: uid(), title: "Hacer la cama", cat: "casa", time: "", repeat: "daily", from: ymd(t) },
         { id: uid(), title: "Pilates", cat: "ejercicio", time: "18:00", repeat: "weekly", days: [0, 2, 4], from: ymd(mon) },
         { id: uid(), title: "Cita con la doctora", cat: "medico", time: "10:30", repeat: "once", date: ymd(addDays(mon, 3)) },
+        { id: uid(), title: "Turno de trabajo", cat: "trabajo", time: "09:00", repeat: "dates",
+          dates: [1, 2, 5, 8, 9, 12, 15, 16, 19].map(n => ymd(addDays(mon, n))) },
       ],
       done: {},
       updatedAt: 0
@@ -494,6 +577,7 @@
   function occursOn(task, date) {
     const key = ymd(date);
     if (task.repeat === "once") return task.date === key;
+    if (task.repeat === "dates") return (task.dates || []).includes(key) && !(task.skip || []).includes(key);
     if (task.from && key < task.from) return false;
     if ((task.skip || []).includes(key)) return false;
     if (task.repeat === "daily") return true;
@@ -514,7 +598,18 @@
   }
   const repeatText = t => t.repeat === "daily" ? "todos los días"
     : t.repeat === "weekly" ? (t.days || []).slice().sort().map(i => DAY_SHORT[i]).join(" · ")
+    : t.repeat === "dates" ? `${(t.dates || []).length} días marcados`
     : "un solo día";
+  // Celdas de un mes (semanas completas, lunes primero)
+  function monthDays(first) {
+    const start = startOfWeek(first);
+    const last = new Date(first.getFullYear(), first.getMonth() + 1, 0);
+    const end = addDays(startOfWeek(last), 6);
+    const out = [];
+    for (let d = start; d <= end; d = addDays(d, 1)) out.push(d);
+    return out;
+  }
+  const firstOfMonth = d => new Date(d.getFullYear(), d.getMonth(), 1);
 
   /* ---------- Estado UI ---------- */
   let current = today();
@@ -547,6 +642,7 @@
       const c = catOf(t.cat);
       const li = document.createElement("li");
       li.className = "task" + (done ? " done" : "");
+      li.style.setProperty("--c", c.color);
       li.innerHTML = `
         <button class="check" aria-label="${done ? "Desmarcar" : "Tachar"}">${done ? "✓" : ""}</button>
         <span class="emoji">${c.emoji}</span>
@@ -554,11 +650,13 @@
           <div class="title">${esc(t.title)}</div>
           <div class="meta">${t.time ? "⏰ " + t.time + " · " : ""}${c.name}${t.repeat !== "once" ? " · 🔁 " + repeatText(t) : ""}</div>
         </div>
+        <button class="edit" aria-label="Editar">✏️</button>
         <button class="del" aria-label="Borrar">✕</button>`;
+      li.querySelector(".edit").addEventListener("click", () => startEdit(t));
       li.querySelector(".check").addEventListener("click", e => {
         const nowDone = toggleDone(t, d);
         if (nowDone) hearts(e.clientX, e.clientY, 6);
-        renderDay();
+        renderAll();
         const all = tasksOn(d);
         if (nowDone && all.length && all.every(x => isDone(x, d))) {
           hearts(innerWidth / 2, innerHeight * .7, 22);
@@ -656,7 +754,7 @@
           <span class="count">${list.length ? `${doneN}/${list.length} ✓` : "libre 🍡"}</span>
         </div>
         <div class="pills">${list.map(t =>
-          `<span class="pill${isDone(t, d) ? " done" : ""}">${catOf(t.cat).emoji} ${esc(t.title)}${t.time ? " · " + t.time : ""}</span>`
+          `<span class="pill${isDone(t, d) ? " done" : ""}" style="--c:${catOf(t.cat).color}">${catOf(t.cat).emoji} ${esc(t.title)}${t.time ? " · " + t.time : ""}</span>`
         ).join("")}</div>`;
       box.addEventListener("click", () => { current = d; switchTab("day"); });
       grid.appendChild(box);
@@ -686,8 +784,97 @@
       CATS.filter(c => counts[c.id]).map(c => `<span class="stat">${c.emoji} ${counts[c.id]}</span>`).join("");
   }
 
+  /* ---------- Vista mes ---------- */
+  let monthCursor = firstOfMonth(today()), monthFilter = null;
+
+  function renderMonth() {
+    const m = monthCursor.getMonth(), y = monthCursor.getFullYear(), t = ymd(today());
+    $("#monthLabel").textContent = `${MONTHS[m]} ${y}`;
+    const days = monthDays(monthCursor);
+    const inMonth = days.filter(d => d.getMonth() === m);
+
+    // Días por categoría y por tarea en este mes
+    const catDays = {}, taskDays = new Map();
+    for (const d of inMonth) {
+      for (const task of tasksOn(d)) {
+        if (task.repeat !== "daily") (catDays[task.cat] = catDays[task.cat] || new Set()).add(ymd(d));
+        if (!taskDays.has(task)) taskDays.set(task, []);
+        taskDays.get(task).push(d);
+      }
+    }
+    if (monthFilter && !catDays[monthFilter]) monthFilter = null;
+
+    $("#monthLegend").innerHTML = CATS.filter(c => catDays[c.id]).map(c =>
+      `<button class="chip${monthFilter === c.id ? " on" : ""}" style="--c:${c.color}" data-v="${c.id}"><i></i>${c.emoji} ${c.name} · ${catDays[c.id].size}</button>`
+    ).join("") || `<span class="empty" style="padding:0">Nada marcado este mes 🍓</span>`;
+
+    $("#monthGrid").innerHTML = DAY_SHORT.map(x => `<div class="dow">${x}</div>`).join("") + days.map(d => {
+      const k = ymd(d), list = tasksOn(d);
+      // Las rutinas diarias no se pintan: estarían en todos los días
+      const cats = [...new Set(list.filter(x => x.repeat !== "daily").map(x => x.cat))].map(catOf);
+      const hit = monthFilter && cats.some(c => c.id === monthFilter);
+      const allDone = list.length && list.every(x => isDone(x, d));
+      const ems = cats.slice(0, 3).map(c => c.emoji).join("");
+      const cls = ["cell", d.getMonth() !== m && "out", k === t && "today",
+        monthFilter && (hit ? "hit" : "dim")].filter(Boolean).join(" ");
+      const fc = monthFilter ? catOf(monthFilter).color : "";
+      return `<button class="${cls}" data-k="${k}" style="${hit ? "--c:" + fc : ""}" aria-label="${d.getDate()} ${MONTHS[d.getMonth()]}: ${list.map(x => esc(x.title)).join(", ") || "libre"}">
+        <span class="n">${d.getDate()}</span>
+        <span class="ems">${ems}</span>${cats.length > 3 ? `<span class="more">+${cats.length - 3}</span>` : ""}
+        ${allDone ? `<span class="ok">💖</span>` : ""}
+        <span class="bars">${cats.map(c => `<b style="--c:${c.color}"></b>`).join("")}</span>
+      </button>`;
+    }).join("");
+
+    // Resumen: qué días tienes cada cosa
+    const items = [...taskDays.entries()]
+      .filter(([task]) => !monthFilter || task.cat === monthFilter)
+      .filter(([task]) => task.repeat !== "daily")
+      .sort((a, b) => CATS.indexOf(catOf(a[0].cat)) - CATS.indexOf(catOf(b[0].cat)) || b[1].length - a[1].length);
+    const f = monthFilter && catOf(monthFilter);
+    $("#monthSumTitle").textContent = f ? `${f.emoji} ${f.name} en ${MONTHS[m]}` : `✨ Qué días tienes cada cosa`;
+    $("#monthSum").innerHTML = items.length ? items.map(([task, ds]) => {
+      const c = catOf(task.cat), done = ds.filter(d => isDone(task, d)).length;
+      return `<div class="msum" style="--c:${c.color}">
+        <div class="t">${c.emoji} ${esc(task.title)} · ${ds.length} ${ds.length === 1 ? "día" : "días"}${done ? ` (${done} ✓)` : ""}</div>
+        <div class="d">${ds.map(d => DAY_SHORT[weekIdx(d)] + " " + d.getDate()).join(" · ")}${task.time ? " · ⏰ " + task.time : ""}</div>
+      </div>`;
+    }).join("") : `<div class="empty"><span class="pop">🧸</span>Nada por aquí este mes</div>`;
+    const daily = [...taskDays.keys()].filter(x => x.repeat === "daily" && (!monthFilter || x.cat === monthFilter));
+    if (daily.length) $("#monthSum").innerHTML += `<div class="msum" style="--c:var(--pink-300)"><div class="t">🔁 Todos los días</div>
+      <div class="d">${daily.map(x => catOf(x.cat).emoji + " " + esc(x.title)).join(" · ")}</div></div>`;
+  }
+
+  $("#monthLegend").addEventListener("click", e => {
+    const b = e.target.closest(".chip"); if (!b) return;
+    monthFilter = monthFilter === b.dataset.v ? null : b.dataset.v;
+    renderMonth();
+  });
+  $("#monthGrid").addEventListener("click", e => {
+    const b = e.target.closest(".cell"); if (!b) return;
+    current = parseYmd(b.dataset.k);
+    switchTab("day");
+  });
+  $("#prevMonth").onclick = () => { monthCursor = new Date(monthCursor.getFullYear(), monthCursor.getMonth() - 1, 1); renderMonth(); };
+  $("#nextMonth").onclick = () => { monthCursor = new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 1); renderMonth(); };
+
   /* ---------- Formulario ---------- */
   let fCat = "general", fRepeat = "once", fDays = new Set([weekIdx(today())]);
+  let fDates = new Set(), pickMonth = firstOfMonth(today()), editingId = null;
+
+  function buildPicker() {
+    $("#pLabel").textContent = `${MONTHS[pickMonth.getMonth()]} ${pickMonth.getFullYear()}`;
+    const m = pickMonth.getMonth(), t = ymd(today());
+    $("#pGrid").innerHTML = DAY_SHORT.map(x => `<div class="dow">${x}</div>`).join("") +
+      monthDays(pickMonth).map(d => {
+        const k = ymd(d);
+        return `<button type="button" class="cell${d.getMonth() !== m ? " out" : ""}${k === t ? " today" : ""}${fDates.has(k) ? " sel" : ""}" data-k="${k}"><span class="n">${d.getDate()}</span></button>`;
+      }).join("");
+    const inMonth = [...fDates].filter(k => k.startsWith(ymd(pickMonth).slice(0, 7))).length;
+    $("#pHint").textContent = fDates.size
+      ? `${fDates.size} ${fDates.size === 1 ? "día marcado" : "días marcados"}${inMonth !== fDates.size ? ` (${inMonth} este mes)` : ""} ♡`
+      : "Aún no has marcado ningún día";
+  }
 
   function buildForm() {
     $("#fCats").innerHTML = CATS.map(c =>
@@ -696,8 +883,45 @@
       `<button type="button" class="chip${fDays.has(i) ? " on" : ""}" data-v="${i}" aria-label="${DAY_LONG[i]}">${s}</button>`).join("");
     $("#fRepeat").querySelectorAll(".chip").forEach(b => b.classList.toggle("on", b.dataset.v === fRepeat));
     $("#daysWrap").classList.toggle("hidden", fRepeat !== "weekly");
+    $("#datesWrap").classList.toggle("hidden", fRepeat !== "dates");
+    $("#dateWrap").classList.toggle("hidden", fRepeat === "dates");
     $("#dateWrap").firstChild.textContent = fRepeat === "once" ? "Día" : "Empieza el";
+    $("#editingBar").classList.toggle("hidden", !editingId);
+    $("#formTitle").textContent = editingId ? "✏️ Editar tarea" : "🌸 Nueva tarea";
+    $("#saveBtn").textContent = editingId ? "Guardar cambios ♡" : "Guardar ♡";
+    if (fRepeat === "dates") buildPicker();
   }
+
+  $("#pGrid").addEventListener("click", e => {
+    const b = e.target.closest(".cell"); if (!b) return;
+    const k = b.dataset.k;
+    fDates.has(k) ? fDates.delete(k) : fDates.add(k);
+    buildPicker();
+  });
+  $("#pPrev").onclick = () => { pickMonth = new Date(pickMonth.getFullYear(), pickMonth.getMonth() - 1, 1); buildPicker(); };
+  $("#pNext").onclick = () => { pickMonth = new Date(pickMonth.getFullYear(), pickMonth.getMonth() + 1, 1); buildPicker(); };
+
+  function resetForm() {
+    editingId = null;
+    $("#fTitle").value = ""; $("#fTime").value = "";
+    $("#fDate").value = ymd(current);
+    fDates = new Set();
+    buildForm();
+  }
+  function startEdit(t) {
+    editingId = t.id;
+    fCat = t.cat; fRepeat = t.repeat;
+    fDays = new Set(t.days || [weekIdx(current)]);
+    fDates = new Set(t.dates || []);
+    pickMonth = firstOfMonth(current);
+    switchTab("add", true);
+    $("#fTitle").value = t.title;
+    $("#fTime").value = t.time || "";
+    $("#fDate").value = t.date || t.from || ymd(current);
+    buildForm();
+    $("#tab-add").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  $("#cancelEdit").onclick = () => { resetForm(); toast("Edición cancelada 🫧"); };
 
   $("#fCats").addEventListener("click", e => {
     const b = e.target.closest(".chip"); if (!b) return;
@@ -720,14 +944,19 @@
     if (!title) return;
     const date = $("#fDate").value || ymd(current);
     if (fRepeat === "weekly" && !fDays.size) { toast("Elige al menos un día 🗓️"); return; }
-    const task = { id: uid(), title, cat: fCat, time: $("#fTime").value, repeat: fRepeat };
+    if (fRepeat === "dates" && !fDates.size) { toast("Toca al menos un día en el calendario 📅"); return; }
+    const old = editingId && data.tasks.find(x => x.id === editingId);
+    const task = { id: old ? old.id : uid(), title, cat: fCat, time: $("#fTime").value, repeat: fRepeat };
     if (fRepeat === "once") task.date = date;
+    else if (fRepeat === "dates") task.dates = [...fDates].sort();
     else task.from = date;
     if (fRepeat === "weekly") task.days = [...fDays].sort();
-    data.tasks.push(task);
+    if (old && old.skip && fRepeat !== "once") task.skip = old.skip;
+    if (old) data.tasks[data.tasks.indexOf(old)] = task; else data.tasks.push(task);
     save();
-    $("#fTitle").value = ""; $("#fTime").value = "";
-    toast(`${catOf(fCat).emoji} ¡"${title}" guardado!`);
+    const wasEdit = !!old;
+    resetForm();
+    toast(wasEdit ? `${catOf(fCat).emoji} ¡"${title}" actualizado!` : `${catOf(fCat).emoji} ¡"${title}" guardado!`);
     hearts(innerWidth / 2, innerHeight * .6, 10);
     renderAll();
   });
@@ -750,23 +979,31 @@
       const c = catOf(t.cat);
       const li = document.createElement("li");
       li.className = "task";
+      li.style.setProperty("--c", c.color);
       li.innerHTML = `<span class="emoji">${c.emoji}</span>
         <div class="info"><div class="title">${esc(t.title)}</div>
-        <div class="meta">🔁 ${repeatText(t)}${t.time ? " · ⏰ " + t.time : ""}</div></div>
+        <div class="meta">${t.repeat === "dates" ? "📅" : "🔁"} ${repeatText(t)}${t.time ? " · ⏰ " + t.time : ""}</div></div>
+        <button class="edit" aria-label="Editar">✏️</button>
         <button class="del" aria-label="Borrar">✕</button>`;
+      li.querySelector(".edit").addEventListener("click", () => startEdit(t));
       li.querySelector(".del").addEventListener("click", () => removeTask(t, current, true));
       ul.appendChild(li);
     }
   }
 
   /* ---------- Navegación ---------- */
-  function switchTab(name) {
+  function switchTab(name, keepForm) {
+    const wide = matchMedia("(min-width: 600px)").matches, desk = matchMedia("(min-width: 1100px)").matches;
+    // En pantalla ancha "Mi día" (y en escritorio "Añadir") se ven siempre;
+    // si se pide uno de ellos, la columna central sigue mostrando lo que tenía.
+    const prev = document.body.dataset.tab;
+    const mid = prev === "month" ? "month" : "week";
+    if ((wide && name === "day") || (desk && name === "add")) name = mid;
     document.body.dataset.tab = name;
-    // Pantalla ancha: "Mi día" siempre se ve; la pestaña activa es la de la derecha
-    const shown = name === "day" && matchMedia("(min-width: 600px)").matches ? "week" : name;
-    document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === shown));
-    if (name === "add") $("#fDate").value = ymd(current);
+    document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
+    if (name === "add" && !keepForm && !editingId) $("#fDate").value = ymd(current);
     if (name === "week") weekStart = startOfWeek(current);
+    if (name === "month") monthCursor = firstOfMonth(current);
     renderAll();
     if (!matchMedia("(min-width: 600px)").matches) scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -969,7 +1206,7 @@
     });
   }
 
-  function renderAll() { renderDay(); renderWeek(); renderRoutines(); buildForm(); }
+  function renderAll() { renderDay(); renderWeek(); renderMonth(); renderRoutines(); buildForm(); }
 
   // Cambio de día automático: si la app sigue abierta a medianoche
   // (o vuelves a ella al día siguiente), salta sola al nuevo "hoy".
