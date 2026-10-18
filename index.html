@@ -294,6 +294,8 @@
     border-radius: 999px; padding: 8px 14px; font: 700 14px "Quicksand"; cursor: pointer; }
   .day1.on { background: var(--c); color: #fff; border-color: var(--c); }
   .saved { font-size: 12px; color: var(--muted); font-weight: 600; text-align: right; min-height: 1em; margin-top: 4px; }
+  .food-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .food-btns .toggle-big { padding: 12px 8px; font-size: 15px; }
   .extras-toggle { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: -6px 0 20px; font-size: 13px; color: var(--muted); font-weight: 700; }
   .extras-toggle button { border: 2px solid var(--pink-200); background: #fff; color: var(--muted); border-radius: 999px; padding: 6px 12px; font: 700 13px "Quicksand"; cursor: pointer; }
   .clog { display: grid; gap: 8px; }
@@ -503,6 +505,10 @@
     <div class="card box" id="monthCycleCard" style="--c:#e05a8a">
       <h2><span id="monthCycleTitle">🌙 Mi ciclo</span></h2>
       <div id="monthCycle"></div>
+    </div>
+    <div class="card box" id="monthFoodCard" style="--c:#4fb86e">
+      <h2><span id="monthFoodTitle">🥦 Fruta y verdura</span></h2>
+      <div id="monthFood"></div>
     </div>
     <div class="card box" id="monthReadCard" style="--c:#8f7cf0">
       <h2><span id="monthReadTitle">📖 Lectura</span></h2>
@@ -903,7 +909,8 @@
   const FLOWS = ["Nada", "Ligera 💧", "Media 💧💧", "Abundante 💧💧💧"];
   const SYMPTOMS = ["Cólicos", "Dolor de cabeza", "Hinchazón", "Antojos", "Acné", "Pecho sensible", "Dolor de espalda",
     "Náuseas", "Insomnio", "Mucho sueño", "Mucha energía", "Sensible emocionalmente"];
-  const CYCLE_COLOR = "#e05a8a", READ_COLOR = "#8f7cf0";
+  const CYCLE_COLOR = "#e05a8a", READ_COLOR = "#8f7cf0", FOOD_COLOR = "#4fb86e";
+  const foodOf = k => getLog(k).food || {};
 
   const getLog = k => data.log[k] || {};
   function setLog(k, part, fn) {
@@ -969,6 +976,31 @@
       wrap.appendChild(card);
     }
 
+    if (!st.hideFood) {
+      const f = foodOf(k), monthKey = k.slice(0, 7);
+      const fr = Object.keys(data.log).filter(x => x.startsWith(monthKey) && foodOf(x).fruit).length;
+      const vg = Object.keys(data.log).filter(x => x.startsWith(monthKey) && foodOf(x).veg).length;
+      const card = document.createElement("div");
+      card.className = "card box";
+      card.style.setProperty("--c", FOOD_COLOR);
+      card.innerHTML = `
+        <h2><span>🥦 Fruta y verdura</span><span class="count${f.fruit && f.veg ? " full" : ""}">🍎 ${fr} · 🥦 ${vg} este mes</span></h2>
+        <div class="food-btns">
+          <button class="toggle-big${f.fruit ? " on" : ""}" data-f="fruit">${f.fruit ? "✓ Fruta 🍎" : "🍎 Hoy he comido fruta"}</button>
+          <button class="toggle-big${f.veg ? " on" : ""}" data-f="veg">${f.veg ? "✓ Verdura 🥦" : "🥦 Hoy he comido verdura"}</button>
+        </div>
+        <input class="xinput" maxlength="120" placeholder="¿Qué has comido? (opcional: manzana, ensalada…)" value="${esc(f.note || "")}">`;
+      card.querySelectorAll("[data-f]").forEach(b => b.addEventListener("click", e => {
+        const key = b.dataset.f, was = !!f[key];
+        setLog(k, "food", x => ({ ...x, [key]: !was }));
+        if (!was) hearts(e.clientX, e.clientY, 6);
+        renderExtras(); renderMonth();
+      }));
+      const inp = card.querySelector("input");
+      inp.addEventListener("change", () => { setLog(k, "food", x => ({ ...x, note: inp.value.trim() })); renderMonth(); });
+      wrap.appendChild(card);
+    }
+
     if (!st.hideCycle) {
       const c = getLog(k).cycle || {};
       const cd = cycleDay(k), isStart = data.cycleStarts.includes(k), np = nextPeriod();
@@ -1021,6 +1053,7 @@
 
     $("#extrasToggle").innerHTML =
       `<button data-t="hideRead">${st.hideRead ? "➕ Mostrar 📖 Lectura" : "Ocultar 📖 Lectura"}</button>` +
+      `<button data-t="hideFood">${st.hideFood ? "➕ Mostrar 🥦 Fruta y verdura" : "Ocultar 🥦 Fruta y verdura"}</button>` +
       `<button data-t="hideCycle">${st.hideCycle ? "➕ Mostrar 🌙 Mi ciclo" : "Ocultar 🌙 Mi ciclo"}</button>`;
   }
   $("#extrasToggle").addEventListener("click", e => {
@@ -1070,6 +1103,25 @@
             ${c.note ? `<div class="d">“${esc(c.note)}”</div>` : ""}</div>`;
         }).join("")}</div>`;
     }
+    // Fruta y verdura
+    $("#monthFoodCard").classList.toggle("hidden", !!data.settings.hideFood);
+    const inMonth = monthDays(monthCursor).filter(x => x.getMonth() === m).map(ymd);
+    const fDays = inMonth.filter(k => foodOf(k).fruit), vDays = inMonth.filter(k => foodOf(k).veg);
+    const both = inMonth.filter(k => foodOf(k).fruit && foodOf(k).veg).length;
+    const passed = inMonth.filter(k => k <= ymd(today())).length || inMonth.length;
+    $("#monthFoodTitle").textContent = `🥦 Fruta y verdura en ${mName}`;
+    $("#monthFood").innerHTML = fDays.length || vDays.length ? `
+      <div class="statline">
+        <span class="stat">🍎 Fruta: ${fDays.length} de ${passed} días</span>
+        <span class="stat">🥦 Verdura: ${vDays.length} de ${passed} días</span>
+        ${both ? `<span class="stat">🥗 Las dos: ${both} ${both === 1 ? "día" : "días"}</span>` : ""}
+      </div>
+      <div class="clog">${inMonth.filter(k => foodOf(k).fruit || foodOf(k).veg).map(k => {
+        const f = foodOf(k);
+        return `<div class="row"><div class="t">${fmtDay(k)} · ${[f.fruit && "🍎 fruta", f.veg && "🥦 verdura"].filter(Boolean).join(" y ")}</div>${f.note ? `<div class="d">${esc(f.note)}</div>` : ""}</div>`;
+      }).join("")}</div>`
+      : `<div class="empty">Aún no has apuntado fruta ni verdura este mes 🍓</div>`;
+
     // Lectura
     $("#monthReadCard").classList.toggle("hidden", !!data.settings.hideRead);
     const reads = Object.keys(data.log).filter(k => k.startsWith(key) && isRead(k)).sort();
@@ -1115,6 +1167,7 @@
       const lg = getLog(k), marks = [];
       if (!data.settings.hideCycle && lg.cycle && lg.cycle.flow > 0) marks.push("🩸");
       if (!data.settings.hideRead && isRead(k)) marks.push("📖");
+      if (!data.settings.hideFood && (foodOf(k).fruit || foodOf(k).veg)) marks.push(foodOf(k).fruit && foodOf(k).veg ? "🥗" : foodOf(k).fruit ? "🍎" : "🥦");
       const ems = [...marks, ...cats.map(c => c.emoji)].slice(0, 3).join("");
       const cls = ["cell", d.getMonth() !== m && "out", k === t && "today",
         monthFilter && (hit ? "hit" : "dim")].filter(Boolean).join(" ");
