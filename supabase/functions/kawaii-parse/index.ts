@@ -52,12 +52,12 @@ La semana empieza el lunes.
 Categorías:
 - ejercicio: pilates, gym, yoga, correr, natación…
 - medico: médico, dentista, fisio, análisis, ginecóloga, cualquier cita sanitaria
-- trabajo: trabajo, turno, curro, reunión, guardia
-- estudio: clase, examen, estudiar, academia
+- trabajo: trabajo, turno, curro, guardia, reuniones del trabajo
+- estudio: clase, examen, estudiar, academia, idiomas, y también trabajos, proyectos o entregas de clase o de la universidad (un "trabajo de micrología" es de estudios, no de trabajo)
 - compras: compra, supermercado, recados de tienda
 - casa: limpiar, lavadora, cocinar, plantas
 - cuidado: agua, skincare, dormir, medicación, autocuidado
-- social: planes, quedadas, cumpleaños, cenas, citas con amigos o pareja
+- social: planes, quedadas, cumpleaños, cenas, citas con amigos o pareja, reuniones de asociaciones, activismo o voluntariado
 - general: lo que no encaje en ninguna
 
 Cómo rellenar cada tarea:
@@ -66,7 +66,9 @@ Cómo rellenar cada tarea:
 - Fechas concretas o rangos ("el 3, 4 y 10", "del 3 al 7", "este jueves y el siguiente") → repeat "dates" con todas las fechas YYYY-MM-DD ya expandidas. Si es una única fecha, repeat "once" con date.
 - Si no dice el mes, es el mes actual, salvo que ese día ya haya pasado este mes: entonces es el mes siguiente. "Mañana", "pasado mañana", "el viernes", "la semana que viene" se calculan desde la fecha de hoy que te doy.
 - Horas en formato 24 h: "a las 6 de la tarde" → "18:00"; "a las 9" sin más contexto → "09:00"; si no hay hora, "".
+- Si dice un horario "de 2 a 5" (por la tarde salvo que diga lo contrario), time es la hora de inicio ("14:00") y añade el horario al final del title: "Catalán (14:00–17:00)".
 - title corto, con mayúscula inicial, sin la fecha ni la hora (por ejemplo "Pilates", "Turno de trabajo", "Cita con la dentista").
+- Usa las palabras de la usuaria y no añadas datos que no dice: si escribe "con vosotros al cine", el title es "Cine con vosotros", no "Cine con amigas". Respeta emojis y aclaraciones suyas importantes, como "(pendiente, igual cancelo)".
 - Una tarea por actividad distinta. No inventes tareas que no aparezcan en el texto.
 - Los campos que no aplican van vacíos: date "", days [], dates [].
 - Si una parte no se entiende, sáltala y explícalo en note en una frase corta; si todo está claro, note "".`;
