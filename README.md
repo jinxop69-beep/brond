@@ -25,3 +25,12 @@ si se borra el navegador y se ven igual en el móvil y en el ordenador.
 ## Cómo usarla
 Abre `index.html` en el navegador (móvil u ordenador). No necesita instalar nada.
 Para tenerla en el móvil, publícala con GitHub Pages y usa “Añadir a pantalla de inicio”.
+
+## 🪄 Escríbelo y lo coloco yo
+En **Añadir** puedes escribir en texto normal lo que tienes ("Pilates L, X y V a las 18. Trabajo el 3, 4 y 10…")
+y Claude lo convierte en tareas. Antes de guardar se muestra una vista previa para confirmar.
+
+- Funciona con la función de Supabase `supabase/functions/kawaii-parse` (necesita sesión iniciada).
+- Secretos en Supabase → Edge Functions → Secrets:
+  - `ANTHROPIC_API_KEY`: la clave de la API de Claude (obligatoria).
+  - `CLAUDE_MODEL` (opcional): por defecto `claude-opus-5-5`; `claude-haiku-5-5` es mucho más barato.

@@ -262,6 +262,25 @@
     border-radius: 14px; padding: 8px 12px; font-weight: 700; color: var(--pink-500); }
   .editing-bar button { border: 0; background: #fff; color: var(--pink-500); border-radius: 999px; padding: 6px 12px; font: 700 13px "Quicksand"; cursor: pointer; }
 
+  /* ---------- Escribir y colocar ---------- */
+  .magic { display: grid; gap: 12px; }
+  .magic h2 { margin: 0; }
+  .magic textarea {
+    width: 100%; resize: vertical; min-height: 96px; font: 600 15px "Quicksand", sans-serif; color: var(--text);
+    padding: 12px 14px; border-radius: 16px; border: 3px solid var(--pink-200); background: var(--pink-50); outline: none;
+  }
+  .magic textarea:focus { border-color: var(--pink-400); background: #fff; }
+  .magic .btn[disabled] { opacity: .7; cursor: wait; }
+  .magic-hint { margin: 0; text-align: center; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+  .pvlist { display: grid; gap: 8px; max-height: 46vh; overflow: auto; margin: 0 0 14px; text-align: left; }
+  .pv { display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: 16px; cursor: pointer;
+    background: color-mix(in srgb, var(--c) 14%, #fff); border-left: 7px solid var(--c); }
+  .pv input { width: 22px; height: 22px; accent-color: var(--pink-500); flex: none; }
+  .pv .t { font-weight: 700; }
+  .pv .d { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+  .pv.off { opacity: .45; }
+  .sheet .note { background: var(--pink-50); border-radius: 12px; padding: 8px 10px; font-size: 13px; }
+
   /* ---------- Ventanita ---------- */
   .sheet-back {
     position: fixed; inset: 0; z-index: 70; display: flex; align-items: flex-end; justify-content: center;
@@ -448,6 +467,13 @@
 
   <!-- ============ AÑADIR ============ -->
   <section id="tab-add">
+    <div class="card magic">
+      <h2>🪄 Escríbelo y lo coloco yo</h2>
+      <textarea id="magicText" rows="4" maxlength="3000" placeholder="Ej: Pilates lunes, miércoles y viernes a las 18. Trabajo el 3, 4, 10 y 11 de 9 a 15. Dentista el jueves 23 a las 10:30. Todos los días beber agua."></textarea>
+      <button class="btn" type="button" id="magicBtn">✨ Colocar en mi calendario</button>
+      <p class="magic-hint">Antes de guardar te enseño lo que he entendido ♡ · necesita cuenta ☁️ e internet</p>
+    </div>
+
     <div class="card">
       <h2 id="formTitle">🌸 Nueva tarea</h2>
       <form id="addForm">
@@ -1109,7 +1135,8 @@
 
   if (sb) {
     sb.auth.getSession().then(({ data: d }) => cloud.setUser(d.session && d.session.user));
-    sb.auth.onAuthStateChange((_e, session) => cloud.setUser(session && session.user));
+    // Fuera del callback: llamar a Supabase dentro de onAuthStateChange bloquea la sesión
+    sb.auth.onAuthStateChange((_e, session) => { setTimeout(() => cloud.setUser(session && session.user), 0); });
     addEventListener("online", () => cloud.pull());
   }
 
@@ -1177,6 +1204,110 @@
     const first = back.querySelector("input"); if (first) setTimeout(() => first.focus(), 300);
   }
   $("#cloudBtn").addEventListener("click", accountSheet);
+
+  /* ---------- Escríbelo y lo coloco yo (Claude vía Supabase) ---------- */
+  const MAGIC_ERRORS = {
+    login: "Primero entra en tu cuenta ☁️",
+    no_key: "Falta configurar la clave de Claude en Supabase 🔑",
+    bad_key: "La clave de Claude no es válida 🔑",
+    no_credit: "Se ha acabado el saldo de la API de Claude 🥺",
+    quota: "Demasiadas peticiones seguidas, espera un momentito ⏳",
+    refusal: "Claude no ha querido procesar ese texto 🥺",
+    too_long: "El texto es demasiado largo, prueba por partes ✂️",
+  };
+  function describe(t) {
+    const fmt = k => { const d = parseYmd(k); return `${DAY_SHORT[weekIdx(d)]} ${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)}`; };
+    const when = t.repeat === "daily" ? "🔁 todos los días"
+      : t.repeat === "weekly" ? "🔁 " + repeatText(t)
+      : t.repeat === "dates" ? `📅 ${t.dates.length} días: ${t.dates.slice(0, 8).map(fmt).join(" · ")}${t.dates.length > 8 ? "…" : ""}`
+      : "📅 " + fmt(t.date);
+    return `${when}${t.time ? " · ⏰ " + t.time : ""}`;
+  }
+  // Añade las tareas; si ya hay una con el mismo nombre y categoría en días sueltos, junta los días
+  function addParsed(list) {
+    let added = 0, merged = 0;
+    const same = (a, b) => a.cat === b.cat && a.title.trim().toLowerCase() === b.title.trim().toLowerCase();
+    for (const p of list) {
+      const prevDates = p.repeat === "dates" && data.tasks.find(x => x.repeat === "dates" && same(x, p));
+      if (prevDates) {
+        prevDates.dates = [...new Set([...prevDates.dates, ...p.dates])].sort();
+        if (p.time) prevDates.time = p.time;
+        merged++; continue;
+      }
+      const dup = data.tasks.find(x => same(x, p) && x.repeat === p.repeat &&
+        (p.repeat === "once" ? x.date === p.date : p.repeat === "weekly" ? String(x.days) === String(p.days) : p.repeat === "daily"));
+      if (dup) continue;
+      const task = { id: uid(), title: p.title, cat: p.cat, time: p.time || "", repeat: p.repeat };
+      if (p.repeat === "once") task.date = p.date;
+      else if (p.repeat === "dates") task.dates = p.dates;
+      else task.from = ymd(today());
+      if (p.repeat === "weekly") task.days = p.days;
+      data.tasks.push(task); added++;
+    }
+    if (added || merged) { save(); renderAll(); }
+    return { added, merged };
+  }
+  function previewSheet(res) {
+    const back = document.createElement("div");
+    back.className = "sheet-back";
+    const n = res.tasks.length;
+    back.innerHTML = `
+      <div class="sheet" role="dialog" aria-modal="true">
+        <div class="sheet-emoji">🪄</div>
+        <h3>He entendido ${n === 1 ? "esto" : `estas ${n} cosas`}</h3>
+        <p>Quita lo que no quieras y lo coloco en tu calendario ♡</p>
+        ${res.note ? `<p class="note">💭 ${esc(res.note)}</p>` : ""}
+        <div class="pvlist">${res.tasks.map((t, i) => {
+          const c = catOf(t.cat);
+          return `<label class="pv" style="--c:${c.color}"><input type="checkbox" data-i="${i}" checked>
+            <span class="emoji">${c.emoji}</span><span><div class="t">${esc(t.title)}</div><div class="d">${esc(describe(t))}</div></span></label>`;
+        }).join("")}</div>
+        <div class="sheet-btns">
+          <button class="sbtn danger" data-a="ok">💖 Añadir a mi calendario</button>
+          <button class="sbtn soft" data-a="no">Mejor no ♡</button>
+        </div>
+      </div>`;
+    const close = () => { back.classList.remove("show"); setTimeout(() => back.remove(), 250); };
+    back.addEventListener("change", e => { if (e.target.matches("input")) e.target.closest(".pv").classList.toggle("off", !e.target.checked); });
+    back.addEventListener("click", e => {
+      if (e.target === back) return close();
+      const a = e.target.closest(".sbtn") && e.target.closest(".sbtn").dataset.a;
+      if (a === "no") close();
+      if (a === "ok") {
+        const pick = [...back.querySelectorAll(".pv input:checked")].map(x => res.tasks[Number(x.dataset.i)]);
+        if (!pick.length) { toast("No has elegido nada 🫧"); return; }
+        const { added, merged } = addParsed(pick);
+        close();
+        $("#magicText").value = "";
+        hearts(innerWidth / 2, innerHeight * .6, 14);
+        toast(added || merged ? `¡Colocado! ${added ? added + " nuevas" : ""}${added && merged ? " · " : ""}${merged ? merged + " actualizadas" : ""} 💖` : "Ya lo tenías todo apuntado ♡");
+      }
+    });
+    document.body.appendChild(back);
+    requestAnimationFrame(() => back.classList.add("show"));
+  }
+  $("#magicBtn").addEventListener("click", async () => {
+    const text = $("#magicText").value.trim();
+    if (!text) { toast("Escribe primero qué vas a hacer ✍️"); return; }
+    if (!sb) { toast("No hay conexión con la nube ahora mismo 🥺"); return; }
+    if (!cloud.user) { toast(MAGIC_ERRORS.login); accountSheet(); return; }
+    if (!navigator.onLine) { toast("Necesitas internet para esto 📶"); return; }
+    const btn = $("#magicBtn"), label = btn.textContent;
+    btn.disabled = true; btn.textContent = "✨ Pensando…";
+    try {
+      const { data: res, error } = await sb.functions.invoke("kawaii-parse", {
+        body: { text, today: ymd(today()), weekday: weekIdx(today()) }
+      });
+      if (error) {
+        let code = "";
+        try { code = (await error.context.json()).error; } catch { /* sin cuerpo */ }
+        toast(MAGIC_ERRORS[code] || "Uy, algo ha fallado. Prueba otra vez 🥺");
+        return;
+      }
+      if (!res || !res.tasks || !res.tasks.length) { toast(res && res.note ? "💭 " + res.note : "No he encontrado ninguna tarea en el texto 🥺"); return; }
+      previewSheet(res);
+    } finally { btn.disabled = false; btn.textContent = label; }
+  });
 
   /* ---------- Ventanita kawaii (en lugar de confirm) ---------- */
   function sheet({ emoji, title, text, buttons }) {
