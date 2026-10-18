@@ -197,6 +197,36 @@
     z-index: 60; max-width: calc(100% - 32px); text-align: center;
   }
   .toast.show { transform: translateX(-50%) translateY(0); }
+  /* ---------- Ventanita ---------- */
+  .sheet-back {
+    position: fixed; inset: 0; z-index: 70; display: flex; align-items: flex-end; justify-content: center;
+    background: rgba(255, 143, 184, .35); backdrop-filter: blur(3px); padding: 16px;
+    opacity: 0; transition: opacity .25s;
+  }
+  .sheet-back.show { opacity: 1; }
+  .sheet {
+    width: 100%; max-width: 420px; background: #fff; border: 3px solid var(--pink-200);
+    border-radius: 30px; padding: 26px 20px 20px; text-align: center; position: relative;
+    box-shadow: 0 8px 0 var(--pink-200), 0 20px 40px rgba(255, 92, 154, .25);
+    transform: translateY(40px) scale(.95); transition: transform .35s cubic-bezier(.3,1.6,.5,1);
+    background-image: radial-gradient(var(--pink-100) 2px, transparent 2.2px); background-size: 22px 22px;
+  }
+  .sheet-back.show .sheet { transform: none; }
+  .sheet::before {
+    content: "🎀"; position: absolute; top: -22px; left: 50%; transform: translateX(-50%) rotate(-8deg);
+    font-size: 38px;
+  }
+  .sheet-emoji { font-size: 44px; margin-bottom: 4px; }
+  .sheet h3 { margin: 0 0 6px; color: var(--pink-500); font-size: 19px; word-break: break-word; }
+  .sheet p { margin: 0 0 18px; color: var(--muted); font-weight: 600; }
+  .sheet-btns { display: grid; gap: 10px; }
+  .sbtn {
+    border: 0; border-radius: 999px; padding: 14px; cursor: pointer; font: 700 16px "Quicksand", sans-serif;
+    background: var(--pink-300); color: #fff; box-shadow: 0 4px 0 var(--pink-400);
+  }
+  .sbtn.danger { background: var(--pink-500); box-shadow: 0 4px 0 #d93d7a; }
+  .sbtn.soft { background: var(--pink-50); color: var(--pink-500); box-shadow: 0 4px 0 var(--pink-200); }
+  .sbtn:active { transform: translateY(3px); box-shadow: none; }
   footer { text-align: center; color: var(--muted); font-weight: 600; font-size: 13px; margin-top: 10px; }
 
   @media (max-width: 420px) {
@@ -392,6 +422,7 @@
     const key = ymd(date);
     if (task.repeat === "once") return task.date === key;
     if (task.from && key < task.from) return false;
+    if ((task.skip || []).includes(key)) return false;
     if (task.repeat === "daily") return true;
     if (task.repeat === "weekly") return (task.days || []).includes(weekIdx(date));
     return false;
@@ -474,9 +505,42 @@
       : pct >= 50 ? `${k}/${n} · ¡Ya casi! 🍰` : `${k}/${n} · ¡Vas genial! 🌸`;
   }
 
-  function removeTask(t, d) {
-    if (t.repeat !== "once") {
-      const ok = confirm(`"${t.title}" es una rutina (${repeatText(t)}).\n¿Borrarla de todos los días?`);
+  async function removeTask(t, d, fromRoutines = false) {
+    const c = catOf(t.cat);
+    if (t.repeat !== "once" && !fromRoutines) {
+      const choice = await sheet({
+        emoji: c.emoji,
+        title: `¿Borrar "${t.title}"?`,
+        text: `Es una rutina 🔁 (${repeatText(t)}). ¿Quieres quitarla solo de este día o de todos?`,
+        buttons: [
+          { v: "day", label: `🌸 Solo el ${DAY_LONG[weekIdx(d)]} ${d.getDate()}` },
+          { v: "all", label: "🗑️ De todos los días", cls: "danger" },
+          { v: null, label: "Mejor no ♡", cls: "soft" },
+        ]
+      });
+      if (!choice) return;
+      if (choice === "day") {
+        const k = ymd(d);
+        t.skip = [...new Set([...(t.skip || []), k])];
+        if (data.done[k]) {
+          data.done[k] = data.done[k].filter(id => id !== t.id);
+          if (!data.done[k].length) delete data.done[k];
+        }
+        save();
+        toast(`Quitada solo del ${DAY_LONG[weekIdx(d)]} 🫧`);
+        renderAll();
+        return;
+      }
+    } else {
+      const ok = await sheet({
+        emoji: c.emoji,
+        title: `¿Borrar "${t.title}"?`,
+        text: t.repeat === "once" ? "Se irá volando como una burbujita 🫧" : `Se quitará de todos los días (${repeatText(t)}).`,
+        buttons: [
+          { v: "all", label: "🗑️ Sí, borrar", cls: "danger" },
+          { v: null, label: "Mejor no ♡", cls: "soft" },
+        ]
+      });
       if (!ok) return;
     }
     data.tasks = data.tasks.filter(x => x.id !== t.id);
@@ -617,7 +681,7 @@
         <div class="info"><div class="title">${esc(t.title)}</div>
         <div class="meta">🔁 ${repeatText(t)}${t.time ? " · ⏰ " + t.time : ""}</div></div>
         <button class="del" aria-label="Borrar">✕</button>`;
-      li.querySelector(".del").addEventListener("click", () => removeTask(t, current));
+      li.querySelector(".del").addEventListener("click", () => removeTask(t, current, true));
       ul.appendChild(li);
     }
   }
@@ -663,6 +727,34 @@
     t.classList.add("show");
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => t.classList.remove("show"), 2400);
+  }
+
+  /* ---------- Ventanita kawaii (en lugar de confirm) ---------- */
+  function sheet({ emoji, title, text, buttons }) {
+    return new Promise(resolve => {
+      const back = document.createElement("div");
+      back.className = "sheet-back";
+      back.innerHTML = `
+        <div class="sheet" role="dialog" aria-modal="true">
+          <div class="sheet-emoji">${emoji}</div>
+          <h3>${esc(title)}</h3>
+          <p>${esc(text)}</p>
+          <div class="sheet-btns">${buttons.map((b, i) =>
+            `<button class="sbtn ${b.cls || ""}" data-i="${i}">${esc(b.label)}</button>`).join("")}</div>
+        </div>`;
+      const close = v => {
+        back.classList.remove("show");
+        setTimeout(() => back.remove(), 250);
+        resolve(v);
+      };
+      back.addEventListener("click", e => {
+        if (e.target === back) return close(null);
+        const b = e.target.closest(".sbtn");
+        if (b) close(buttons[Number(b.dataset.i)].v);
+      });
+      document.body.appendChild(back);
+      requestAnimationFrame(() => back.classList.add("show"));
+    });
   }
 
   function renderAll() { renderDay(); renderWeek(); renderRoutines(); buildForm(); }
