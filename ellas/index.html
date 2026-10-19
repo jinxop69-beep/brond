@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f7a1c4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ellas">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Ellas · Cada día</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fff4f8;
+    --bg2: #ffe4ef;
+    --card: #ffffff;
+    --rose-50: #fff6fa;
+    --rose-100: #ffe6f0;
+    --rose-200: #fdcde0;
+    --rose-300: #f9a8c9;
+    --rose-400: #f27aab;
+    --rose-500: #e0528e;
+    --rose-600: #c23a74;
+    --plum: #5e2a46;
+    --text: #5e2a46;
+    --muted: #a26d88;
+    --line: #f7d3e2;
+    --shadow: 0 10px 30px rgba(224, 82, 142, .14), 0 2px 6px rgba(224, 82, 142, .08);
+    --radius: 24px;
+    --fs: 19px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #2a1320; --bg2: #3a1a2c; --card: #3a1d2e;
+      --rose-50: #44223a; --rose-100: #4e2742; --rose-200: #6b3557;
+      --text: #fde7f1; --muted: #e3a9c5; --line: #5b2d48; --plum: #fde7f1;
+      --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #2a1320; --bg2: #3a1a2c; --card: #3a1d2e;
+    --rose-50: #44223a; --rose-100: #4e2742; --rose-200: #6b3557;
+    --text: #fde7f1; --muted: #e3a9c5; --line: #5b2d48; --plum: #fde7f1;
+    --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh;
+    font-family: "Nunito", system-ui, sans-serif;
+    color: var(--text);
+    background: radial-gradient(1200px 600px at 10% -10%, var(--bg2), transparent 60%),
+                radial-gradient(900px 500px at 110% 10%, var(--bg2), transparent 55%),
+                var(--bg);
+    background-attachment: fixed;
+    padding: 0 16px calc(96px + env(safe-area-inset-bottom));
+  }
+  .wrap { max-width: 680px; margin: 0 auto; }
+  .serif { font-family: "Cormorant Garamond", Georgia, serif; }
+  button { font-family: inherit; color: inherit; }
+
+  /* ---------- Cabecera ---------- */
+  header { display: flex; align-items: center; gap: 12px; padding: 22px 0 6px; }
+  .logo { width: 54px; height: 54px; flex: none; }
+  .htext { flex: 1; min-width: 0; }
+  header h1 { margin: 0; font: 700 34px/1 "Cormorant Garamond", serif; color: var(--rose-500); letter-spacing: .5px; }
+  header p { margin: 4px 0 0; color: var(--muted); font-weight: 600; font-size: 14px; }
+  .iconbtn {
+    width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line);
+    background: var(--card); color: var(--rose-500); font-size: 18px; cursor: pointer; flex: none;
+    box-shadow: var(--shadow); display: grid; place-items: center;
+  }
+  .streak {
+    display: inline-flex; align-items: center; gap: 6px; margin: 8px 0 14px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    padding: 6px 12px; font-size: 13px; font-weight: 700; color: var(--rose-500); box-shadow: var(--shadow);
+  }
+
+  /* ---------- Frase ---------- */
+  .quote {
+    text-align: center; padding: 6px 8px 18px;
+  }
+  .quote q { font: italic 500 21px/1.35 "Cormorant Garamond", serif; color: var(--plum); quotes: "“" "”"; }
+  .quote div { margin-top: 6px; font-size: 13px; color: var(--muted); font-weight: 700; }
+
+  /* ---------- Tarjetas ---------- */
+  .card {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+    border: 1px solid var(--line); margin-bottom: 18px; overflow: hidden; position: relative;
+  }
+  .pad { padding: 22px 22px 24px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 1.2px; color: var(--rose-500);
+    background: var(--rose-100); padding: 5px 11px; border-radius: 999px;
+  }
+  .piece-date { float: right; font-size: 13px; color: var(--muted); font-weight: 700; margin-top: 4px; }
+  .piece h2 { font: 700 34px/1.1 "Cormorant Garamond", serif; color: var(--rose-600); margin: 16px 0 6px; }
+  :root[data-theme="dark"] .piece h2 { color: var(--rose-300); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .piece h2 { color: var(--rose-300); } }
+  .byline { color: var(--muted); font-weight: 700; font-size: 15px; }
+  .lead { font: italic 500 21px/1.4 "Cormorant Garamond", serif; color: var(--muted); margin: 10px 0 0; }
+  .hero { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; object-position: 50% 25%; display: block; background: var(--rose-100); }
+  .hero-wrap { position: relative; }
+  .hero-wrap figcaption {
+    position: absolute; right: 10px; bottom: 8px; font-size: 11px; color: #fff;
+    background: rgba(94, 42, 70, .55); padding: 3px 8px; border-radius: 999px;
+  }
+  .poem {
+    font: 500 var(--fs)/1.65 "Cormorant Garamond", serif; white-space: pre-wrap; margin: 20px 0 0;
+    padding-left: 16px; border-left: 3px solid var(--rose-200);
+  }
+  .body p { font-size: calc(var(--fs) - 2px); line-height: 1.7; margin: 16px 0 0; }
+  .body p:first-child::first-letter {
+    font: 700 3.1em/.8 "Cormorant Garamond", serif; float: left; color: var(--rose-500); padding: 6px 8px 0 0;
+  }
+  .source { margin-top: 18px; font-size: 13px; color: var(--muted); }
+  .source a { color: var(--rose-500); font-weight: 700; }
+
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; padding: 14px 18px; border-top: 1px solid var(--line); background: var(--rose-50); }
+  .pill {
+    border: 1px solid var(--line); background: var(--card); color: var(--rose-500);
+    border-radius: 999px; padding: 9px 14px; font-weight: 800; font-size: 14px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .pill.on { background: var(--rose-400); color: #fff; border-color: var(--rose-400); }
+  .pill:active, .iconbtn:active { transform: scale(.96); }
+  .spacer { flex: 1; }
+
+  .daynav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+  .daynav .mid { text-align: center; font-weight: 800; color: var(--muted); font-size: 14px; }
+  .daynav .iconbtn:disabled { opacity: .35; cursor: default; }
+  .next {
+    text-align: center; color: var(--muted); font-weight: 700; font-size: 14px; padding: 16px;
+  }
+  .next b { color: var(--rose-500); }
+
+  /* ---------- Mujer del día ---------- */
+  .woman { display: flex; gap: 14px; align-items: flex-start; }
+  .woman img { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; object-position: 50% 20%; flex: none; border: 3px solid var(--rose-200); background: var(--rose-100); }
+  .woman h3 { margin: 4px 0 2px; font: 700 24px/1.1 "Cormorant Garamond", serif; color: var(--rose-500); }
+  .woman .desc { color: var(--muted); font-weight: 700; font-size: 13px; }
+  .woman p { margin: 8px 0 0; font-size: 15px; line-height: 1.55; }
+  .sec-title { font: 700 22px "Cormorant Garamond", serif; color: var(--rose-500); margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+
+  /* ---------- Listas ---------- */
+  .list { list-style: none; margin: 0; padding: 0; }
+  .list li {
+    display: flex; align-items: center; gap: 12px; padding: 12px 6px; border-bottom: 1px solid var(--line); cursor: pointer;
+  }
+  .list li:last-child { border-bottom: 0; }
+  .list .ico { width: 42px; height: 42px; flex: none; border-radius: 14px; background: var(--rose-100); display: grid; place-items: center; font-size: 20px; }
+  .list .t { flex: 1; min-width: 0; }
+  .list .t b { display: block; font: 700 19px/1.2 "Cormorant Garamond", serif; color: var(--plum); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .list .t span { font-size: 12px; color: var(--muted); font-weight: 700; }
+  .list .mark { color: var(--rose-400); font-size: 14px; }
+  .empty { text-align: center; color: var(--muted); padding: 26px 10px; font-weight: 600; line-height: 1.6; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+
+  /* ---------- Formulario ---------- */
+  label { display: block; font-weight: 800; font-size: 13px; color: var(--muted); margin: 12px 0 6px; }
+  input, textarea {
+    width: 100%; border: 1px solid var(--line); background: var(--rose-50); color: var(--text);
+    border-radius: 16px; padding: 12px 14px; font: 600 16px "Nunito", sans-serif;
+  }
+  textarea { min-height: 220px; font: 500 18px/1.55 "Cormorant Garamond", serif; resize: vertical; }
+  input:focus, textarea:focus { outline: 2px solid var(--rose-300); border-color: transparent; }
+  .primary {
+    width: 100%; margin-top: 16px; border: 0; border-radius: 999px; padding: 15px;
+    background: linear-gradient(135deg, var(--rose-400), var(--rose-500)); color: #fff;
+    font-weight: 800; font-size: 16px; cursor: pointer; box-shadow: 0 8px 20px rgba(224, 82, 142, .3);
+  }
+  .hint { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 0 0 6px; }
+
+  /* ---------- Barra inferior ---------- */
+  nav.tabs {
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(12px + env(safe-area-inset-bottom));
+    width: min(560px, calc(100% - 24px)); display: flex; gap: 4px; padding: 6px;
+    background: color-mix(in srgb, var(--card) 88%, transparent); backdrop-filter: blur(12px);
+    border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow); z-index: 10;
+  }
+  nav.tabs button {
+    flex: 1; border: 0; background: transparent; border-radius: 999px; padding: 8px 4px; cursor: pointer;
+    font-weight: 800; font-size: 11.5px; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  nav.tabs button span { font-size: 19px; }
+  nav.tabs button.active { background: var(--rose-100); color: var(--rose-500); }
+  main > section { display: none; }
+  main > section.show { display: block; animation: fade .35s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%) translateY(20px); opacity: 0;
+    background: var(--plum); color: var(--bg); padding: 10px 18px; border-radius: 999px; font-weight: 700;
+    transition: .3s; pointer-events: none; z-index: 20; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%); }
+  .petal { position: fixed; top: -30px; pointer-events: none; z-index: 30; font-size: 22px; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(360deg); opacity: .2; } }
+
+  @media (min-width: 1000px) {
+    .wrap { max-width: 1040px; }
+    #tab-hoy.show { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+      <g transform="translate(32 32)">
+        <g fill="#f9a8c9"><ellipse rx="10" ry="18" cy="-12"/><ellipse rx="10" ry="18" cy="-12" transform="rotate(72)"/><ellipse rx="10" ry="18" cy="-12" transform="rotate(144)"/><ellipse rx="10" ry="18" cy="-12" transform="rotate(216)"/><ellipse rx="10" ry="18" cy="-12" transform="rotate(288)"/></g>
+        <circle r="8" fill="#e0528e"/><circle r="3.5" fill="#fff4f8"/>
+      </g>
+    </svg>
+    <div class="htext">
+      <h1>Ellas</h1>
+      <p id="today-label"></p>
+    </div>
+    <button class="iconbtn" id="theme-btn" aria-label="Cambiar tema">🌙</button>
+  </header>
+  <div class="streak" id="streak"></div>
+
+  <main>
+    <section id="tab-hoy" class="show">
+      <div>
+        <div class="quote" id="quote"></div>
+        <div class="daynav">
+          <button class="iconbtn" id="prev" aria-label="Día anterior">‹</button>
+          <div class="mid" id="day-mid"></div>
+          <button class="iconbtn" id="next" aria-label="Día siguiente">›</button>
+        </div>
+        <article class="card piece" id="piece"></article>
+        <div class="next" id="countdown"></div>
+      </div>
+      <aside>
+        <div class="card pad" id="mine-today" hidden></div>
+        <div class="card pad" id="woman"></div>
+      </aside>
+    </section>
+
+    <section id="tab-archivo">
+      <div class="card pad">
+        <h2 class="sec-title">📚 Lo que ya ha salido</h2>
+        <div class="filters" id="filters"></div>
+        <ul class="list" id="archive"></ul>
+      </div>
+    </section>
+
+    <section id="tab-favs">
+      <div class="card pad">
+        <h2 class="sec-title">💗 Tus favoritas</h2>
+        <ul class="list" id="favs"></ul>
+      </div>
+    </section>
+
+    <section id="tab-mios">
+      <div class="card pad">
+        <h2 class="sec-title">✍️ Mis poemas</h2>
+        <p class="hint">Guarda aquí tus poemas favoritos (de Gloria Fuertes o de quien quieras). Cada día te saldrá uno en «Hoy». Se quedan solo en este dispositivo.</p>
+        <form id="mine-form">
+          <input type="hidden" id="m-id">
+          <label for="m-title">Título</label>
+          <input id="m-title" required maxlength="120" placeholder="Título del poema">
+          <label for="m-author">Autora o autor</label>
+          <input id="m-author" maxlength="80" placeholder="Gloria Fuertes">
+          <label for="m-text">Poema</label>
+          <textarea id="m-text" required placeholder="Escribe o pega aquí el poema…"></textarea>
+          <button class="primary" type="submit" id="m-save">Guardar poema 🌸</button>
+        </form>
+      </div>
+      <div class="card pad">
+        <h2 class="sec-title">🌷 Guardados</h2>
+        <ul class="list" id="mine-list"></ul>
+      </div>
+    </section>
+  </main>
+</div>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="hoy" class="active"><span>🌸</span>Hoy</button>
+  <button data-tab="archivo"><span>📚</span>Archivo</button>
+  <button data-tab="favs"><span>💗</span>Favoritas</button>
+  <button data-tab="mios"><span>✍️</span>Mis poemas</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script src="poemas.js"></script>
+<script src="articulos.js"></script>
+<script>
+(() => {
+  /* ---------- Contenido diario ---------- */
+  // Intercala: poema, artículo, poema, artículo, reflexión…
+  const poems = window.ELLAS_POEMAS || [];
+  const arts = (window.ELLAS_ARTICULOS || []).filter(a => a.type === "articulo");
+  const refl = (window.ELLAS_ARTICULOS || []).filter(a => a.type === "reflexion");
+  const QUOTES = window.ELLAS_FRASES || [];
+  const SEQ = [];
+  for (let i = 0, p = 0, a = 0, r = 0; SEQ.length < poems.length + arts.length + refl.length; i++) {
+    const slot = i % 5;
+    if ((slot === 0 || slot === 2) && p < poems.length) SEQ.push(poems[p++]);
+    else if ((slot === 1 || slot === 3) && a < arts.length) SEQ.push(arts[a++]);
+    else if (slot === 4 && r < refl.length) SEQ.push(refl[r++]);
+    else if (a < arts.length) SEQ.push(arts[a++]);
+    else if (p < poems.length) SEQ.push(poems[p++]);
+    else if (r < refl.length) SEQ.push(refl[r++]);
+  }
+  const BY_ID = Object.fromEntries(SEQ.map(x => [x.id, x]));
+
+  // Mujeres para la sección «Mujer del día», leídas en vivo de Wikipedia.
+  const WOMEN = [
+    "Simone_de_Beauvoir", "Jane_Austen", "Virginia_Woolf", "Florence_Nightingale", "Amelia_Earhart",
+    "Coco_Chanel", "Billie_Holiday", "Maria_Montessori", "Teresa_de_Jesús", "Juana_de_Arco",
+    "Emmeline_Pankhurst", "Victoria_Kent", "Federica_Montseny", "María_Zambrano", "Rosa_Chacel",
+    "Carmen_Martín_Gaite", "Ana_María_Matute", "Lola_Flores", "Rocío_Jurado", "Chavela_Vargas",
+    "Mercedes_Sosa", "Violeta_Parra", "Isabel_Allende", "Elena_Poniatowska", "Rigoberta_Menchú",
+    "Eva_Perón", "Juana_Azurduy", "Policarpa_Salavarrieta", "Jane_Goodall", "Rachel_Carson",
+    "Barbara_McClintock", "Lise_Meitner", "Emmy_Noether", "Mary_Shelley", "Agatha_Christie",
+    "Astrid_Lindgren", "Toni_Morrison", "Maya_Angelou", "Nina_Simone", "Ella_Fitzgerald",
+    "Audrey_Hepburn", "Hannah_Arendt", "Anne_Frank", "Indira_Gandhi", "Benazir_Bhutto",
+    "Golda_Meir", "Michelle_Bachelet", "Serena_Williams", "Carolina_Marín", "Simone_Biles",
+    "Mae_Jemison", "Sally_Ride", "Grace_Hopper", "Tu_Youyou", "Clara_Zetkin", "Emily_Dickinson",
+    "Alfonsina_Storni", "Juana_de_Ibarbourou", "Gloria_Fuertes", "María_Moliner", "Matilde_Montoya",
+    "Kate_Sheppard", "Sojourner_Truth", "Harriet_Tubman", "Nellie_Bly", "Gertrude_Ederle", "Rita_Levi-Montalcini"
+  ];
+
+  /* ---------- Fechas ---------- */
+  const MONTHS = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  const DAYS = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+  const START = new Date(2026, 9, 7); // primer día publicado
+  const pad = n => String(n).padStart(2, "0");
+  const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const today = () => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); };
+  const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+  const dayIndex = d => Math.round((d - START) / 86400000);
+  const pieceOn = d => SEQ[((dayIndex(d) % SEQ.length) + SEQ.length) % SEQ.length];
+  const longDate = d => `${DAYS[d.getDay()]}, ${d.getDate()} de ${MONTHS[d.getMonth()]}`;
+  const shortDate = d => `${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)}`;
+
+  /* ---------- Guardado ---------- */
+  const KEY = "ellas.v1";
+  const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } };
+  const data = Object.assign({ favs: [], read: {}, mine: [], fs: 19, theme: "", wiki: {} }, load());
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch { /* sin almacenamiento */ } };
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const TYPE = {
+    poema: { label: "Poema", emoji: "🌹" },
+    articulo: { label: "Mujeres que inspiran", emoji: "✨" },
+    reflexion: { label: "Reflexión", emoji: "🌷" },
+    mio: { label: "Mi poema", emoji: "✍️" },
+  };
+
+  function toast(msg) {
+    const t = $("toast");
+    t.textContent = msg; t.classList.add("show");
+    clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("show"), 1800);
+  }
+  function petals() {
+    for (let i = 0; i < 14; i++) {
+      const p = document.createElement("div");
+      p.className = "petal";
+      p.textContent = ["🌸", "💗", "🌷", "✿"][i % 4];
+      p.style.left = Math.random() * 100 + "vw";
+      p.style.animationDuration = 2.5 + Math.random() * 2 + "s";
+      p.style.animationDelay = Math.random() * .6 + "s";
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 5500);
+    }
+  }
+
+  /* ---------- Wikipedia ---------- */
+  // Resumen + foto de es.wikipedia (permite CORS). Se guarda una semana en el dispositivo.
+  async function wiki(title) {
+    const c = data.wiki[title];
+    if (c && Date.now() - c.at < 7 * 86400000) return c;
+    try {
+      const res = await fetch(`https://es.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
+      if (!res.ok) throw new Error(res.status);
+      const j = await res.json();
+      const out = {
+        at: Date.now(), title: j.title, desc: j.description || "", extract: j.extract || "",
+        img: (j.thumbnail && j.thumbnail.source) || "", url: (j.content_urls && j.content_urls.mobile.page) || `https://es.wikipedia.org/wiki/${title}`
+      };
+      data.wiki[title] = out;
+      const keys = Object.keys(data.wiki);
+      if (keys.length > 40) keys.sort((a, b) => data.wiki[a].at - data.wiki[b].at).slice(0, keys.length - 40).forEach(k => delete data.wiki[k]);
+      save();
+      return out;
+    } catch {
+      return c || null;
+    }
+  }
+
+  /* ---------- Hoy ---------- */
+  let viewing = today();
+  let speaking = false;
+
+  function piecePlainText(x) {
+    return x.type === "poema" || x.type === "mio"
+      ? `${x.title}. ${x.author || ""}. ${x.text}`
+      : `${x.title}. ${x.lead}. ${x.body.join(" ")}`;
+  }
+
+  function renderPiece(x, date) {
+    const t = TYPE[x.type];
+    const isFav = data.favs.includes(x.id);
+    const content = x.type === "poema" || x.type === "mio"
+      ? `<div class="byline">${esc(x.author || "Anónima")}${x.year ? " · " + esc(x.year) : ""}</div>
+         <div class="poem">${esc(x.text)}</div>
+         ${x.type === "poema" ? `<div class="source">Texto de dominio público · <a href="https://es.wikisource.org/wiki/Especial:Buscar?search=${encodeURIComponent(x.title + " " + x.author)}" target="_blank" rel="noopener">Wikisource</a></div>` : ""}`
+      : `<p class="lead">${esc(x.lead)}</p>
+         <div class="body">${x.body.map(p => `<p>${esc(p)}</p>`).join("")}</div>
+         ${x.wiki ? `<div class="source" data-src>Más en <a href="https://es.wikipedia.org/wiki/${encodeURIComponent(x.wiki)}" target="_blank" rel="noopener">Wikipedia</a></div>` : ""}`;
+    $("piece").innerHTML = `
+      ${x.type === "articulo" && x.wiki ? `<figure class="hero-wrap" id="hero" hidden style="margin:0"><img class="hero" alt=""><figcaption>Wikimedia Commons</figcaption></figure>` : ""}
+      <div class="pad">
+        <span class="badge">${x.emoji || t.emoji} ${t.label}</span>
+        ${date ? `<span class="piece-date">${shortDate(date)}</span>` : ""}
+        <h2>${esc(x.title)}</h2>
+        ${content}
+      </div>
+      <div class="actions">
+        <button class="pill ${isFav ? "on" : ""}" id="fav">${isFav ? "💗 Guardada" : "🤍 Me encanta"}</button>
+        <button class="pill" id="share">↗ Compartir</button>
+        ${"speechSynthesis" in window ? `<button class="pill" id="listen">🔊 Escuchar</button>` : ""}
+        <span class="spacer"></span>
+        <button class="pill" id="smaller" aria-label="Letra más pequeña">A−</button>
+        <button class="pill" id="bigger" aria-label="Letra más grande">A+</button>
+      </div>`;
+
+    if (x.type === "articulo" && x.wiki) {
+      wiki(x.wiki).then(w => {
+        const hero = $("hero");
+        if (!w || !w.img || !hero) return;
+        const img = hero.querySelector("img");
+        img.src = w.img.replace(/\/\d+px-/, "/800px-");
+        img.onerror = () => { img.onerror = null; img.src = w.img; };
+        img.alt = w.title;
+        hero.hidden = false;
+      });
+    }
+
+    $("fav").onclick = () => {
+      const i = data.favs.indexOf(x.id);
+      if (i >= 0) data.favs.splice(i, 1); else { data.favs.unshift(x.id); petals(); }
+      save();
+      renderPiece(x, date);
+      toast(i >= 0 ? "Quitada de favoritas" : "Guardada en favoritas 💗");
+    };
+    $("share").onclick = async () => {
+      const text = x.type === "poema" || x.type === "mio"
+        ? `«${x.title}» — ${x.author || ""}\n\n${x.text}`
+        : `${x.title}\n${x.lead}`;
+      try {
+        if (navigator.share) await navigator.share({ title: x.title, text });
+        else { await navigator.clipboard.writeText(text); toast("Copiado 📋"); }
+      } catch { /* cancelado */ }
+    };
+    if ($("listen")) $("listen").onclick = () => {
+      speechSynthesis.cancel();
+      if (speaking) { speaking = false; $("listen").textContent = "🔊 Escuchar"; return; }
+      const u = new SpeechSynthesisUtterance(piecePlainText(x));
+      u.lang = "es-ES"; u.rate = .95;
+      const v = speechSynthesis.getVoices().find(v => v.lang.startsWith("es"));
+      if (v) u.voice = v;
+      u.onend = u.onerror = () => { speaking = false; if ($("listen")) $("listen").textContent = "🔊 Escuchar"; };
+      speaking = true; $("listen").textContent = "⏸ Parar";
+      speechSynthesis.speak(u);
+    };
+    $("smaller").onclick = () => setFs(data.fs - 1);
+    $("bigger").onclick = () => setFs(data.fs + 1);
+  }
+
+  function setFs(n) {
+    data.fs = Math.max(15, Math.min(28, n));
+    document.documentElement.style.setProperty("--fs", data.fs + "px");
+    save();
+  }
+
+  // Solo cuenta como leída la lectura del propio día (así la racha es real).
+  function markRead(date) {
+    if (+date !== +today()) return;
+    const k = ymd(date);
+    if (!data.read[k]) { data.read[k] = pieceOn(date).id; save(); }
+  }
+
+  function streak() {
+    let n = 0;
+    for (let d = today(); data.read[ymd(d)]; d = addDays(d, -1)) n++;
+    return n;
+  }
+
+  function renderHoy() {
+    if (speaking) { speechSynthesis.cancel(); speaking = false; }
+    const t = today();
+    if (viewing > t) viewing = t;
+    if (viewing < START) viewing = START;
+    const x = pieceOn(viewing);
+    const isToday = +viewing === +t;
+    $("day-mid").textContent = isToday ? "✿ Lectura de hoy ✿" : longDate(viewing);
+    $("prev").disabled = +viewing === +START;
+    $("next").disabled = isToday;
+    renderPiece(x, viewing);
+    markRead(viewing);
+
+    const q = QUOTES[((dayIndex(viewing) % QUOTES.length) + QUOTES.length) % QUOTES.length];
+    $("quote").innerHTML = q ? `<q>${esc(q.text)}</q><div>— ${esc(q.author)}</div>` : "";
+
+    renderCountdown();
+    renderStreak();
+    renderMineToday();
+    renderWoman();
+  }
+
+  function renderCountdown() {
+    const now = new Date();
+    const tomorrow = addDays(today(), 1);
+    const mins = Math.max(0, Math.ceil((tomorrow - now) / 60000));
+    const h = Math.floor(mins / 60), m = mins % 60;
+    const next = pieceOn(tomorrow);
+    $("countdown").innerHTML = `Mañana: <b>${TYPE[next.type].label.toLowerCase()}</b> nuevo en ${h} h ${m} min 🌙`;
+  }
+  function renderStreak() {
+    const n = streak();
+    const total = Object.keys(data.read).length;
+    $("streak").textContent = n > 1 ? `🌸 ${n} días seguidos leyendo · ${total} lecturas` : `🌸 ${total} ${total === 1 ? "lectura" : "lecturas"}`;
+  }
+
+  function renderMineToday() {
+    const box = $("mine-today");
+    if (!data.mine.length) { box.hidden = true; return; }
+    const m = data.mine[((dayIndex(viewing) % data.mine.length) + data.mine.length) % data.mine.length];
+    box.hidden = false;
+    box.innerHTML = `
+      <h2 class="sec-title">✍️ Tu poema del día</h2>
+      <h3 class="serif" style="margin:0;font-size:24px;color:var(--rose-500)">${esc(m.title)}</h3>
+      <div class="byline">${esc(m.author || "")}</div>
+      <div class="poem" style="font-size:calc(var(--fs) - 1px)">${esc(m.text)}</div>`;
+  }
+
+  async function renderWoman() {
+    const box = $("woman");
+    const title = WOMEN[((dayIndex(viewing) % WOMEN.length) + WOMEN.length) % WOMEN.length];
+    box.innerHTML = `<h2 class="sec-title">👑 Mujer del día</h2><div class="empty">Buscando en Wikipedia… 🌸</div>`;
+    const forDay = +viewing;
+    const w = await wiki(title);
+    if (forDay !== +viewing) return;
+    if (!w) {
+      box.innerHTML = `<h2 class="sec-title">👑 Mujer del día</h2>
+        <div class="empty">No se ha podido cargar ahora mismo.<br>Hoy era el día de <b>${esc(title.replace(/_/g, " "))}</b> 💗</div>`;
+      return;
+    }
+    const extract = w.extract.length > 420 ? w.extract.slice(0, w.extract.lastIndexOf(" ", 420)) + "…" : w.extract;
+    box.innerHTML = `
+      <h2 class="sec-title">👑 Mujer del día</h2>
+      <div class="woman">
+        ${w.img ? `<img src="${esc(w.img)}" alt="${esc(w.title)}" loading="lazy">` : ""}
+        <div>
+          <h3>${esc(w.title)}</h3>
+          <div class="desc">${esc(w.desc)}</div>
+        </div>
+      </div>
+      <p style="font-size:15px;line-height:1.6;margin:12px 0 0">${esc(extract)}</p>
+      <div class="source">Fuente: <a href="${esc(w.url)}" target="_blank" rel="noopener">Wikipedia</a></div>`;
+  }
+
+  /* ---------- Archivo ---------- */
+  let filter = "all";
+  function renderFilters() {
+    const opts = [["all", "Todo"], ["poema", "🌹 Poemas"], ["articulo", "✨ Mujeres"], ["reflexion", "🌷 Reflexiones"]];
+    $("filters").innerHTML = opts.map(([k, l]) => `<button class="pill ${filter === k ? "on" : ""}" data-f="${k}">${l}</button>`).join("");
+    $("filters").querySelectorAll("button").forEach(b => b.onclick = () => { filter = b.dataset.f; renderFilters(); renderArchive(); });
+  }
+  function itemRow(x, sub, attrs, mark) {
+    const t = TYPE[x.type];
+    return `<li ${attrs}><div class="ico">${x.emoji || t.emoji}</div>
+      <div class="t"><b>${esc(x.title)}</b><span>${esc(sub)}</span></div>${mark || ""}</li>`;
+  }
+  function renderArchive() {
+    const rows = [];
+    for (let d = today(); d >= START; d = addDays(d, -1)) {
+      const x = pieceOn(d);
+      if (filter !== "all" && x.type !== filter) continue;
+      const sub = `${shortDate(d)} · ${x.type === "poema" ? x.author : TYPE[x.type].label}`;
+      const mark = data.read[ymd(d)] ? `<span class="mark" title="Leído">✓</span>` : `<span class="mark">•</span>`;
+      rows.push(itemRow(x, sub, `data-day="${ymd(d)}"`, mark));
+    }
+    $("archive").innerHTML = rows.join("") || `<li class="empty" style="cursor:default">Todavía no ha salido nada de este tipo.</li>`;
+    $("archive").querySelectorAll("[data-day]").forEach(li => li.onclick = () => {
+      const [y, m, dd] = li.dataset.day.split("-").map(Number);
+      viewing = new Date(y, m - 1, dd);
+      go("hoy");
+    });
+  }
+
+  /* ---------- Favoritas ---------- */
+  function findById(id) {
+    return BY_ID[id] || (data.mine.find(m => m.id === id) && Object.assign({ type: "mio" }, data.mine.find(m => m.id === id)));
+  }
+  function renderFavs() {
+    const items = data.favs.map(findById).filter(Boolean);
+    $("favs").innerHTML = items.length
+      ? items.map(x => itemRow(x, x.type === "poema" || x.type === "mio" ? (x.author || "") : TYPE[x.type].label, `data-id="${x.id}"`, `<span class="mark">💗</span>`)).join("")
+      : `<li class="empty" style="cursor:default">Aún no tienes favoritas.<br>Pulsa 🤍 en cualquier lectura para guardarla aquí.</li>`;
+    $("favs").querySelectorAll("[data-id]").forEach(li => li.onclick = () => openSingle(findById(li.dataset.id)));
+  }
+  function openSingle(x) {
+    if (!x) return;
+    go("hoy", true);
+    $("day-mid").textContent = "💗 Favorita";
+    $("prev").disabled = $("next").disabled = false;
+    renderPiece(x, null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  /* ---------- Mis poemas ---------- */
+  function renderMine() {
+    $("mine-list").innerHTML = data.mine.length
+      ? data.mine.map(m => `<li data-id="${m.id}"><div class="ico">✍️</div>
+          <div class="t"><b>${esc(m.title)}</b><span>${esc(m.author || "")}</span></div>
+          <button class="pill" data-edit="${m.id}" aria-label="Editar">✏️</button>
+          <button class="pill" data-del="${m.id}" aria-label="Borrar">🗑</button></li>`).join("")
+      : `<li class="empty" style="cursor:default">Todavía no has guardado ningún poema.</li>`;
+    $("mine-list").querySelectorAll("li[data-id]").forEach(li => li.onclick = e => {
+      const id = li.dataset.id;
+      if (e.target.closest("[data-del]")) {
+        if (!confirm("¿Borrar este poema?")) return;
+        data.mine = data.mine.filter(m => m.id !== id);
+        data.favs = data.favs.filter(f => f !== id);
+        save(); renderMine(); toast("Poema borrado");
+      } else if (e.target.closest("[data-edit]")) {
+        const m = data.mine.find(m => m.id === id);
+        $("m-id").value = m.id; $("m-title").value = m.title; $("m-author").value = m.author || ""; $("m-text").value = m.text;
+        $("m-save").textContent = "Guardar cambios 🌸";
+        $("m-title").focus();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        openSingle(Object.assign({ type: "mio" }, data.mine.find(m => m.id === id)));
+      }
+    });
+  }
+  $("mine-form").onsubmit = e => {
+    e.preventDefault();
+    const id = $("m-id").value;
+    const poem = {
+      id: id || "mio-" + Date.now().toString(36),
+      title: $("m-title").value.trim(),
+      author: $("m-author").value.trim(),
+      text: $("m-text").value.replace(/\s+$/, ""),
+    };
+    if (!poem.title || !poem.text.trim()) return;
+    const i = data.mine.findIndex(m => m.id === id);
+    if (i >= 0) data.mine[i] = poem; else data.mine.push(poem);
+    save();
+    e.target.reset(); $("m-id").value = ""; $("m-save").textContent = "Guardar poema 🌸";
+    renderMine();
+    petals();
+    toast(i >= 0 ? "Poema actualizado ✨" : "Poema guardado 🌸");
+  };
+
+  /* ---------- Navegación ---------- */
+  let tab = "hoy";
+  function go(name, keep) {
+    tab = name;
+    document.querySelectorAll("main > section").forEach(s => s.classList.toggle("show", s.id === "tab-" + name));
+    document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
+    if (name === "hoy" && !keep) renderHoy();
+    if (name === "archivo") { renderFilters(); renderArchive(); }
+    if (name === "favs") renderFavs();
+    if (name === "mios") renderMine();
+    if (!keep) window.scrollTo({ top: 0 });
+  }
+  document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => {
+    if (b.dataset.tab === "hoy" && tab === "hoy") viewing = today();
+    go(b.dataset.tab);
+  });
+  $("prev").onclick = () => { viewing = addDays(viewing, -1); renderHoy(); };
+  $("next").onclick = () => { viewing = addDays(viewing, 1); renderHoy(); };
+
+  /* ---------- Tema ---------- */
+  function applyTheme() {
+    if (data.theme) document.documentElement.dataset.theme = data.theme;
+    else delete document.documentElement.dataset.theme;
+    const dark = data.theme ? data.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    $("theme-btn").textContent = dark ? "☀️" : "🌙";
+  }
+  $("theme-btn").onclick = () => {
+    const dark = data.theme ? data.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    data.theme = dark ? "light" : "dark";
+    save(); applyTheme();
+  };
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme);
+
+  /* ---------- Arranque ---------- */
+  let lastDay = ymd(today());
+  function tick() {
+    const k = ymd(today());
+    if (k !== lastDay) {
+      // Ha empezado un día nuevo: si estabas en la lectura de hoy, pasa a la nueva.
+      const wasToday = ymd(viewing) === lastDay;
+      lastDay = k;
+      $("today-label").textContent = longDate(today()).replace(/^./, c => c.toUpperCase());
+      if (wasToday) viewing = today();
+      if (tab === "hoy") renderHoy();
+      toast("¡Nueva lectura del día! 🌸");
+    } else if (tab === "hoy") renderCountdown();
+  }
+  setInterval(tick, 30000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+
+  $("today-label").textContent = longDate(today()).replace(/^./, c => c.toUpperCase());
+  setFs(data.fs);
+  applyTheme();
+  renderHoy();
+
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+})();
+</script>
+</body>
+</html>

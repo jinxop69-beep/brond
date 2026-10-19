@@ -22,3 +22,6 @@ si se borra el navegador y se ven igual en el móvil y en el ordenador.
 ## Cómo usarla
 Abre `index.html` en el navegador (móvil u ordenador). No necesita instalar nada.
 Para tenerla en el móvil, publícala con GitHub Pages y usa “Añadir a pantalla de inicio”.
+
+## 🌸 Otra app: Ellas
+En la carpeta [`ellas/`](ellas/) está **Ellas · Cada día**: un poema o artículo sobre mujeres cada día. Ábrela en `ellas/index.html`.
