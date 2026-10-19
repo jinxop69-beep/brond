@@ -419,6 +419,32 @@
     .row { grid-template-columns: 1fr; }
     .kitty { width: 68px; height: 68px; }
   }
+  /* ---------- Minimalista: menos sombras, bordes finos, más aire ---------- */
+  :root { --shadow: 0 2px 12px rgba(255, 92, 154, .07); }
+  header { padding: 18px 0 6px; gap: 12px; }
+  .kitty { width: 56px; height: 56px; animation: none; }
+  header p { margin: 0; font: 400 18px "Mochiy Pop One", sans-serif; color: var(--pink-500); }
+  .card, .box, .wday, .tabs { border-width: 1.5px; box-shadow: var(--shadow); }
+  .card, .tabs, .wday { border-color: var(--pink-100); }
+  .box { border-color: color-mix(in srgb, var(--c) 22%, #fff); box-shadow: var(--shadow); }
+  .wday.is-today { border-color: var(--pink-300); box-shadow: var(--shadow); }
+  .card h2, .box h2 { font-size: 17px; }
+  .task { border: 0; border-left: 4px solid var(--c, var(--pink-300)); background: color-mix(in srgb, var(--c, #ffc6dc) 6%, #fff); }
+  .task.done { background: #fff; }
+  .btn, .box form .btn, .sbtn { box-shadow: none; }
+  .btn:active, .sbtn:active { transform: scale(.97); }
+  .round, .cloud, .chip, .today-btn, .day1, .extras-toggle button, .ord button { border-width: 1.5px; box-shadow: none; }
+  .cloud { border-color: var(--pink-100); }
+  input[type=text], input[type=email], input[type=password], input[type=time], input[type=date], select,
+  .magic textarea, .box textarea, .box .xinput { border-width: 1.5px; }
+  .toggle-big { border-width: 1.5px; }
+  .bar { border-width: 1.5px; height: 14px; }
+  .tabs button.active { box-shadow: none; }
+  .stat, .pill { border-width: 1.5px; }
+  .sheet { border-width: 1.5px; box-shadow: 0 10px 40px rgba(255, 92, 154, .18); }
+  .alert { background: var(--pink-50); }
+  .edit { font-size: 18px; color: var(--pink-300); }
+  .task .meta:empty { display: none; }
 </style>
 </head>
 <body data-tab="day">
@@ -445,7 +471,6 @@
       </g>
     </svg>
     <div class="htext">
-      <h1>Mi Día Kawaii</h1>
       <p id="greeting">¡Hola, preciosa! ♡</p>
     </div>
     <button class="cloud" id="cloudBtn" aria-label="Cuenta y nube">
@@ -783,9 +808,9 @@
         <span class="emoji">${c.emoji}</span>
         <div class="info">
           <div class="title">${esc(t.title)}</div>
-          <div class="meta">${t.time ? "⏰ " + t.time + " · " : ""}${c.name}${t.repeat !== "once" ? " · 🔁 " + repeatText(t) : ""}</div>
+          <div class="meta">${[t.time && "⏰ " + t.time, t.repeat !== "once" && "🔁 " + repeatText(t)].filter(Boolean).join(" · ")}</div>
         </div>
-        <button class="edit" aria-label="Editar">✏️</button>
+        <button class="edit" aria-label="Editar">✎</button>
         <button class="del" aria-label="Borrar">✕</button>`;
       li.querySelector(".edit").addEventListener("click", () => startEdit(t));
       li.querySelector(".check").addEventListener("click", e => {
@@ -1415,7 +1440,7 @@
       li.innerHTML = `<span class="emoji">${c.emoji}</span>
         <div class="info"><div class="title">${esc(t.title)}</div>
         <div class="meta">${t.repeat === "dates" ? "📅" : "🔁"} ${repeatText(t)}${t.time ? " · ⏰ " + t.time : ""}</div></div>
-        <button class="edit" aria-label="Editar">✏️</button>
+        <button class="edit" aria-label="Editar">✎</button>
         <button class="del" aria-label="Borrar">✕</button>`;
       li.querySelector(".edit").addEventListener("click", () => startEdit(t));
       li.querySelector(".del").addEventListener("click", () => removeTask(t, current, true));
