@@ -53,6 +53,11 @@
   .kitty { width: 84px; height: 84px; flex: none; animation: bob 3s ease-in-out infinite; }
   @keyframes bob { 50% { transform: translateY(-4px) rotate(-3deg); } }
   .htext { flex: 1; min-width: 0; }
+  .pet-link {
+    flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+    border: 3px solid var(--pink-200); background: #fff; font-size: 22px; text-decoration: none;
+    box-shadow: 0 4px 0 var(--pink-200);
+  }
   .cloud {
     flex: none; display: flex; align-items: center; gap: 6px; cursor: pointer;
     border: 3px solid var(--pink-200); background: #fff; color: var(--pink-500);
@@ -473,6 +478,7 @@
     <div class="htext">
       <p id="greeting">¡Hola, preciosa! ♡</p>
     </div>
+    <a class="pet-link" href="teckel.html" aria-label="Mi teckel">🐶</a>
     <button class="cloud" id="cloudBtn" aria-label="Cuenta y nube">
       <span class="cloud-ico">☁️</span><span id="cloudText">Guardar en la nube</span>
     </button>

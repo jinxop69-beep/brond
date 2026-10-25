@@ -15,6 +15,10 @@ App rosa y kawaii para organizar el día a día y **tachar** lo que vas haciendo
   - días elegidos en un calendario (turnos de trabajo, citas sueltas…).
 - **Mes**: calendario con el icono y el color de cada categoría en los días que la tienes. Toca una categoría para resaltar sus días y abajo verás la lista de qué días tienes cada cosa.
 - Todas las tareas se pueden editar con ✏️.
+- **🐶 Mi teckel** (`teckel.html`, botón 🐶 de la cabecera): un tamagotchi con un perro salchicha. Eliges su color y su nombre
+  y tienes que darle de comer, jugar a la pelota, pasearle, bañarle, dejarle dormir, recoger sus cacas y curarle si se pone malito.
+  Su tiempo corre aunque cierres la app (hasta 48 h) y va creciendo: cachorro → joven → adulto → abuelito (¡cada vez más largo!).
+  Se guarda solo en el dispositivo.
 
 Los datos se guardan primero en el dispositivo (`localStorage`) y, si inicias sesión con el botón ☁️,
 se copian a Supabase (tabla `kawaii_state`, una fila por usuaria y protegida con RLS). Así no se pierden

@@ -1,0 +1,861 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ff8fb8">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<title>Mi Teckel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fff0f6;
+    --card: #ffffff;
+    --pink-50: #fff5f9;
+    --pink-100: #ffe3ee;
+    --pink-200: #ffc6dc;
+    --pink-300: #ffa3c6;
+    --pink-400: #ff7eb0;
+    --pink-500: #ff5c9a;
+    --red-bow: #ff3d7f;
+    --text: #6b3a52;
+    --muted: #b07a93;
+    --radius: 26px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh;
+    font-family: "Quicksand", system-ui, sans-serif;
+    color: var(--text);
+    background-color: var(--bg);
+    padding: 0 16px 40px;
+    user-select: none; -webkit-user-select: none;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; }
+  h1, h2, .pop { font-family: "Mochiy Pop One", "Quicksand", sans-serif; font-weight: 400; }
+  button { font: inherit; color: inherit; }
+
+  /* ---------- Cabecera ---------- */
+  header { display: flex; align-items: center; gap: 10px; padding: 18px 0 12px; }
+  .round {
+    flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+    border: 2px solid var(--pink-200); background: #fff; font-size: 20px; cursor: pointer;
+    text-decoration: none; color: var(--pink-500);
+  }
+  .htext { flex: 1; min-width: 0; text-align: center; }
+  .htext h1 { margin: 0; font-size: 22px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .htext .age { font-size: 13px; color: var(--muted); font-weight: 700; }
+
+  /* ---------- Escena ---------- */
+  .scene {
+    position: relative; height: 300px; border-radius: var(--radius); overflow: hidden;
+    border: 2px solid var(--pink-200); background: linear-gradient(#ffe3ee 0 68%, #f6d3b5 68% 100%);
+    touch-action: manipulation;
+  }
+  .scene::after { /* rodapié */
+    content: ""; position: absolute; left: 0; right: 0; top: 68%; height: 6px; background: #f2b9cf;
+  }
+  .window {
+    position: absolute; top: 22px; left: 22px; width: 96px; height: 84px; border-radius: 14px;
+    border: 5px solid #fff; box-shadow: 0 0 0 2px var(--pink-200); background: #bfe6ff; overflow: hidden;
+    display: grid; place-items: center; font-size: 30px;
+  }
+  .window::before, .window::after { content: ""; position: absolute; background: #fff; }
+  .window::before { left: 50%; top: 0; bottom: 0; width: 4px; transform: translateX(-50%); }
+  .window::after { top: 50%; left: 0; right: 0; height: 4px; transform: translateY(-50%); }
+  .window.night { background: #3b3f73; }
+  .frame {
+    position: absolute; top: 34px; right: 30px; width: 62px; height: 52px; border-radius: 10px;
+    background: #fff; border: 4px solid #ffc94d; display: grid; place-items: center; font-size: 24px;
+  }
+  .bed {
+    position: absolute; left: 4%; bottom: 8%; width: 46%; max-width: 230px; height: 42px; border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 40%, #ffd8e6 0 55%, #ff9fc3 56% 100%);
+    border: 3px solid #6b3a52;
+  }
+  .bowl { position: absolute; right: 6%; bottom: 10%; font-size: 30px; }
+  .poop {
+    position: absolute; bottom: 4%; font-size: 26px; cursor: pointer; z-index: 3;
+    animation: pop .3s ease-out; filter: drop-shadow(0 2px 0 rgba(0,0,0,.08));
+  }
+  @keyframes pop { from { transform: scale(0); } }
+
+  .dogwrap {
+    position: absolute; bottom: 9%; left: 30%; z-index: 2; cursor: pointer;
+    transition: left 2.4s linear;
+  }
+  .dog { transition: transform .25s; }
+  .dog.left { transform: scaleX(-1); }
+  .dog svg { display: block; overflow: visible; }
+
+  .tail { animation: wag 1.4s ease-in-out infinite; }
+  .dog.joy .tail { animation-duration: .28s; }
+  .dog.sad .tail, .dog.sick .tail { animation: none; transform: rotate(-45deg); }
+  .dog.sleep .tail { animation: none; transform: rotate(-60deg); }
+  @keyframes wag { 0%, 100% { transform: rotate(-14deg); } 50% { transform: rotate(16deg); } }
+
+  .dog.walk .leg-a { animation: step .32s ease-in-out infinite alternate; }
+  .dog.walk .leg-b { animation: step .32s ease-in-out infinite alternate-reverse; }
+  @keyframes step { from { transform: rotate(-22deg); } to { transform: rotate(22deg); } }
+  .dog.walk svg { animation: hop .32s ease-in-out infinite alternate; }
+  @keyframes hop { to { transform: translateY(-3px); } }
+
+  .dog.joy .ear { animation: flap .3s ease-in-out infinite alternate; }
+  @keyframes flap { to { transform: rotate(-16deg); } }
+  .dog.sleep svg { animation: breathe 3.2s ease-in-out infinite; transform-origin: 50% 100%; }
+  @keyframes breathe { 50% { transform: scaleY(1.04); } }
+  .dog.eat .head { animation: munch .25s ease-in-out infinite alternate; }
+  @keyframes munch { to { transform: rotate(8deg); } }
+  .dog.shake svg { animation: shake .12s linear 8; }
+  @keyframes shake { 25% { transform: rotate(-4deg); } 75% { transform: rotate(4deg); } }
+
+  .bubble {
+    position: absolute; z-index: 5; width: max-content; max-width: 210px; padding: 8px 12px; border-radius: 18px;
+    background: #fff; border: 2px solid var(--pink-200); font-weight: 700; font-size: 14px; text-align: center;
+    transform: translate(-50%, -100%) scale(.6); opacity: 0; pointer-events: none;
+    transition: opacity .2s, transform .2s, left 2.4s linear;
+  }
+  .bubble.show { opacity: 1; transform: translate(-50%, -100%) scale(1); }
+  .bubble::after {
+    content: ""; position: absolute; left: 50%; bottom: -8px; width: 12px; height: 12px; background: #fff;
+    border-right: 2px solid var(--pink-200); border-bottom: 2px solid var(--pink-200);
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  .fx { position: absolute; z-index: 6; pointer-events: none; font-size: 24px; animation: rise 1.4s ease-out forwards; }
+  @keyframes rise { to { transform: translateY(-70px) scale(1.3); opacity: 0; } }
+
+  .dark {
+    position: absolute; inset: 0; z-index: 4; background: #1d1840; opacity: 0; pointer-events: none;
+    transition: opacity .8s;
+  }
+  .scene.sleeping .dark { opacity: .5; }
+
+  /* Paseo por el parque */
+  .park {
+    position: absolute; inset: 0; z-index: 1; display: none;
+    background: linear-gradient(#cdeeff 0 62%, #bfe8a8 62% 100%);
+  }
+  .scene.walking .park { display: block; }
+  .scene.walking #poops { display: none; }
+  .strip {
+    position: absolute; bottom: 36%; left: 0; white-space: nowrap; font-size: 46px; letter-spacing: 34px;
+    animation: scroll 5s linear infinite;
+  }
+  .strip.low { bottom: 3%; font-size: 26px; letter-spacing: 60px; animation-duration: 3s; }
+  @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* Juego de la pelota */
+  .ball {
+    position: absolute; z-index: 7; width: 64px; height: 64px; display: none; place-items: center;
+    font-size: 40px; cursor: pointer; border: 0; background: none; padding: 0;
+    animation: pop .2s ease-out;
+  }
+  .hud {
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 7; display: none;
+    background: #fff; border: 2px solid var(--pink-200); border-radius: 999px; padding: 4px 14px; font-weight: 700;
+  }
+  .scene.gaming .hud { display: block; }
+
+  /* ---------- Estadísticas ---------- */
+  .stats {
+    margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px;
+    background: #fff; border: 2px solid var(--pink-100); border-radius: var(--radius); padding: 14px 16px;
+  }
+  .stat { min-width: 0; }
+  .stat .lbl { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .stat .lbl span:last-child { color: var(--muted); }
+  .bar { height: 12px; border-radius: 999px; background: var(--pink-100); overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 999px; background: var(--pink-400); transition: width .5s, background .5s; }
+  .bar.mid i { background: #ffb257; }
+  .bar.low i { background: #ff4f4f; animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: .5; } }
+  .stat.wide { grid-column: 1 / -1; }
+
+  /* ---------- Acciones ---------- */
+  .actions { margin-top: 14px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .act {
+    border: 2px solid var(--pink-200); background: #fff; border-radius: 18px; padding: 10px 2px 8px;
+    cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    font-weight: 700; font-size: 12px; box-shadow: 0 4px 0 var(--pink-200); transition: transform .1s;
+  }
+  .act b { font-size: 26px; line-height: 1.1; font-weight: 400; }
+  .act:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--pink-200); }
+  .act:disabled { opacity: .4; cursor: default; }
+  .act.alert { border-color: var(--pink-400); }
+
+  /* ---------- Hojas ---------- */
+  .sheet-back {
+    position: fixed; inset: 0; z-index: 20; background: rgba(107, 58, 82, .35);
+    display: flex; align-items: flex-end; justify-content: center; padding: 16px;
+  }
+  .sheet-back[hidden] { display: none; }
+  .sheet {
+    width: 100%; max-width: 460px; background: #fff; border-radius: var(--radius); padding: 20px 18px;
+    max-height: 90vh; overflow: auto; animation: up .25s ease-out;
+  }
+  @keyframes up { from { transform: translateY(40px); opacity: 0; } }
+  .sheet h2 { margin: 0 0 12px; font-size: 20px; text-align: center; }
+  .sheet p { margin: 0 0 12px; text-align: center; }
+  .sheet input {
+    width: 100%; padding: 12px 14px; border-radius: 16px; border: 2px solid var(--pink-200);
+    font: 700 16px "Quicksand", sans-serif; color: var(--text); text-align: center; outline: none; margin-bottom: 12px;
+  }
+  .sheet input:focus { border-color: var(--pink-400); }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-bottom: 14px; }
+  .opt {
+    border: 2px solid var(--pink-100); background: var(--pink-50); border-radius: 18px; padding: 10px 6px;
+    cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; font-weight: 700;
+  }
+  .opt small { font-weight: 600; color: var(--muted); font-size: 12px; text-align: center; }
+  .opt.sel { border-color: var(--pink-400); background: var(--pink-100); }
+  .opt .big { font-size: 30px; }
+  .main-btn {
+    width: 100%; border: 0; border-radius: 999px; padding: 13px; cursor: pointer;
+    background: var(--pink-500); color: #fff; font: 700 16px "Quicksand", sans-serif;
+    box-shadow: 0 4px 0 #e04482;
+  }
+  .ghost-btn {
+    width: 100%; margin-top: 8px; border: 2px solid var(--pink-200); background: #fff; border-radius: 999px;
+    padding: 11px; cursor: pointer; font-weight: 700;
+  }
+  .ghost-btn.danger { color: var(--red-bow); }
+  .facts { list-style: none; padding: 0; margin: 0 0 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .facts li { background: var(--pink-50); border-radius: 12px; padding: 8px 10px; font-size: 13px; font-weight: 700; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="round" href="index.html" aria-label="Volver a Mi día">🎀</a>
+    <div class="htext">
+      <h1 id="name">Mi teckel</h1>
+      <div class="age" id="age"></div>
+    </div>
+    <button class="round" id="infoBtn" aria-label="Ficha y ajustes">⚙️</button>
+  </header>
+
+  <div class="scene" id="scene">
+    <div class="window" id="window">☀️</div>
+    <div class="frame">🦴</div>
+    <div class="bed"></div>
+    <div class="bowl">🥣</div>
+    <div class="park" aria-hidden="true">
+      <div class="strip">🌳🌷🌲🏡🌳🌼🌲🐦🌳🌷🌲🏡🌳🌼🌲🐦</div>
+      <div class="strip low">🌱🌸🍂🌱🌸🍂🌱🌸🍂🌱🌸🍂</div>
+    </div>
+    <div id="poops"></div>
+    <div class="dogwrap" id="dogwrap"><div class="dog" id="dog"></div></div>
+    <div class="dark"></div>
+    <div class="hud" id="hud"></div>
+    <button class="ball" id="ball" aria-label="Pelota">🎾</button>
+    <div class="bubble" id="bubble"></div>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="actions">
+    <button class="act" data-act="feed"><b>🍖</b>Comer</button>
+    <button class="act" data-act="play"><b>🎾</b>Jugar</button>
+    <button class="act" data-act="walk"><b>🦮</b>Pasear</button>
+    <button class="act" data-act="bath"><b>🛁</b>Bañar</button>
+    <button class="act" data-act="sleep"><b id="sleepIco">💤</b><span id="sleepTxt">Dormir</span></button>
+    <button class="act" data-act="clean"><b>🧹</b>Limpiar</button>
+    <button class="act" data-act="heal"><b>💊</b>Curar</button>
+    <button class="act" data-act="pet"><b>🤗</b>Mimos</button>
+  </div>
+</div>
+
+<div class="sheet-back" id="sheetBack" hidden><div class="sheet" id="sheet"></div></div>
+
+<script>
+(() => {
+  const KEY = "teckel-tamagotchi-v1";
+  const HOUR = 3600e3, DAY = 24 * HOUR;
+  const $ = s => document.querySelector(s);
+  const clamp = v => Math.max(0, Math.min(100, v));
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch {} };
+
+  const COATS = {
+    marron: { label: "Rojizo", body: "#d08445", dark: "#8f4d22", belly: "#eeb47a", snout: "#e3a066" },
+    negro:  { label: "Negro y fuego", body: "#3d2c2e", dark: "#22171a", belly: "#c98245", snout: "#c98245", points: "#c98245" },
+    crema:  { label: "Crema", body: "#f1cf98", dark: "#cf9c5c", belly: "#fbe6c4", snout: "#f8ddb2" },
+    arlequin: { label: "Arlequín", body: "#b9b2b8", dark: "#5e5257", belly: "#ddd6da", snout: "#d2cbd0", spots: "#5e5257" },
+  };
+
+  const STAGES = [
+    { until: 2,  name: "Cachorro", L: 70,  headR: 31 },
+    { until: 7,  name: "Joven",    L: 108, headR: 30 },
+    { until: 21, name: "Adulto",   L: 140, headR: 30 },
+    { until: Infinity, name: "Abuelito", L: 150, headR: 30, elder: true },
+  ];
+
+  const FOODS = [
+    { id: "pienso", ico: "🥣", name: "Pienso", hint: "Llena mucho", hunger: 32, health: 2 },
+    { id: "salchicha", ico: "🌭", name: "Salchichita", hint: "Premio rico", hunger: 10, happy: 12, treat: true },
+    { id: "zanahoria", ico: "🥕", name: "Zanahoria", hint: "Sana", hunger: 14, health: 6 },
+    { id: "hueso", ico: "🦴", name: "Hueso", hint: "Para morder", hunger: 4, happy: 16 },
+  ];
+
+  const IDLE_LINES = [
+    "¡Guau! 🐾", "Te quiero mucho 💕", "¿Me rascas la barriga?", "Soy un perro salchicha muy largo 🌭",
+    "Huelo galletas... 🍪", "¿Hay algo de comer?", "¡Eres mi persona favorita!", "Snif, snif... 👃",
+    "¿Vamos al parque?", "Mis patitas son cortas pero mi amor es enorme", "Guau guau 🐶", "*mueve la colita*",
+  ];
+
+  /* ---------- Estado ---------- */
+  let S = load();
+  let busy = false, joyUntil = 0, mood = "", lastPet = 0, bubbleTimer = 0;
+  let dogX = null, facingLeft = false;
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY)); } catch { return null; }
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {}
+  }
+  function fresh(name, coat) {
+    const now = Date.now();
+    return {
+      name, coat, born: now, last: now,
+      hunger: 80, happy: 80, energy: 90, hygiene: 100, health: 100,
+      sleeping: false, sick: false, poops: [], nextPoop: now + rand(1.5, 3) * HOUR, treats: [],
+      count: { meals: 0, pets: 0, walks: 0, games: 0, baths: 0 },
+    };
+  }
+
+  const stage = () => {
+    const d = (Date.now() - S.born) / DAY;
+    return STAGES.find(s => d < s.until);
+  };
+
+  // Avanza el tiempo minuto a minuto (también lo que pasó con la app cerrada, hasta 48 h).
+  function simulate(now) {
+    const events = [];
+    if (now - S.last > 48 * HOUR) S.last = now - 48 * HOUR;
+    while (S.last < now) {
+      const ms = Math.min(60000, now - S.last), h = ms / HOUR, poo = S.poops.length;
+      if (S.sleeping) {
+        S.hunger -= 4 * h; S.happy -= 1 * h; S.energy += 30 * h; S.hygiene -= 1 * h;
+      } else {
+        S.hunger -= 9 * h; S.happy -= 7 * h; S.energy -= 6 * h; S.hygiene -= (3 + 4 * poo) * h;
+      }
+      if (S.sick) { S.happy -= 4 * h; S.energy -= 3 * h; }
+      const bad = S.hunger < 15 || S.hygiene < 15 || poo >= 3;
+      if (bad) S.health -= 8 * h;
+      else if (!S.sick && S.hunger > 50 && S.hygiene > 50) S.health += 3 * h;
+      for (const k of ["hunger", "happy", "energy", "hygiene", "health"]) S[k] = clamp(S[k]);
+
+      if (!S.sick && S.health < 35) { S.sick = true; events.push("sick"); }
+      if (S.sleeping && S.energy >= 100) { S.sleeping = false; events.push("wake"); }
+      if (!S.sleeping && S.energy <= 0) { S.sleeping = true; events.push("faint"); }
+      S.last += ms;
+      if (S.last >= S.nextPoop) {
+        if (S.poops.length < 4 && S.hunger > 20) { S.poops.push({ id: S.last, x: rand(28, 84) }); events.push("poop"); }
+        S.nextPoop = S.last + rand(2, 4) * HOUR;
+      }
+    }
+    return events;
+  }
+
+  /* ---------- Dibujo del teckel ---------- */
+  function dogSVG({ L, headR, coat, elder, eyes, mouth, sick }) {
+    const c = COATS[coat] || COATS.marron, O = "#6b3a52";
+    const puppy = L < 90;
+    const bx = 46, by = 58, bh = puppy ? 42 : 46;
+    const hx = bx + L + 12, hy = by - 6, r = headR;
+    const W = hx + r * 1.75 + 14;
+    const legH = puppy ? 25 : 29, legY = by + bh - 14;
+    const leg = (x, fill, cls) =>
+      `<rect class="${cls}" style="transform-origin:${x + 7.5}px ${legY + 4}px" x="${x}" y="${legY}" width="15" height="${legH}" rx="7.5" fill="${fill}" stroke="${O}" stroke-width="3.5"/>`;
+
+    const ex = hx + r * 0.28, ey = hy - r * 0.2, er = puppy ? 7 : 6;
+    let eye;
+    if (eyes === "happy") eye = `<path d="M${ex - 7} ${ey + 2} Q${ex} ${ey - 7} ${ex + 7} ${ey + 2}" fill="none" stroke="${O}" stroke-width="3.5" stroke-linecap="round"/>`;
+    else if (eyes === "closed") eye = `<path d="M${ex - 7} ${ey} Q${ex} ${ey + 6} ${ex + 7} ${ey}" fill="none" stroke="${O}" stroke-width="3.5" stroke-linecap="round"/>`;
+    else if (eyes === "tired") eye = `<ellipse cx="${ex}" cy="${ey + 2}" rx="${er}" ry="${er * 0.55}" fill="#3a2230"/><line x1="${ex - er - 1}" y1="${ey}" x2="${ex + er + 1}" y2="${ey}" stroke="${O}" stroke-width="3" stroke-linecap="round"/>`;
+    else {
+      eye = `<circle cx="${ex}" cy="${ey}" r="${er}" fill="#3a2230"/><circle cx="${ex + 2}" cy="${ey - 2}" r="${er * 0.35}" fill="#fff"/>`;
+      if (eyes === "sad") eye += `<path d="M${ex - 8} ${ey - 10} L${ex + 6} ${ey - 15}" stroke="${O}" stroke-width="3" stroke-linecap="round"/>`;
+    }
+    const brow = c.points && eyes !== "sad" ? `<ellipse cx="${ex + 1}" cy="${ey - 12}" rx="5" ry="3.2" fill="${c.points}"/>` : "";
+
+    const mx = hx + r * 1.05, my = hy + r * 0.74;
+    let mth;
+    if (mouth === "smile") mth = `<ellipse cx="${mx + 2}" cy="${my + 6}" rx="5" ry="7" fill="#ff7eb0" stroke="${O}" stroke-width="2.5"/><path d="M${mx - 10} ${my - 2} Q${mx} ${my + 7} ${mx + 10} ${my - 2}" fill="none" stroke="${O}" stroke-width="3" stroke-linecap="round"/>`;
+    else if (mouth === "sad") mth = `<path d="M${mx - 8} ${my + 4} Q${mx} ${my - 3} ${mx + 8} ${my + 4}" fill="none" stroke="${O}" stroke-width="3" stroke-linecap="round"/>`;
+    else if (mouth === "open") mth = `<ellipse cx="${mx}" cy="${my + 2}" rx="7" ry="6" fill="#a8445f" stroke="${O}" stroke-width="2.5"/>`;
+    else mth = `<path d="M${mx - 8} ${my} Q${mx} ${my + 5} ${mx + 8} ${my}" fill="none" stroke="${O}" stroke-width="3" stroke-linecap="round"/>`;
+
+    const ax = hx - r * 0.32, ay = hy - r * 0.78;
+    const spots = c.spots
+      ? `<ellipse cx="${bx + L * 0.3}" cy="${by + 14}" rx="12" ry="8" fill="${c.spots}"/><ellipse cx="${bx + L * 0.65}" cy="${by + 22}" rx="9" ry="7" fill="${c.spots}"/><circle cx="${hx - 4}" cy="${hy - 14}" r="6" fill="${c.spots}"/>`
+      : "";
+    const snoutFill = elder ? "#e6dfe2" : c.snout;
+
+    return `<svg viewBox="0 10 ${W} 120" width="${W}" height="120" aria-hidden="true">
+      <g class="tail" style="transform-origin:${bx + 10}px ${by + 14}px">
+        <path d="M${bx + 10} ${by + 14} Q${bx - 14} ${by + 4} ${bx - 26} ${by - 22}" fill="none" stroke="${O}" stroke-width="13" stroke-linecap="round"/>
+        <path d="M${bx + 10} ${by + 14} Q${bx - 14} ${by + 4} ${bx - 26} ${by - 22}" fill="none" stroke="${c.body}" stroke-width="6.5" stroke-linecap="round"/>
+      </g>
+      ${leg(bx + 20, c.dark, "leg-b")}${leg(bx + L - 26, c.dark, "leg-a")}
+      <rect x="${bx}" y="${by}" width="${L}" height="${bh}" rx="${bh / 2}" fill="${c.body}" stroke="${O}" stroke-width="3.5"/>
+      <ellipse cx="${bx + L / 2}" cy="${by + bh - 10}" rx="${L / 2 - 14}" ry="7" fill="${c.belly}"/>
+      ${spots}
+      ${leg(bx + 6, c.body, "leg-a")}${leg(bx + L - 40, c.body, "leg-b")}
+      <rect x="${bx + L - 14}" y="${by - 8}" width="13" height="${bh - 4}" rx="6" fill="#ff5c9a" stroke="${O}" stroke-width="3"/>
+      <circle cx="${bx + L - 7}" cy="${by + bh - 12}" r="6" fill="#ffc94d" stroke="${O}" stroke-width="2.5"/>
+      <g class="head" style="transform-origin:${hx - r * 0.6}px ${hy + r * 0.6}px">
+        <circle cx="${hx}" cy="${hy}" r="${r}" fill="${c.body}" stroke="${O}" stroke-width="3.5"/>
+        <ellipse cx="${hx + r * 0.9}" cy="${hy + r * 0.38}" rx="${r * 0.82}" ry="${r * 0.5}" fill="${snoutFill}" stroke="${O}" stroke-width="3.5"/>
+        <ellipse cx="${hx + r * 1.64}" cy="${hy + r * 0.2}" rx="6.5" ry="5.5" fill="#3a2230"/>
+        ${mth}
+        ${brow}${eye}
+        <ellipse cx="${hx + r * 0.2}" cy="${hy + r * 0.42}" rx="7" ry="4" fill="${sick ? "#b9e2a6" : "#ffa3c6"}" opacity=".85"/>
+        <g class="ear" style="transform-origin:${ax}px ${ay}px">
+          <path d="M${ax} ${ay} C${ax - 22} ${ay + 10} ${ax - 18} ${ay + 50} ${ax + 2} ${ay + 52} C${ax + 16} ${ay + 52} ${ax + 14} ${ay + 12} ${ax} ${ay} Z" fill="${c.dark}" stroke="${O}" stroke-width="3.5" stroke-linejoin="round"/>
+        </g>
+      </g>
+    </svg>`;
+  }
+
+  /* ---------- Pintar ---------- */
+  const scene = $("#scene"), dogwrap = $("#dogwrap"), dogEl = $("#dog"), bubble = $("#bubble");
+  const STATS = [
+    ["hunger", "🍖 Comida"], ["happy", "💖 Felicidad"], ["energy", "⚡ Energía"],
+    ["hygiene", "🫧 Higiene"], ["health", "🩺 Salud", true],
+  ];
+  $("#stats").innerHTML = STATS.map(([k, l, wide]) =>
+    `<div class="stat${wide ? " wide" : ""}"><div class="lbl"><span>${l}</span><span id="v-${k}"></span></div><div class="bar" id="b-${k}"><i></i></div></div>`
+  ).join("");
+
+  function currentMood() {
+    if (S.sleeping) return { eyes: "closed", mouth: "normal", cls: "sleep" };
+    if (Date.now() < joyUntil) return { eyes: "happy", mouth: "smile", cls: "joy" };
+    if (S.sick) return { eyes: "tired", mouth: "sad", cls: "sick" };
+    const low = Math.min(S.hunger, S.happy, S.energy, S.hygiene);
+    if (low < 25) return { eyes: "sad", mouth: "sad", cls: "sad" };
+    if (S.energy < 35) return { eyes: "tired", mouth: "normal", cls: "idle" };
+    if (S.happy >= 70 && low >= 40) return { eyes: "open", mouth: "smile", cls: "idle" };
+    return { eyes: "open", mouth: "normal", cls: "idle" };
+  }
+
+  let extraCls = "";      // "walk", "eat", "shake"
+  let forcedMouth = "";
+  function renderDog() {
+    const st = stage(), m = currentMood();
+    const mouth = forcedMouth || m.mouth;
+    const sig = [st.name, S.coat, m.eyes, mouth, S.sick].join();
+    if (sig !== mood) {
+      mood = sig;
+      dogEl.innerHTML = dogSVG({ ...st, coat: S.coat, eyes: m.eyes, mouth, sick: S.sick });
+    }
+    const svg = dogEl.firstElementChild;
+    const W = +svg.getAttribute("width");
+    const scale = Math.min(0.78, (scene.clientWidth * 0.6) / W);
+    svg.style.width = W * scale + "px";
+    svg.style.height = 120 * scale + "px";
+    dogEl.className = "dog " + m.cls + (extraCls ? " " + extraCls : "") + (facingLeft ? " left" : "");
+  }
+
+  function render() {
+    $("#name").textContent = S.name;
+    const days = Math.floor((Date.now() - S.born) / DAY);
+    $("#age").textContent = `${stage().name} · ${days === 0 ? "su primer día" : days === 1 ? "1 día" : days + " días"} contigo`;
+    for (const [k] of STATS) {
+      const v = Math.round(S[k]);
+      $("#v-" + k).textContent = v + "%";
+      const b = $("#b-" + k);
+      b.firstChild.style.width = v + "%";
+      b.className = "bar" + (v < 20 ? " low" : v < 40 ? " mid" : "");
+    }
+    const hr = new Date().getHours(), night = hr < 7 || hr >= 21;
+    $("#window").className = "window" + (night ? " night" : "");
+    $("#window").textContent = night ? "🌙" : "☀️";
+    scene.classList.toggle("sleeping", S.sleeping);
+    $("#sleepIco").textContent = S.sleeping ? "☀️" : "💤";
+    $("#sleepTxt").textContent = S.sleeping ? "Despertar" : "Dormir";
+
+    const poops = $("#poops");
+    const have = new Set([...poops.children].map(e => +e.dataset.id));
+    const want = new Set(S.poops.map(p => p.id));
+    for (const e of [...poops.children]) if (!want.has(+e.dataset.id)) e.remove();
+    for (const p of S.poops) if (!have.has(p.id)) {
+      const e = document.createElement("div");
+      e.className = "poop"; e.textContent = "💩"; e.dataset.id = p.id; e.style.left = p.x + "%";
+      e.addEventListener("click", ev => { ev.stopPropagation(); cleanOne(p.id, e); });
+      poops.appendChild(e);
+    }
+
+    document.querySelectorAll(".act").forEach(b => {
+      const a = b.dataset.act;
+      b.disabled = busy || (S.sleeping && a !== "sleep");
+      b.classList.toggle("alert",
+        (a === "feed" && S.hunger < 30) || (a === "play" && S.happy < 30) || (a === "sleep" && S.energy < 25 && !S.sleeping) ||
+        (a === "bath" && S.hygiene < 30) || (a === "clean" && S.poops.length > 0) || (a === "heal" && S.sick));
+    });
+    renderDog();
+  }
+
+  /* ---------- Movimiento y efectos ---------- */
+  function dogWidth() { return dogEl.firstElementChild ? dogEl.firstElementChild.getBoundingClientRect().width : 150; }
+
+  function moveDog(x, instant) {
+    const max = scene.clientWidth - dogWidth() - 8;
+    x = Math.max(8, Math.min(max, x));
+    if (dogX !== null && Math.abs(x - dogX) > 4 && !instant) {
+      facingLeft = x < dogX;
+      extraCls = extraCls || "walk";
+      renderDog();
+    }
+    dogwrap.style.transition = instant ? "none" : "";
+    bubble.style.transition = instant ? "none" : "";
+    dogX = x;
+    dogwrap.style.left = x + "px";
+    placeBubble();
+    if (instant) { void dogwrap.offsetWidth; dogwrap.style.transition = ""; bubble.style.transition = ""; }
+  }
+  dogwrap.addEventListener("transitionend", () => {
+    if (extraCls === "walk" && !scene.classList.contains("walking")) { extraCls = ""; renderDog(); }
+  });
+
+  function placeBubble() {
+    const w = dogWidth(), sw = scene.clientWidth;
+    const head = facingLeft ? dogX + w * 0.22 : dogX + w * 0.78;
+    bubble.style.left = Math.max(110, Math.min(sw - 110, head)) + "px";
+    bubble.style.top = (scene.clientHeight * 0.91 - dogEl.offsetHeight - 6) + "px";
+  }
+
+  function say(text, ms = 3500) {
+    bubble.textContent = text;
+    bubble.classList.add("show");
+    clearTimeout(bubbleTimer);
+    bubbleTimer = setTimeout(() => bubble.classList.remove("show"), ms);
+  }
+
+  function fx(ico, x, y, n = 1) {
+    const r = scene.getBoundingClientRect();
+    for (let i = 0; i < n; i++) {
+      const e = document.createElement("div");
+      e.className = "fx"; e.textContent = Array.isArray(ico) ? pick(ico) : ico;
+      e.style.left = (x ?? dogX + dogWidth() / 2) + rand(-30, 30) + "px";
+      e.style.top = (y ?? r.height * 0.55) + rand(-20, 10) + "px";
+      e.style.animationDelay = i * 0.12 + "s";
+      scene.appendChild(e);
+      setTimeout(() => e.remove(), 1600 + i * 120);
+    }
+  }
+  const headPos = () => {
+    const w = dogWidth();
+    return [facingLeft ? dogX + w * 0.15 : dogX + w * 0.8, scene.clientHeight * 0.5];
+  };
+
+  function joy(ms = 1800) { joyUntil = Date.now() + ms; renderDog(); setTimeout(renderDog, ms + 50); }
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  async function run(fn) {
+    if (busy) return;
+    busy = true; render();
+    try { await fn(); } finally { busy = false; extraCls = ""; forcedMouth = ""; save(); render(); }
+  }
+
+  /* ---------- Acciones ---------- */
+  const ACTIONS = {
+    feed() { foodSheet(); },
+
+    play() {
+      if (S.sick) return say("Estoy malito... hoy no puedo jugar 🤒");
+      if (S.energy < 10) return say("Estoy agotado... 😴");
+      run(async () => {
+        scene.classList.add("gaming");
+        const ball = $("#ball"), hud = $("#hud"), N = 8;
+        let score = 0;
+        say("¡Tira la pelota! 🎾", 1800);
+        for (let i = 1; i <= N; i++) {
+          hud.textContent = `🎾 ${score} / ${N}`;
+          await wait(i === 1 ? 900 : 350);
+          const x = rand(10, scene.clientWidth - 74), y = rand(40, scene.clientHeight * 0.55);
+          ball.style.left = x + "px"; ball.style.top = y + "px"; ball.style.display = "grid";
+          const caught = await new Promise(res => {
+            const t = setTimeout(() => res(false), 1400 - i * 70);
+            ball.onpointerdown = e => { e.preventDefault(); clearTimeout(t); res(true); };
+          });
+          ball.style.display = "none"; ball.onpointerdown = null;
+          if (caught) { score++; fx(["✨", "⭐"], x + 20, y); buzz(15); moveDog(x - dogWidth() / 2); }
+        }
+        hud.textContent = `🎾 ${score} / ${N}`;
+        S.happy = clamp(S.happy + 6 + score * 3); S.energy = clamp(S.energy - 12); S.hunger = clamp(S.hunger - 4);
+        S.count.games++;
+        joy(2500);
+        say(score >= 7 ? `¡${score} de ${N}! ¡Eres la mejor! 🏆` : score >= 4 ? `¡${score} de ${N}! ¡Qué divertido! 🎾` : `${score} de ${N}... ¡otra vez! 🐾`);
+        fx("💖", ...headPos(), 3);
+        await wait(1500);
+        scene.classList.remove("gaming");
+      });
+    },
+
+    walk() {
+      if (S.sick) return say("Estoy malito... mejor me quedo en casa 🤒");
+      if (S.energy < 15) return say("Uf, estoy muy cansado para pasear 😴");
+      run(async () => {
+        scene.classList.add("walking");
+        facingLeft = false;
+        moveDog((scene.clientWidth - dogWidth()) / 2, true);
+        extraCls = "walk"; renderDog();
+        say("¡Al parque! 🌳", 2000);
+        await wait(2400);
+        say(pick(["¡Una mariposa! 🦋", "Snif, snif... ¡qué olores! 👃", "¡Hola, perrito! 🐕", "¡Hojas! 🍂"]), 2200);
+        await wait(2600);
+        let msg = "¡Qué paseo más chulo! 💕";
+        if (S.nextPoop - Date.now() < 1.5 * HOUR) {
+          S.nextPoop = Date.now() + rand(2.5, 4) * HOUR;
+          msg = "¡He hecho caca en el parque! (recogida 🧻)";
+        }
+        S.happy = clamp(S.happy + 18); S.energy = clamp(S.energy - 15); S.hunger = clamp(S.hunger - 6); S.hygiene = clamp(S.hygiene - 6);
+        S.count.walks++;
+        scene.classList.remove("walking");
+        extraCls = "";
+        joy(2200);
+        say(msg);
+      });
+    },
+
+    bath() {
+      run(async () => {
+        say("¡Nooo, el baño no! 😱", 1500);
+        forcedMouth = "open";
+        extraCls = "shake"; renderDog();
+        for (let i = 0; i < 5; i++) { fx(["🫧", "🫧", "💧", "🧼"], undefined, scene.clientHeight * 0.6, 3); await wait(450); }
+        S.hygiene = 100; S.happy = clamp(S.happy - 4); S.count.baths++;
+        extraCls = ""; forcedMouth = "";
+        fx("✨", undefined, undefined, 4);
+        joy(1500);
+        say("Brrr... ¡pero huelo genial! ✨");
+        await wait(900);
+      });
+    },
+
+    sleep() {
+      if (S.sleeping) {
+        S.sleeping = false;
+        if (S.energy < 60) { S.happy = clamp(S.happy - 5); say("Grrr... ¡quería dormir más! 😾"); }
+        else say("¡Buenos días! ☀️");
+      } else {
+        if (S.energy > 85) return say("¡Pero si no tengo sueño! 🐾");
+        S.sleeping = true;
+        moveDog(scene.clientWidth * 0.06);
+        say("Buenas noches... 🌙", 2000);
+      }
+      save(); render();
+    },
+
+    clean() {
+      if (!S.poops.length) return say("¡Todo está limpito! ✨");
+      document.querySelectorAll(".poop").forEach(e => {
+        const r = e.getBoundingClientRect(), s = scene.getBoundingClientRect();
+        fx("✨", r.left - s.left, r.top - s.top);
+      });
+      S.poops = []; S.hygiene = clamp(S.hygiene + 5);
+      say("¡Gracias! Ahora huele mejor 🌸");
+      save(); render();
+    },
+
+    heal() {
+      if (!S.sick) return say("¡No estoy malito! 💪");
+      run(async () => {
+        forcedMouth = "open"; renderDog();
+        say("Puaj... 💊", 1400);
+        await wait(1400);
+        S.sick = false; S.health = clamp(Math.max(S.health, 45) + 25); S.happy = clamp(S.happy - 6);
+        forcedMouth = "";
+        joy(1500);
+        fx("💖", ...headPos(), 2);
+        say("¡Ya me encuentro mejor! Gracias 🩺");
+      });
+    },
+
+    pet() { pet(...headPos()); },
+  };
+
+  function pet(x, y) {
+    if (busy) return;
+    if (S.sleeping) { say("Zzz... (shh, está dormido)", 1800); fx("💤", x, y); return; }
+    const now = Date.now();
+    if (now - lastPet < 350) return;
+    lastPet = now;
+    S.happy = clamp(S.happy + 3); S.count.pets++;
+    fx(["💕", "💖", "💗", "❤️"], x, y, 2);
+    buzz(10);
+    joy();
+    if (Math.random() < 0.35) say(pick(["¡Más, más! 🥰", "Me encantan los mimos 💕", "*cierra los ojitos*", "¡Ahí, detrás de la oreja!"]), 2000);
+    save(); render();
+  }
+
+  function feed(f) {
+    if (S.sleeping) return;
+    if (S.hunger >= 95 && !f.treat) return say("¡Estoy llenísimo! 🫃");
+    S.treats = S.treats.filter(t => Date.now() - t < HOUR);
+    if (f.treat && S.treats.length >= 3) return say("Demasiados premios... mejor luego 🙈");
+    run(async () => {
+      moveDog(scene.clientWidth - dogWidth() - scene.clientWidth * 0.14);
+      await wait(dogX === null ? 0 : 1200);
+      extraCls = "eat"; renderDog();
+      const [x, y] = headPos();
+      fx(f.ico, x, y + 20);
+      say("Ñam ñam... 😋", 1500);
+      await wait(1600);
+      S.hunger = clamp(S.hunger + (f.hunger || 0)); S.happy = clamp(S.happy + (f.happy || 0)); S.health = clamp(S.health + (f.health || 0));
+      if (f.treat) S.treats.push(Date.now());
+      S.count.meals++;
+      extraCls = "";
+      joy(1500);
+      say(pick(["¡Qué rico! 💕", "¡Gracias! 🐾", "¡Delicioso! 😋"]));
+    });
+  }
+
+  function cleanOne(id, el) {
+    const r = el.getBoundingClientRect(), s = scene.getBoundingClientRect();
+    fx("✨", r.left - s.left, r.top - s.top);
+    S.poops = S.poops.filter(p => p.id !== id);
+    S.hygiene = clamp(S.hygiene + 2);
+    save(); render();
+  }
+
+  document.querySelectorAll(".act").forEach(b => b.addEventListener("click", () => ACTIONS[b.dataset.act]()));
+  dogwrap.addEventListener("click", e => {
+    const s = scene.getBoundingClientRect();
+    pet(e.clientX - s.left, e.clientY - s.top - 20);
+  });
+
+  /* ---------- Hojas ---------- */
+  const back = $("#sheetBack"), sheet = $("#sheet");
+  function openSheet(html, closable = true) {
+    sheet.innerHTML = html;
+    back.hidden = false;
+    back.onclick = e => { if (closable && e.target === back) closeSheet(); };
+  }
+  function closeSheet() { back.hidden = true; }
+
+  function foodSheet() {
+    openSheet(`<h2>¿Qué le das de comer?</h2>
+      <div class="opts">${FOODS.map(f => `<button class="opt" data-f="${f.id}"><span class="big">${f.ico}</span>${f.name}<small>${f.hint}</small></button>`).join("")}</div>
+      <button class="ghost-btn" id="cancel">Cancelar</button>`);
+    sheet.querySelectorAll("[data-f]").forEach(b => b.addEventListener("click", () => {
+      closeSheet(); feed(FOODS.find(f => f.id === b.dataset.f));
+    }));
+    $("#cancel").onclick = closeSheet;
+  }
+
+  function adoptSheet() {
+    let coat = "marron";
+    const mini = k => dogSVG({ ...STAGES[0], coat: k, eyes: "open", mouth: "smile" })
+      .replace(/width="[\d.]+" height="120"/, 'width="110" height="66"');
+    openSheet(`<h2>¡Adopta un teckel! 🐶</h2>
+      <p>Elige su color y ponle nombre. Tendrás que darle de comer, jugar, pasearle, bañarle y dejarle dormir. ¡Su tiempo corre aunque cierres la app!</p>
+      <div class="opts">${Object.entries(COATS).map(([k, c]) => `<button class="opt${k === coat ? " sel" : ""}" data-c="${k}">${mini(k)}${c.label}</button>`).join("")}</div>
+      <input id="dogName" maxlength="18" placeholder="Nombre" value="${pick(["Salchi", "Lola", "Toffee", "Canela", "Bruno", "Churro", "Pipa", "Fideo"])}">
+      <button class="main-btn" id="adopt">¡Adoptar! 💕</button>`, false);
+    sheet.querySelectorAll("[data-c]").forEach(b => b.addEventListener("click", () => {
+      coat = b.dataset.c;
+      sheet.querySelectorAll("[data-c]").forEach(x => x.classList.toggle("sel", x === b));
+    }));
+    $("#adopt").onclick = () => {
+      const name = $("#dogName").value.trim() || "Salchi";
+      S = fresh(name, coat);
+      save(); closeSheet(); mood = "";
+      render(); moveDog(scene.clientWidth * 0.3, true);
+      joy(2500);
+      say(`¡Hola! Soy ${name} 🐾`);
+    };
+  }
+
+  function infoSheet() {
+    const c = S.count, days = Math.floor((Date.now() - S.born) / DAY);
+    const esc = s => s.replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+    openSheet(`<h2>Ficha de ${esc(S.name)}</h2>
+      <ul class="facts">
+        <li>🎂 ${stage().name}, ${days} ${days === 1 ? "día" : "días"}</li>
+        <li>🎨 ${COATS[S.coat].label}</li>
+        <li>🍖 ${c.meals} comidas</li>
+        <li>🤗 ${c.pets} mimos</li>
+        <li>🦮 ${c.walks} paseos</li>
+        <li>🎾 ${c.games} partidas</li>
+        <li>🛁 ${c.baths} baños</li>
+        <li>💩 ${S.poops.length} cacas sin recoger</li>
+      </ul>
+      <input id="newName" maxlength="18" value="${esc(S.name)}" aria-label="Nombre">
+      <button class="main-btn" id="rename">Guardar nombre</button>
+      <button class="ghost-btn" id="close">Cerrar</button>
+      <button class="ghost-btn danger" id="reset">Adoptar otro teckel</button>`);
+    $("#rename").onclick = () => { S.name = $("#newName").value.trim() || S.name; save(); render(); closeSheet(); };
+    $("#close").onclick = closeSheet;
+    $("#reset").onclick = () => {
+      if (confirm(`¿Seguro? ${S.name} se irá a vivir con la abuela y empezarás con un cachorro nuevo.`)) adoptSheet();
+    };
+  }
+  $("#infoBtn").onclick = () => S && infoSheet();
+
+  /* ---------- Pensamientos y paseíllos ---------- */
+  function think() {
+    if (busy || !S || bubble.classList.contains("show")) return;
+    if (S.sleeping) { fx("💤", ...headPos()); return; }
+    let t;
+    if (S.sick) t = "Me encuentro malito... 🤒";
+    else if (S.hunger < 30) t = "Tengo hambre... 🍖";
+    else if (S.poops.length >= 2) t = "¡Qué olor! 💩";
+    else if (S.energy < 25) t = "Tengo mucho sueño... 😴";
+    else if (S.hygiene < 30) t = "Necesito un baño 🛁";
+    else if (S.happy < 30) t = "¿Jugamos? 🎾";
+    else if (Math.random() < 0.5) t = pick(IDLE_LINES);
+    if (t) say(t);
+  }
+  function wander() {
+    if (busy || !S || S.sleeping || S.sick || bubble.classList.contains("show")) return;
+    if (Math.random() < 0.6) moveDog(rand(0, scene.clientWidth - dogWidth()));
+  }
+
+  const EVENT_LINES = {
+    sick: "Me he puesto malito... 🤒 ¡Necesito medicina!",
+    wake: "¡Ya he dormido bastante! ☀️",
+    faint: "Estoy tan cansado que me he dormido... 😴",
+    poop: "Ups... 💩",
+  };
+  function tick() {
+    if (!S) return;
+    const ev = simulate(Date.now());
+    if (ev.length && !busy) say(EVENT_LINES[ev[ev.length - 1]]);
+    if (ev.includes("faint")) moveDog(scene.clientWidth * 0.06);
+    render(); save();
+  }
+
+  /* ---------- Arranque ---------- */
+  if (!S) {
+    S = fresh("Salchi", "marron");
+    render(); moveDog(scene.clientWidth * 0.3, true);
+    adoptSheet();
+  } else {
+    const away = Date.now() - S.last;
+    const ev = simulate(Date.now());
+    render();
+    moveDog(S.sleeping ? scene.clientWidth * 0.06 : scene.clientWidth * 0.3, true);
+    if (away > 30 * 60e3 && !S.sleeping) { if (currentMood().cls === "idle") joy(2500); say(`¡Has vuelto! Te he echado de menos 💕${ev.includes("poop") ? " (ups, 💩)" : ""}`, 4000); }
+    save();
+  }
+  setInterval(tick, 1000);
+  setInterval(think, 9000);
+  setInterval(wander, 7000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
+  window.addEventListener("resize", () => { mood = ""; renderDog(); moveDog(dogX ?? 0, true); });
+})();
+</script>
+</body>
+</html>
