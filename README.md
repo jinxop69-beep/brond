@@ -38,3 +38,6 @@ y Claude lo convierte en tareas. Antes de guardar se muestra una vista previa pa
   - `ANTHROPIC_API_KEY`: la clave de la API de Claude (obligatoria).
   - `ANTHROPIC_WORKSPACE_ID` (solo si la clave es de organización y no de un workspace): el ID `wrkspc_…`.
   - `CLAUDE_MODEL` (opcional): por defecto `claude-haiku-5-5` (barato y suficiente); `claude-opus-5-5` si hace falta más precisión.
+
+## 📚 Apuntes de català
+`catala.html`: los apuntes de clase de Català Bàsic 1 (unidades 1–3) ordenados por bloques —examen de la Tasca 1, saludos, verbos, posesivos, familia, gentilicios, números, vivienda, casa, situar y barrio—. Tiene un botón para ocultar el castellano y practicar.

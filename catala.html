@@ -1,0 +1,1267 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Els meus apunts de català</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Layout: una columna de "bloques" temáticos con índice fijo arriba; el examen va primero.
+     Código de color de género: lila = masculino (el/els), rosa = femenino (la/les), melocotón = l' */
+  :root {
+    --bg: #fff1f6;
+    --card: #ffffff;
+    --soft: #fff6f9;
+    --line: #ffd0e2;
+    --ink: #5b2c44;
+    --muted: #a06c86;
+    --pink: #ff5c9a;
+    --pink-ink: #d63a78;
+    --pink-soft: #ffe1ed;
+    --masc: #6f5fe0;
+    --masc-soft: #ece8ff;
+    --apos: #d9692c;
+    --apos-soft: #ffe9dc;
+    --mint: #1f9c78;
+    --mint-soft: #dbf5ea;
+    --warn: #c9541f;
+    --warn-soft: #fff0e3;
+    --on-pink: #ffffff;
+    --f-display: "Mochiy Pop One", "Quicksand", "Arial Rounded MT Bold", system-ui, sans-serif;
+    --f-body: "Quicksand", "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #22121b; --card: #301a26; --soft: #3a2130; --line: #5a2f45;
+      --ink: #ffe6f0; --muted: #d59cb7; --pink: #ff7eb0; --pink-ink: #ff9cc3; --pink-soft: #4d2338;
+      --masc: #b3a8ff; --masc-soft: #2f2950; --apos: #ffab7a; --apos-soft: #4a2c1f;
+      --mint: #6fe0bd; --mint-soft: #173d33; --warn: #ffab7a; --warn-soft: #462a1c; --on-pink: #2a0f1c;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #22121b; --card: #301a26; --soft: #3a2130; --line: #5a2f45;
+    --ink: #ffe6f0; --muted: #d59cb7; --pink: #ff7eb0; --pink-ink: #ff9cc3; --pink-soft: #4d2338;
+    --masc: #b3a8ff; --masc-soft: #2f2950; --apos: #ffab7a; --apos-soft: #4a2c1f;
+    --mint: #6fe0bd; --mint-soft: #173d33; --warn: #ffab7a; --warn-soft: #462a1c; --on-pink: #2a0f1c;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 16px;
+    line-height: 1.5;
+    font-weight: 500;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+    z-index: 10; background: var(--bg);
+  }
+  .wrap {
+    max-width: 980px; margin: 0 auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 20px 80px;
+    display: flex; flex-direction: column; gap: 22px;
+  }
+  h1, h2, h3 { font-family: var(--f-display); font-weight: 400; margin: 0; text-wrap: balance; line-height: 1.2; }
+  h1 { font-size: clamp(1.8rem, 6vw, 2.8rem); color: var(--pink-ink); }
+  h2 { font-size: clamp(1.25rem, 4vw, 1.6rem); }
+  h3 { font-size: 1.02rem; color: var(--pink-ink); }
+  p { margin: 0; }
+  b, strong { font-weight: 700; }
+  :focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; border-radius: 8px; }
+
+  /* ---------- Hero ---------- */
+  .hero { display: grid; gap: 14px; grid-template-columns: 1fr auto; align-items: center; }
+  .hero .kicker { font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+  .hero .lead { color: var(--muted); max-width: 60ch; margin-top: 6px; }
+  .count {
+    background: var(--pink); color: var(--on-pink); border-radius: 26px; padding: 14px 18px;
+    text-align: center; min-width: 130px; box-shadow: 0 5px 0 var(--pink-ink);
+  }
+  .count .n { font-family: var(--f-display); font-size: 2.4rem; line-height: 1; }
+  .count .l { font-size: .82rem; font-weight: 700; }
+  @media (max-width: 560px) { .hero { grid-template-columns: 1fr; } .count { justify-self: start; } }
+
+  /* ---------- Índice fijo ---------- */
+  .nav {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+    background: var(--bg); padding-block: 8px; margin-inline: -4px;
+    display: flex; gap: 8px; align-items: center;
+  }
+  .nav .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: thin; padding: 2px 4px 6px; min-width: 0; flex: 1; }
+  .nav a, .toggle {
+    flex: none; text-decoration: none; color: var(--ink); background: var(--card);
+    border: 2px solid var(--line); border-radius: 999px; padding: 5px 12px; font-weight: 700; font-size: .86rem;
+    white-space: nowrap; font-family: var(--f-body);
+  }
+  .nav a.exam { background: var(--pink); color: var(--on-pink); border-color: var(--pink); }
+  .nav a:hover { border-color: var(--pink); }
+  .toggle { cursor: pointer; background: var(--pink-soft); border-color: var(--pink); }
+
+  /* ---------- Bloques ---------- */
+  .block {
+    background: var(--card); border: 2px solid var(--line); border-radius: 28px;
+    padding: clamp(16px, 3.5vw, 28px); display: flex; flex-direction: column; gap: 18px;
+    scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 64px);
+  }
+  .bh { display: flex; gap: 14px; align-items: center; }
+  .bh .ico {
+    flex: none; width: 52px; height: 52px; border-radius: 18px; display: grid; place-items: center;
+    font-size: 1.7rem; background: var(--pink-soft);
+  }
+  .bh .num { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+  .bh .sub { color: var(--muted); font-size: .95rem; }
+  .group { display: flex; flex-direction: column; gap: 10px; }
+
+  .grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
+  .grid.wide { grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); }
+  .grid.tight { grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); }
+  .grid > * { min-width: 0; }
+
+  .card { background: var(--soft); border: 2px solid var(--line); border-radius: 20px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .card h3 { display: flex; gap: 6px; align-items: center; }
+
+  /* palabra: catalán arriba, castellano debajo */
+  .w { display: flex; flex-direction: column; padding: 8px 12px; border-radius: 14px; background: var(--card); border: 2px solid var(--line); }
+  .w .ca { font-weight: 700; }
+  .w .es, .es { color: var(--muted); font-size: .9rem; }
+  ul.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  ul.list li { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+  ul.list li .ca { font-weight: 700; }
+
+  /* artículos con color de género */
+  .art { display: inline-block; font-weight: 700; padding: 0 7px; border-radius: 8px; font-size: .9em; margin-right: 2px; }
+  .m { background: var(--masc-soft); color: var(--masc); }
+  .f { background: var(--pink-soft); color: var(--pink-ink); }
+  .a { background: var(--apos-soft); color: var(--apos); }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; font-size: .85rem; color: var(--muted); align-items: center; }
+
+  /* cajitas de regla / ojo */
+  .rule, .ojo, .tip { border-radius: 18px; padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; }
+  .rule { background: var(--mint-soft); }
+  .rule > b:first-child, .ojo > b:first-child, .tip > b:first-child { flex: none; font-size: 1.2rem; line-height: 1.3; }
+  .ojo { background: var(--warn-soft); }
+  .tip { background: var(--pink-soft); }
+  .rule .t, .ojo .t, .tip .t { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .rule strong { color: var(--mint); }
+  .ojo strong { color: var(--warn); }
+  .tip strong { color: var(--pink-ink); }
+  .good { color: var(--mint); font-weight: 700; }
+  .bad { color: var(--warn); font-weight: 700; text-decoration: line-through; text-decoration-thickness: 2px; }
+
+  /* tablas */
+  .tw { overflow-x: auto; border-radius: 18px; border: 2px solid var(--line); }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--pink-soft); color: var(--pink-ink); font-size: .82rem; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.p { color: var(--muted); white-space: nowrap; font-size: .92rem; }
+  td .ca, td.ca { font-weight: 700; }
+
+  /* verbos */
+  .verb { background: var(--soft); border: 2px solid var(--line); border-radius: 22px; overflow: hidden; display: flex; flex-direction: column; }
+  .verb header { background: var(--pink); color: var(--on-pink); padding: 10px 14px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .verb header h3 { color: var(--on-pink); font-size: 1.15rem; }
+  .verb header span { font-weight: 700; font-size: .88rem; }
+  .verb table td { border-bottom: 1px dashed var(--line); padding: 6px 14px; }
+  .verb table td:last-child { font-weight: 700; }
+  .verb .end { color: var(--pink-ink); text-decoration: underline; text-decoration-color: var(--pink); text-underline-offset: 3px; }
+  .verb .ex { padding: 10px 14px; font-size: .9rem; color: var(--muted); border-top: 2px solid var(--line); }
+  .verb .ex b { color: var(--ink); }
+
+  /* números */
+  .numgrid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 112px), 1fr)); }
+  .nb { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 8px 10px; display: flex; flex-direction: column; }
+  .nb .d { font-family: var(--f-display); color: var(--pink-ink); font-size: 1.25rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .nb .t { font-weight: 700; }
+  .nb.hl { border-color: var(--pink); background: var(--pink-soft); }
+
+  /* edificio */
+  .building { display: flex; flex-direction: column; gap: 4px; max-width: 340px; }
+  .floor { display: grid; grid-template-columns: 56px 1fr; gap: 10px; align-items: center; background: var(--card); border: 2px solid var(--line); border-radius: 12px; padding: 5px 10px; }
+  .floor .k { font-family: var(--f-display); color: var(--pink-ink); text-align: center; }
+  .floor.roof { border-radius: 26px 26px 12px 12px; }
+  .floor.dots { background: transparent; border-style: dashed; color: var(--muted); }
+  .floor.ground { background: var(--pink-soft); }
+
+  /* árbol familiar */
+  .tree { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+  .gen { display: grid; grid-template-columns: 92px 1fr; gap: 10px; align-items: center; }
+  .gen .lbl { font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; text-align: right; }
+  .gen .ppl { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pp { padding: 5px 10px; border-radius: 12px; font-weight: 700; font-size: .92rem; border: 2px solid transparent; }
+  .pp small { font-weight: 600; opacity: .8; }
+  .pp.me { background: var(--pink); color: var(--on-pink); }
+  .tree .arrow { padding-left: 102px; color: var(--line); font-size: .9rem; line-height: 1; }
+
+  /* preposiciones con dibujito */
+  .pos { display: grid; grid-template-columns: 80px 1fr; gap: 10px; align-items: center; background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 8px; }
+  .sc { position: relative; width: 80px; height: 56px; }
+  .sc i { position: absolute; left: 30px; top: 18px; width: 20px; height: 20px; border-radius: 5px; background: var(--masc-soft); border: 2px solid var(--masc); z-index: 1; }
+  .sc i.r2 { left: 50px; }
+  .sc b { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--pink); z-index: 2; left: 35px; top: 23px; }
+  .sc .arr { position: absolute; font-size: 1rem; color: var(--pink-ink); font-weight: 700; z-index: 2; }
+  .s-sobre b { top: 8px; }
+  .s-sota b { top: 38px; }
+  .s-dalt b { top: 0; } .s-dalt i { top: 30px; }
+  .s-baix b { top: 46px; } .s-baix i { top: 6px; }
+  .s-dins i { background: transparent; } .s-dins b { top: 23px; }
+  .s-fora i { background: transparent; } .s-fora b { left: 64px; }
+  .s-davant b { width: 14px; height: 14px; top: 27px; left: 33px; }
+  .s-darrere b { top: 12px; left: 42px; z-index: 0; }
+  .s-entre i { left: 12px; } .s-entre i.r2 { left: 48px; } .s-entre b { left: 35px; }
+  .s-costat b { left: 52px; top: 28px; }
+  .s-prop b { left: 56px; }
+  .s-lluny i { left: 4px; } .s-lluny b { left: 68px; }
+  .s-dreta b { left: 62px; } .s-esq b { left: 8px; }
+  .s-fons i { left: 4px; width: 72px; height: 16px; top: 20px; border-radius: 8px; background: transparent; } .s-fons b { left: 62px; top: 23px; }
+
+  /* diálogo */
+  .chat { display: flex; flex-direction: column; gap: 8px; }
+  .bubble { max-width: 85%; padding: 9px 14px; border-radius: 18px; }
+  .bubble small { display: block; color: var(--muted); font-size: .82rem; }
+  .bubble.a { background: var(--pink-soft); border-bottom-left-radius: 6px; align-self: flex-start; }
+  .bubble.b { background: var(--masc-soft); border-bottom-right-radius: 6px; align-self: flex-end; text-align: right; }
+
+  /* bloque examen */
+  .block.exam { border-color: var(--pink); border-width: 3px; }
+  .block.exam .ico { background: var(--pink); }
+  .facts { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr)); }
+  .fact { background: var(--pink-soft); border-radius: 16px; padding: 10px 12px; }
+  .fact .k { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--pink-ink); font-weight: 700; }
+  .fact .v { font-weight: 700; }
+  ol.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; counter-reset: s; }
+  ol.steps > li { counter-increment: s; display: grid; grid-template-columns: 38px 1fr; gap: 10px; align-items: start; }
+  ol.steps > li::before {
+    content: counter(s); width: 34px; height: 34px; border-radius: 50%; background: var(--pink); color: var(--on-pink);
+    display: grid; place-items: center; font-family: var(--f-display);
+  }
+  ol.steps > li > div { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .say { background: var(--soft); border: 2px dashed var(--line); border-radius: 14px; padding: 8px 12px; font-weight: 700; }
+  .blank { background: var(--pink-soft); color: var(--pink-ink); border-radius: 8px; padding: 0 6px; font-weight: 700; white-space: nowrap; }
+  .model { background: var(--soft); border: 2px solid var(--line); border-radius: 20px; padding: 16px; line-height: 1.8; }
+  .model mark { background: var(--pink-soft); color: var(--ink); border-radius: 6px; padding: 0 4px; }
+  .checks { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); }
+  .checks label { display: flex; gap: 10px; align-items: center; background: var(--soft); border: 2px solid var(--line); border-radius: 14px; padding: 8px 12px; cursor: pointer; font-weight: 700; }
+  .checks input { width: 20px; height: 20px; accent-color: var(--pink); flex: none; }
+  .checks label:has(input:checked) { border-color: var(--mint); background: var(--mint-soft); }
+  .qa { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
+  .qa > div { background: var(--soft); border: 2px solid var(--line); border-radius: 16px; padding: 10px 12px; }
+  .qa .q { font-weight: 700; color: var(--pink-ink); }
+  .qa .r { font-weight: 700; }
+
+  /* modo memorizar: castellano borroso */
+  body.hide-es .es { filter: blur(6px); cursor: pointer; transition: filter .15s; user-select: none; }
+  body.hide-es .es.peek { filter: none; }
+  @media (prefers-reduced-motion: reduce) { body.hide-es .es { transition: none; } html { scroll-behavior: auto; } }
+  html { scroll-behavior: smooth; }
+
+  footer { text-align: center; color: var(--muted); font-size: .85rem; }
+</style>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div>
+      <p class="kicker">Curs de català per a no catalanoparlants · Bàsic 1 · Unitats 1–3</p>
+      <h1>Els meus apunts de català 🎀</h1>
+      <p class="lead">Todo lo de la libreta, ordenado por temas. Arriba del todo tienes el examen. Pulsa <b>🙈 Ocultar castellano</b> para ponerte a prueba: tocas una palabra borrosa y se descubre.</p>
+    </div>
+    <div class="count" aria-live="polite">
+      <div class="n" id="days">3</div>
+      <div class="l" id="days-l">días para el examen</div>
+    </div>
+  </header>
+
+  <nav class="nav" aria-label="Índice">
+    <div class="chips">
+      <a class="exam" href="#examen">🎯 Examen</a>
+      <a href="#saludos">👋 Saludos</a>
+      <a href="#presentarse">🙋 Presentarse</a>
+      <a href="#verbos">🧩 Verbos</a>
+      <a href="#articulos">🔤 Artículos y abecedario</a>
+      <a href="#posesivos">💕 Posesivos</a>
+      <a href="#familia">👨‍👩‍👧 Familia</a>
+      <a href="#gentilicios">🌍 Gentilicios</a>
+      <a href="#numeros">🔢 Números</a>
+      <a href="#vivienda">🏢 Dónde vives</a>
+      <a href="#casa">🛋️ La casa</a>
+      <a href="#situar">📍 Situar</a>
+      <a href="#barrio">🏙️ El barrio</a>
+      <a href="#extra">✨ Extra</a>
+    </div>
+    <button class="toggle" id="toggle-es" type="button" aria-pressed="false">🙈 Ocultar castellano</button>
+  </nav>
+
+  <!-- ================= EXAMEN ================= -->
+  <section class="block exam" id="examen">
+    <div class="bh">
+      <div class="ico">🎯</div>
+      <div>
+        <p class="num">Lo más importante</p>
+        <h2>Examen · Tasca 1</h2>
+        <p class="sub">Presenta't als companys</p>
+      </div>
+    </div>
+
+    <div class="facts">
+      <div class="fact"><div class="k">Fecha</div><div class="v">Dimecres 28 d'octubre</div></div>
+      <div class="fact"><div class="k">Nivel</div><div class="v">Bàsic 1 · Unitats 1–3</div></div>
+      <div class="fact"><div class="k">Habilidad</div><div class="v">Expressió oral (hablar)</div></div>
+      <div class="fact"><div class="k">Título</div><div class="v">Presenta't als companys</div></div>
+    </div>
+
+    <div class="tip"><b>🎯</b><div class="t"><strong>Objectiu (lo que pide la profe)</strong>
+      <p>Presentar-te als companys i presentar alguns membres de la teva família: <b>com es diuen</b>, <b>quants anys tenen</b> i <b>on viuen</b>.</p>
+      <p class="es">Presentarte a los compañeros y presentar a algunos miembros de tu familia: cómo se llaman, cuántos años tienen y dónde viven.</p>
+    </div></div>
+
+    <div class="group">
+      <h3>✅ Lo que tiene que salir sí o sí (márcalo cuando lo tengas)</h3>
+      <div class="checks">
+        <label><input type="checkbox" id="chk-1"> Nom <span class="es">· nombre</span></label>
+        <label><input type="checkbox" id="chk-2"> Nacionalitat <span class="es">· de dónde eres</span></label>
+        <label><input type="checkbox" id="chk-3"> Edat <span class="es">· edad</span></label>
+        <label><input type="checkbox" id="chk-4"> Lloc de residència <span class="es">· dónde vives</span></label>
+        <label><input type="checkbox" id="chk-5"> Relacions familiars <span class="es">· quién es quién</span></label>
+        <label><input type="checkbox" id="chk-6"> Descripció <span class="es">· extra: cómo es</span></label>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>🪜 La estructura, paso a paso</h3>
+      <ol class="steps">
+        <li><div><b>Saluda</b><span class="say">Hola a tothom! / Bon dia!</span><span class="es">¡Hola a todos! / ¡Buenos días!</span></div></li>
+        <li><div><b>Preséntate tú</b>
+          <span class="say">Em dic <span class="blank">nom</span>. Soc de <span class="blank">lloc</span>, soc <span class="blank">argentina…</span>. Tinc <span class="blank">vint-i-…</span> anys. Visc a <span class="blank">ciutat</span>, al carrer <span class="blank">…</span>.</span>
+        </div></li>
+        <li><div><b>Anuncia a quién vas a presentar</b><span class="say">Us vull presentar la meva família. / Us vull presentar la meva mare.</span><span class="es">Os quiero presentar a mi familia / a mi madre.</span></div></li>
+        <li><div><b>Por cada persona: nombre → edad → dónde vive → de dónde es → relación</b>
+          <span class="say">La meva mare <b>es diu</b> <span class="blank">nom</span>. <b>Té</b> <span class="blank">…</span> anys. <b>Viu a</b> <span class="blank">…</span>. <b>És</b> <span class="blank">…</span>. <b>Té</b> dos fills: jo i el meu germà.</span>
+          <span class="es">Ojo: aquí todo va en 3ª persona → es diu, té, viu, és.</span>
+        </div></li>
+        <li><div><b>Despídete</b><span class="say">Moltes gràcies! Fins aviat!</span><span class="es">¡Muchas gracias! ¡Hasta pronto!</span></div></li>
+      </ol>
+    </div>
+
+    <div class="group">
+      <h3>📝 Plantilla para rellenar (cambia lo rosa)</h3>
+      <div class="model">
+        Hola a tothom! Em dic <mark>Agustina</mark>. Soc de <mark>l'Argentina</mark>, soc <mark>argentina</mark>. Tinc <mark>vint-i-…</mark> anys i visc a <mark>Blanes</mark>, <mark>al centre</mark>.<br>
+        Us vull presentar la meva família.<br>
+        La meva mare es diu <mark>…</mark>. Té <mark>quaranta-…</mark> anys i viu a <mark>…</mark>. És <mark>argentina</mark>.<br>
+        El meu pare es diu <mark>…</mark>. Té <mark>cinquanta-…</mark> anys. Viu a <mark>…</mark> amb la meva mare.<br>
+        També tinc <mark>una germana</mark>. Es diu <mark>…</mark> i té <mark>…</mark> anys. Viu a <mark>…</mark>.<br>
+        Moltes gràcies! Fins aviat!
+      </div>
+      <p class="es">Los datos rosas son de ejemplo: pon los tuyos. «amb» = con.</p>
+    </div>
+
+    <div class="group">
+      <h3>💬 Los modelos de clase (corregidos)</h3>
+      <div class="grid wide">
+        <div class="card">
+          <h3>1ª persona · presentar a la abuela</h3>
+          <p>Hola! Jo soc l'Ainoa i us vull presentar la meva àvia. <b>La meva àvia</b> es diu Paz. Viu a Galícia, és gallega i té setanta-cinc anys. Té dos fills: el meu pare i el meu oncle.</p>
+          <p class="es">💡 La profe: no hace falta repetir «la meva àvia» en cada frase. Lo dices una vez y sigues.</p>
+        </div>
+        <div class="card">
+          <h3>3ª persona · presentar la familia de otra persona</h3>
+          <p>La <b>seva</b> mare i la <b>seva</b> tieta es diuen Verónica i Lorena. Són de l'Argentina. La seva mare té quaranta-set anys i la seva tieta, cinquanta. El <b>seu</b> fill es diu Unai. Té catorze anys i viu a Palafolls. No té germans. Els <b>seus</b> pares es diuen Jose i Katie.</p>
+          <p class="es">seu / seva / seus = su / sus (de él o de ella)</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>❓ Preguntas que te pueden hacer</h3>
+      <div class="qa">
+        <div><p class="q">Com et dius?</p><p class="r">Em dic Agustina.</p><p class="es">¿Cómo te llamas? · Me llamo…</p></div>
+        <div><p class="q">D'on ets?</p><p class="r">Soc de l'Argentina. Soc argentina.</p><p class="es">¿De dónde eres?</p></div>
+        <div><p class="q">Quants anys tens?</p><p class="r">Tinc vint-i-quatre anys.</p><p class="es">¿Cuántos años tienes?</p></div>
+        <div><p class="q">On vius?</p><p class="r">Visc a Blanes, al centre.</p><p class="es">¿Dónde vives?</p></div>
+        <div><p class="q">Quin és el teu telèfon?</p><p class="r">És el sis-vuit-tres…</p><p class="es">¿Cuál es tu teléfono?</p></div>
+        <div><p class="q">Com s'escriu el teu nom?</p><p class="r">a, ge, u, essa, te, i, ena, a</p><p class="es">¿Cómo se escribe tu nombre?</p></div>
+        <div><p class="q">Com es diu la teva mare?</p><p class="r">La meva mare es diu…</p><p class="es">¿Cómo se llama tu madre?</p></div>
+        <div><p class="q">Quants anys té el teu pare?</p><p class="r">El meu pare té … anys.</p><p class="es">¿Cuántos años tiene tu padre?</p></div>
+        <div><p class="q">On viu la teva germana?</p><p class="r">La meva germana viu a…</p><p class="es">¿Dónde vive tu hermana?</p></div>
+        <div><p class="q">Tens germans?</p><p class="r">Sí, tinc dos germans. / No, no tinc germans.</p><p class="es">¿Tienes hermanos?</p></div>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>⚠️ Los fallos típicos (que no te pillen)</h3>
+      <div class="grid wide">
+        <div class="ojo"><b>1</b><div class="t"><p><span class="good">Em dic Agustina</span> · <span class="bad">Em dic la Agustina</span></p><p class="es">Con «dir-se» NUNCA va artículo.</p></div></div>
+        <div class="ojo"><b>2</b><div class="t"><p><span class="good">Soc l'Agustina</span> · <span class="good">És la Marta</span></p><p class="es">Con «ser» + nombre SÍ va artículo.</p></div></div>
+        <div class="ojo"><b>3</b><div class="t"><p><span class="good">Tinc 24 anys</span> · <span class="bad">Soc 24 anys</span></p><p class="es">La edad va con «tenir».</p></div></div>
+        <div class="ojo"><b>4</b><div class="t"><p><span class="good">la meva mare</span> · <span class="bad">meva mare</span></p><p class="es">El posesivo lleva artículo delante.</p></div></div>
+        <div class="ojo"><b>5</b><div class="t"><p><span class="good">dues germanes</span> · <span class="good">dos germans</span></p><p class="es">2 en femenino es «dues».</p></div></div>
+        <div class="ojo"><b>6</b><div class="t"><p><span class="good">Visc al carrer…</span> · <span class="bad">Visc a el carrer</span></p><p class="es">a + el = al · de + el = del</p></div></div>
+        <div class="ojo"><b>7</b><div class="t"><p><span class="good">vint-i-quatre</span> · <span class="good">quaranta-set</span></p><p class="es">Guiones siempre; la «i» solo en los veintes.</p></div></div>
+        <div class="ojo"><b>8</b><div class="t"><p><span class="good">Soc de França</span> · <span class="bad">Son de França</span></p><p class="es">Yo = soc · ellos = són</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SALUDOS ================= -->
+  <section class="block" id="saludos">
+    <div class="bh">
+      <div class="ico">👋</div>
+      <div><p class="num">Unitat 1–2</p><h2>Saludar i acomiadar-se</h2><p class="sub">Saludos, cómo estás y despedidas</p></div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>☀️ Saludar</h3>
+        <ul class="list">
+          <li><span class="ca">Hola!</span></li>
+          <li><span class="ca">Ei!</span> <span class="es">¡Ey! (informal)</span></li>
+          <li><span class="ca">Bon dia</span> <span class="es">buenos días</span></li>
+          <li><span class="ca">Bona tarda</span> <span class="es">buenas tardes</span></li>
+          <li><span class="ca">Bona nit</span> <span class="es">buenas noches</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>🤔 Preguntar qué tal</h3>
+        <ul class="list">
+          <li><span class="ca">Com anem?</span> <span class="es">¿qué tal vamos?</span></li>
+          <li><span class="ca">Com va això?</span> <span class="es">¿cómo va eso?</span></li>
+          <li><span class="ca">Com estàs?</span> <span class="es">¿cómo estás?</span></li>
+          <li><span class="ca">Com va tot?</span> <span class="es">¿cómo va todo?</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>💬 Responder</h3>
+        <ul class="list">
+          <li>😄 <span class="ca">Molt bé, gràcies</span> <span class="es">muy bien, gracias</span></li>
+          <li>😐 <span class="ca">Anar fent</span> <span class="es">ni bien ni mal, tirando</span></li>
+          <li>😞 <span class="ca">Malament</span> <span class="es">mal</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>👋 Despedirse</h3>
+        <ul class="list">
+          <li><span class="ca">Adéu</span> <span class="es">adiós</span></li>
+          <li><span class="ca">A reveure</span> <span class="es">hasta la vista (= adéu)</span></li>
+          <li><span class="ca">Fins després</span> <span class="es">hasta luego</span></li>
+          <li><span class="ca">Fins ara</span> <span class="es">hasta ahora</span></li>
+          <li><span class="ca">Fins aviat</span> <span class="es">hasta pronto</span></li>
+          <li><span class="ca">Fins demà</span> <span class="es">hasta mañana</span></li>
+          <li><span class="ca">Fins dilluns</span> <span class="es">hasta el lunes</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>🤗 Formas de saludar</h3>
+      <div class="grid tight">
+        <div class="w"><span class="ca">💋 Es fan un petó</span><span class="es">se dan un beso</span></div>
+        <div class="w"><span class="ca">🤝 Es donen la mà</span><span class="es">se dan la mano</span></div>
+        <div class="w"><span class="ca">🫂 S'abracen</span><span class="es">se abrazan · una abraçada</span></div>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>☕ Diálogo: encontrarte a alguien</h3>
+      <div class="chat">
+        <div class="bubble a">Ei, hola! Quant de temps sense veure't!<small class="es">¡Cuánto tiempo sin verte!</small></div>
+        <div class="bubble b">Hola! Quina sorpresa! Com va tot?<small class="es">¡Qué sorpresa! ¿Cómo va todo?</small></div>
+        <div class="bubble a">Molt bé! I tu? Com estàs?</div>
+        <div class="bubble b">Mira, ja ho veus… anar fent.<small class="es">Pues ya ves… tirando.</small></div>
+        <div class="bubble a">Per cert, coneixes el Tomàs?<small class="es">Por cierto, ¿conoces a Tomàs?</small></div>
+        <div class="bubble b">No, no el conec.<small class="es">No, no lo conozco.</small></div>
+        <div class="bubble a">Tomàs, et presento l'Anna. És una amiga de la universitat.<small class="es">Tomàs, te presento a Anna.</small></div>
+        <div class="bubble b">Molt de gust!<small class="es">¡Encantado/a!</small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PRESENTARSE ================= -->
+  <section class="block" id="presentarse">
+    <div class="bh">
+      <div class="ico">🙋</div>
+      <div><p class="num">Unitat 1</p><h2>Presentar-se</h2><p class="sub">Las preguntas básicas y cómo contestar</p></div>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Pregunta</th><th>Respuesta</th><th>Para…</th></tr></thead>
+        <tbody>
+          <tr><td class="ca">Com et dius?</td><td>Em dic Anna.</td><td class="es">nombre</td></tr>
+          <tr><td class="ca">Qui ets?</td><td>Soc la Carolyne.</td><td class="es">¿quién eres?</td></tr>
+          <tr><td class="ca">D'on ets?</td><td>Soc de França. Soc francesa.</td><td class="es">origen</td></tr>
+          <tr><td class="ca">On vius?</td><td>Visc a Blanes.</td><td class="es">dónde vives</td></tr>
+          <tr><td class="ca">Quants anys tens?</td><td>Tinc vint-i-quatre anys.</td><td class="es">edad</td></tr>
+          <tr><td class="ca">Quin és el teu telèfon?</td><td>És el 603 42 85 19.</td><td class="es">teléfono</td></tr>
+          <tr><td class="ca">Com s'escriu el teu nom?</td><td>a, ge, u, essa…</td><td class="es">deletrear</td></tr>
+          <tr><td class="ca">I la teva adreça electrònica?</td><td>…arrova gmail punt com</td><td class="es">email · @ = arrova</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid wide">
+      <div class="card">
+        <h3>👤 Nombre + apellido</h3>
+        <p><b>Hola, em dic</b> + nom + cognom.</p>
+        <p class="es">cognom = apellido</p>
+      </div>
+      <div class="card">
+        <h3>🗣️ Hablar de otra persona</h3>
+        <p><b>Es diu</b> Agustina. <b>És de</b> Blanes. <b>Viu</b> al centre.</p>
+        <p class="es">se llama · es de · vive</p>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>🆘 Frases de supervivencia en clase</h3>
+      <div class="grid wide">
+        <div class="w"><span class="ca">❓ Què vol dir…?</span><span class="es">¿Qué significa…?</span></div>
+        <div class="w"><span class="ca">🔁 Ho pots repetir, si us plau?</span><span class="es">¿Lo puedes repetir, por favor?</span></div>
+        <div class="w"><span class="ca">📖 Com es diu … en català?</span><span class="es">¿Cómo se dice … en catalán?</span></div>
+        <div class="w"><span class="ca">🐢 Pots parlar més a poc a poc, si us plau?</span><span class="es">¿Puedes hablar más despacio, por favor?</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= VERBOS ================= -->
+  <section class="block" id="verbos">
+    <div class="bh">
+      <div class="ico">🧩</div>
+      <div><p class="num">Gramática</p><h2>Els verbs</h2><p class="sub">Presente · lo subrayado es lo que cambia</p></div>
+    </div>
+
+    <div class="grid wide">
+      <article class="verb">
+        <header><h3>SER</h3><span>ser · quién eres, de dónde</span></header>
+        <table><tbody>
+          <tr><td class="p">jo</td><td>soc</td></tr>
+          <tr><td class="p">tu</td><td>ets</td></tr>
+          <tr><td class="p">ell / ella / vostè</td><td>és</td></tr>
+          <tr><td class="p">nosaltres</td><td>som</td></tr>
+          <tr><td class="p">vosaltres</td><td>sou</td></tr>
+          <tr><td class="p">ells / elles / vostès</td><td>són</td></tr>
+        </tbody></table>
+        <p class="ex"><b>Soc la Carol. Som del Perú. Són de Rússia.</b><br>«soc» antes se escribía «sóc»: las dos te las aceptan.</p>
+      </article>
+
+      <article class="verb">
+        <header><h3>DIR-SE</h3><span>llamarse</span></header>
+        <table><tbody>
+          <tr><td class="p">jo</td><td><span class="end">em</span> dic</td></tr>
+          <tr><td class="p">tu</td><td><span class="end">et</span> dius</td></tr>
+          <tr><td class="p">ell / ella / vostè</td><td><span class="end">es</span> diu</td></tr>
+          <tr><td class="p">nosaltres</td><td><span class="end">ens</span> diem</td></tr>
+          <tr><td class="p">vosaltres</td><td><span class="end">us</span> dieu</td></tr>
+          <tr><td class="p">ells / elles / vostès</td><td><span class="end">es</span> diuen</td></tr>
+        </tbody></table>
+        <p class="ex"><b>Com et dius? Em dic Anna.</b><br>Sin artículo delante del nombre.</p>
+      </article>
+
+      <article class="verb">
+        <header><h3>VIURE</h3><span>vivir · dónde</span></header>
+        <table><tbody>
+          <tr><td class="p">jo</td><td>vi<span class="end">sc</span></td></tr>
+          <tr><td class="p">tu</td><td>viu<span class="end">s</span></td></tr>
+          <tr><td class="p">ell / ella / vostè</td><td>viu</td></tr>
+          <tr><td class="p">nosaltres</td><td>viv<span class="end">im</span></td></tr>
+          <tr><td class="p">vosaltres</td><td>viv<span class="end">iu</span></td></tr>
+          <tr><td class="p">ells / elles / vostès</td><td>viu<span class="end">en</span></td></tr>
+        </tbody></table>
+        <p class="ex"><b>Visc al centre. Vius a la Plantera. Viu al Pins.<br>Vivim a Mas Cremat. Viuen a Mas Torrent.</b></p>
+      </article>
+
+      <article class="verb">
+        <header><h3>TENIR</h3><span>tener · edad y cosas</span></header>
+        <table><tbody>
+          <tr><td class="p">jo</td><td>tinc</td></tr>
+          <tr><td class="p">tu</td><td>ten<span class="end">s</span></td></tr>
+          <tr><td class="p">ell / ella / vostè</td><td>té</td></tr>
+          <tr><td class="p">nosaltres</td><td>ten<span class="end">im</span></td></tr>
+          <tr><td class="p">vosaltres</td><td>ten<span class="end">iu</span></td></tr>
+          <tr><td class="p">ells / elles / vostès</td><td>ten<span class="end">en</span></td></tr>
+        </tbody></table>
+        <p class="ex"><b>Quants anys tens? Tinc 24 anys.</b><br>También «tener algo»: Tinc un cotxe. Té dos fills.</p>
+      </article>
+
+      <article class="verb">
+        <header><h3>CONÈIXER</h3><span>conocer</span></header>
+        <table><tbody>
+          <tr><td class="p">jo</td><td>con<span class="end">ec</span></td></tr>
+          <tr><td class="p">tu</td><td>coneix<span class="end">es</span></td></tr>
+          <tr><td class="p">ell / ella / vostè</td><td>coneix</td></tr>
+          <tr><td class="p">nosaltres</td><td>coneix<span class="end">em</span></td></tr>
+          <tr><td class="p">vosaltres</td><td>coneix<span class="end">eu</span></td></tr>
+          <tr><td class="p">ells / elles / vostès</td><td>coneix<span class="end">en</span></td></tr>
+        </tbody></table>
+        <p class="ex"><b>Coneixes el Tomàs? No, no el conec.</b></p>
+      </article>
+
+      <article class="verb">
+        <header><h3>HAVER-HI</h3><span>haber · hay</span></header>
+        <table><tbody>
+          <tr><td class="p">singular y plural</td><td>hi ha</td></tr>
+          <tr><td class="p">sin repetir la cosa</td><td>n'hi ha</td></tr>
+        </tbody></table>
+        <p class="ex"><b>Hi ha tres cadires. → N'hi ha tres.</b><br>Hay tres sillas → Hay tres.<br><b>A casa teva, quantes habitacions hi ha?</b></p>
+      </article>
+    </div>
+
+    <div class="rule"><b>💡</b><div class="t"><strong>Ser vs. Dir-se con nombres</strong>
+      <p><b>SER + artículo:</b> Jo soc <span class="art f">la</span> Carol · Tu ets <span class="art a">l'</span>Anna · Ell és <span class="art m">en</span> Fran · Ella és <span class="art f">la</span> Sílvia</p>
+      <p><b>DIR-SE sin artículo:</b> Jo em dic Carol · Tu et dius Anna · Ell es diu Fran · Ella es diu Sílvia</p>
+    </div></div>
+  </section>
+
+  <!-- ================= ARTÍCULOS Y ABECEDARIO ================= -->
+  <section class="block" id="articulos">
+    <div class="bh">
+      <div class="ico">🔤</div>
+      <div><p class="num">Unitat 1</p><h2>L'article personal i l'alfabet</h2><p class="sub">El artículo delante de los nombres y cómo deletrear</p></div>
+    </div>
+
+    <div class="grid tight">
+      <div class="card"><h3><span class="art m">en / el</span></h3><p>masculino</p><p><b>en Fran, el Bismark</b></p></div>
+      <div class="card"><h3><span class="art f">la</span></h3><p>femenino</p><p><b>la Sílvia, la Carol</b></p></div>
+      <div class="card"><h3><span class="art a">l'</span></h3><p>si empieza por vocal o H</p><p><b>l'Ainoa, l'Albert, l'Hèctor</b></p></div>
+    </div>
+    <p>Ejemplo: <b>Som la Sílvia i el Bismark.</b> <span class="es">Somos Sílvia y Bismark.</span></p>
+
+    <div class="group">
+      <h3>🔡 L'alfabet · 26 lletres</h3>
+      <p class="es">En rosa las que se dicen distinto que en castellano.</p>
+      <div class="numgrid">
+        <div class="nb"><span class="d">A</span><span class="t">a</span></div>
+        <div class="nb"><span class="d">B</span><span class="t">be</span></div>
+        <div class="nb"><span class="d">C</span><span class="t">ce</span></div>
+        <div class="nb"><span class="d">D</span><span class="t">de</span></div>
+        <div class="nb"><span class="d">E</span><span class="t">e</span></div>
+        <div class="nb hl"><span class="d">F</span><span class="t">efa</span></div>
+        <div class="nb"><span class="d">G</span><span class="t">ge</span></div>
+        <div class="nb hl"><span class="d">H</span><span class="t">hac</span></div>
+        <div class="nb"><span class="d">I</span><span class="t">i</span></div>
+        <div class="nb"><span class="d">J</span><span class="t">jota</span></div>
+        <div class="nb"><span class="d">K</span><span class="t">ca</span></div>
+        <div class="nb hl"><span class="d">L</span><span class="t">ela</span></div>
+        <div class="nb hl"><span class="d">M</span><span class="t">ema</span></div>
+        <div class="nb hl"><span class="d">N</span><span class="t">ena</span></div>
+        <div class="nb"><span class="d">O</span><span class="t">o</span></div>
+        <div class="nb"><span class="d">P</span><span class="t">pe</span></div>
+        <div class="nb"><span class="d">Q</span><span class="t">cu</span></div>
+        <div class="nb hl"><span class="d">R</span><span class="t">erra</span></div>
+        <div class="nb hl"><span class="d">S</span><span class="t">essa</span></div>
+        <div class="nb"><span class="d">T</span><span class="t">te</span></div>
+        <div class="nb"><span class="d">U</span><span class="t">u</span></div>
+        <div class="nb hl"><span class="d">V</span><span class="t">ve baixa</span></div>
+        <div class="nb hl"><span class="d">W</span><span class="t">ve doble</span></div>
+        <div class="nb hl"><span class="d">X</span><span class="t">ics</span></div>
+        <div class="nb"><span class="d">Y</span><span class="t">i grega</span></div>
+        <div class="nb hl"><span class="d">Z</span><span class="t">zeta</span></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card"><h3>Ç</h3><p><b>ce trencada</b></p><p>Marçal, França</p></div>
+      <div class="card"><h3>L·L</h3><p><b>ela geminada</b></p><p>Marcel·la, pel·lícula</p></div>
+      <div class="card"><h3>NY</h3><p><b>suena como la ñ</b></p><p>bany, anys, Espanya</p></div>
+      <div class="card"><h3>LL</h3><p><b>ela doble</b></p><p>Meritxell, llit</p></div>
+    </div>
+
+    <div class="group">
+      <h3>✍️ Deletrear nombres (ejercicio «Relaciona»)</h3>
+      <div class="tw"><table>
+        <tbody>
+          <tr><td class="ca">Gemma</td><td>ge, e, ema, ema, a</td></tr>
+          <tr><td class="ca">Marçal</td><td>ema, a, erra, ce trencada, a, ela</td></tr>
+          <tr><td class="ca">Meritxell</td><td>ema, e, erra, i, te, ics, e, ela doble</td></tr>
+          <tr><td class="ca">Marcel·la</td><td>ema, a, erra, ce, e, ela geminada, a</td></tr>
+          <tr><td class="ca">Sergi</td><td>essa, e, erra, ge, i</td></tr>
+          <tr><td class="ca">Agustina</td><td>a, ge, u, essa, te, i, ena, a</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- ================= POSESIVOS ================= -->
+  <section class="block" id="posesivos">
+    <div class="bh">
+      <div class="ico">💕</div>
+      <div><p class="num">Unitat 2</p><h2>Els possessius</h2><p class="sub">mi, tu, su… siempre con artículo delante</p></div>
+    </div>
+
+    <div class="tw"><table>
+      <thead><tr><th>De…</th><th><span class="art m">masc.</span></th><th><span class="art f">fem.</span></th><th><span class="art m">masc. pl.</span></th><th><span class="art f">fem. pl.</span></th></tr></thead>
+      <tbody>
+        <tr><td class="p">jo · mi</td><td class="ca">el meu</td><td class="ca">la meva</td><td class="ca">els meus</td><td class="ca">les meves</td></tr>
+        <tr><td class="p">tu · tu</td><td class="ca">el teu</td><td class="ca">la teva</td><td class="ca">els teus</td><td class="ca">les teves</td></tr>
+        <tr><td class="p">ell, ella · su</td><td class="ca">el seu</td><td class="ca">la seva</td><td class="ca">els seus</td><td class="ca">les seves</td></tr>
+        <tr><td class="p">nosaltres · nuestro</td><td class="ca">el nostre</td><td class="ca">la nostra</td><td class="ca">els nostres</td><td class="ca">les nostres</td></tr>
+        <tr><td class="p">vosaltres · vuestro</td><td class="ca">el vostre</td><td class="ca">la vostra</td><td class="ca">els vostres</td><td class="ca">les vostres</td></tr>
+        <tr><td class="p">ells, elles · su</td><td class="ca">el seu</td><td class="ca">la seva</td><td class="ca">els seus</td><td class="ca">les seves</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="grid">
+      <div class="w"><span class="ca">Ell és el meu pare.</span><span class="es">Él es mi padre.</span></div>
+      <div class="w"><span class="ca">Ella és la meva mare.</span><span class="es">Ella es mi madre.</span></div>
+      <div class="w"><span class="ca">Ells són els meus germans.</span><span class="es">Ellos son mis hermanos.</span></div>
+      <div class="w"><span class="ca">Elles són les meves filles.</span><span class="es">Ellas son mis hijas.</span></div>
+    </div>
+
+    <div class="group">
+      <h3>🗨️ Practiquem (pregunta → respuesta)</h3>
+      <div class="tw"><table>
+        <tbody>
+          <tr><td class="ca">Com es diu el teu…?</td><td>El meu … es diu …</td></tr>
+          <tr><td class="ca">On viu el teu…?</td><td>El meu … viu a …</td></tr>
+          <tr><td class="ca">Quants anys té el teu…?</td><td>El meu … té … anys.</td></tr>
+          <tr><td class="ca">Com es diu la teva…?</td><td>La meva … es diu …</td></tr>
+          <tr><td class="ca">On viu la teva…?</td><td>La meva … viu a …</td></tr>
+          <tr><td class="ca">Quants anys té la teva…?</td><td>La meva … té … anys.</td></tr>
+        </tbody>
+      </table></div>
+      <div class="rule"><b>💡</b><div class="t"><strong>Truco</strong><p>Te preguntan con <b>teu / teva</b> → contestas con <b>meu / meva</b>.</p></div></div>
+    </div>
+  </section>
+
+  <!-- ================= FAMILIA ================= -->
+  <section class="block" id="familia">
+    <div class="bh">
+      <div class="ico">👨‍👩‍👧</div>
+      <div><p class="num">Unitat 2</p><h2>La família</h2><p class="sub">Quién es quién, mirado desde ti</p></div>
+    </div>
+
+    <div class="legend"><span class="art m">lila = él</span><span class="art f">rosa = ella</span></div>
+
+    <div class="tree" role="img" aria-label="Árbol familiar visto desde jo">
+      <div class="gen"><span class="lbl">bisabuelos</span><div class="ppl"><span class="pp m">besavi</span><span class="pp f">besàvia</span></div></div>
+      <div class="arrow">↓</div>
+      <div class="gen"><span class="lbl">abuelos</span><div class="ppl"><span class="pp m">avi</span><span class="pp f">àvia</span><span class="pp m"><small>los dos:</small> els avis</span></div></div>
+      <div class="arrow">↓</div>
+      <div class="gen"><span class="lbl">padres y tíos</span><div class="ppl"><span class="pp m">pare</span><span class="pp f">mare</span><span class="pp m">oncle / tiet</span><span class="pp f">tia / tieta</span><span class="pp m">sogre</span><span class="pp f">sogra</span></div></div>
+      <div class="arrow">↓</div>
+      <div class="gen"><span class="lbl">tu generación</span><div class="ppl"><span class="pp me">JO</span><span class="pp m">germà</span><span class="pp f">germana</span><span class="pp m">cosí</span><span class="pp f">cosina</span><span class="pp m">marit</span><span class="pp m">cunyat</span><span class="pp f">cunyada</span></div></div>
+      <div class="arrow">↓</div>
+      <div class="gen"><span class="lbl">hijos y sobrinos</span><div class="ppl"><span class="pp m">fill</span><span class="pp f">filla</span><span class="pp m">nebot</span><span class="pp f">neboda</span><span class="pp m">gendre</span><span class="pp f">nora</span></div></div>
+      <div class="arrow">↓</div>
+      <div class="gen"><span class="lbl">nietos</span><div class="ppl"><span class="pp m">net</span><span class="pp f">neta</span></div></div>
+    </div>
+
+    <div class="grid tight">
+      <div class="w"><span class="ca">pare · mare</span><span class="es">padre · madre</span></div>
+      <div class="w"><span class="ca">germà · germana</span><span class="es">hermano · hermana</span></div>
+      <div class="w"><span class="ca">fill · filla</span><span class="es">hijo · hija</span></div>
+      <div class="w"><span class="ca">avi · àvia</span><span class="es">abuelo · abuela</span></div>
+      <div class="w"><span class="ca">net · neta</span><span class="es">nieto · nieta</span></div>
+      <div class="w"><span class="ca">besavi · besàvia</span><span class="es">bisabuelo · bisabuela</span></div>
+      <div class="w"><span class="ca">oncle / tiet · tia / tieta</span><span class="es">tío · tía</span></div>
+      <div class="w"><span class="ca">nebot · neboda</span><span class="es">sobrino · sobrina</span></div>
+      <div class="w"><span class="ca">cosí · cosina</span><span class="es">primo · prima</span></div>
+      <div class="w"><span class="ca">sogre · sogra</span><span class="es">suegro · suegra</span></div>
+      <div class="w"><span class="ca">gendre · nora</span><span class="es">yerno · nuera</span></div>
+      <div class="w"><span class="ca">cunyat · cunyada</span><span class="es">cuñado · cuñada</span></div>
+      <div class="w"><span class="ca">germanastre · germanastra</span><span class="es">hermanastro · hermanastra</span></div>
+      <div class="w"><span class="ca">marit · dona</span><span class="es">marido · mujer</span></div>
+      <div class="w"><span class="ca">xicot · xicota</span><span class="es">novio · novia</span></div>
+      <div class="w"><span class="ca">germà petit / gran</span><span class="es">hermano pequeño / mayor</span></div>
+    </div>
+
+    <div class="rule"><b>💡</b><div class="t"><strong>Masculí plural genèric</strong>
+      <p>Para hablar de los dos juntos se usa el plural masculino:</p>
+      <p><b>pare + mare = els pares</b> · <b>fill + filla = els fills</b> · <b>avi + àvia = els avis</b> · <b>tiet + tieta = els tiets</b> · <b>cosí + cosina = els cosins</b></p>
+    </div></div>
+
+    <div class="group">
+      <h3>🎂 L'edat · las etapas</h3>
+      <div class="tw"><table>
+        <tbody>
+          <tr><td class="p">0–1 any</td><td class="ca">el nadó</td><td class="es">bebé</td></tr>
+          <tr><td class="p">1–15 anys</td><td class="ca">l'infant · el nen / la nena</td><td class="es">niño / niña</td></tr>
+          <tr><td class="p">16–25 anys</td><td class="ca">el noi / la noia · el jove / la jove</td><td class="es">chico / chica · joven</td></tr>
+          <tr><td class="p">+25 anys</td><td class="ca">l'home / la dona</td><td class="es">hombre / mujer</td></tr>
+          <tr><td class="p">+60 anys</td><td class="ca">l'home gran / la dona gran</td><td class="es">hombre mayor / mujer mayor</td></tr>
+        </tbody>
+      </table></div>
+      <p><b>Jo soc més gran.</b> <span class="es">Yo soy mayor.</span> · <b>Soc més petita.</b> <span class="es">Soy más pequeña.</span></p>
+    </div>
+  </section>
+
+  <!-- ================= GENTILICIOS ================= -->
+  <section class="block" id="gentilicios">
+    <div class="bh">
+      <div class="ico">🌍</div>
+      <div><p class="num">Unitat 1</p><h2>D'on ets? · Gentilicis</h2><p class="sub">Agrupados por cómo cambian al femenino</p></div>
+    </div>
+
+    <div class="grid wide">
+      <div class="card">
+        <h3>-ès → -esa</h3>
+        <ul class="list">
+          <li><span class="ca">França</span> <span>francès · francesa</span></li>
+          <li><span class="ca">Irlanda</span> <span>irlandès · irlandesa</span></li>
+          <li><span class="ca">Japó</span> <span>japonès · japonesa</span></li>
+          <li><span class="ca">Pakistan</span> <span>pakistanès · pakistanesa</span></li>
+          <li><span class="ca">Xina</span> <span>xinès · xinesa</span></li>
+          <li><span class="ca">Romania</span> <span>romanès · romanesa</span></li>
+          <li><span class="ca">Senegal</span> <span>senegalès · senegalesa</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>-à → -ana</h3>
+        <ul class="list">
+          <li><span class="ca">Catalunya</span> <span>català · catalana</span></li>
+          <li><span class="ca">Colòmbia</span> <span>colombià · colombiana</span></li>
+          <li><span class="ca">Veneçuela</span> <span>veneçolà · veneçolana</span></li>
+          <li><span class="ca">Perú</span> <span>peruà · peruana</span></li>
+          <li><span class="ca">Roma</span> <span>romà · romana</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>-í → -ina · -è → -ena</h3>
+        <ul class="list">
+          <li><span class="ca">Argentina</span> <span>argentí · argentina</span></li>
+          <li><span class="ca">Xile</span> <span>xilè · xilena</span></li>
+        </ul>
+        <h3>+ a</h3>
+        <ul class="list">
+          <li><span class="ca">Espanya</span> <span>espanyol · espanyola</span></li>
+          <li><span class="ca">Galícia</span> <span>gallec · gallega</span></li>
+          <li><span class="ca">Madrid</span> <span>madrileny · madrilenya</span></li>
+          <li><span class="ca">Rússia</span> <span>rus · russa</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid wide">
+      <div class="w"><span class="ca">Messi és de l'Argentina. És argentí.</span><span class="es">de + l' delante de vocal</span></div>
+      <div class="w"><span class="ca">Malala és del Pakistan. És pakistanesa.</span><span class="es">de + el = del</span></div>
+      <div class="w"><span class="ca">Soc de Galícia. Soc gallega.</span><span class="es">Soy de Galicia.</span></div>
+      <div class="w"><span class="ca">Nosaltres som del Perú.</span><span class="es">Somos de Perú.</span></div>
+    </div>
+  </section>
+
+  <!-- ================= NÚMEROS ================= -->
+  <section class="block" id="numeros">
+    <div class="bh">
+      <div class="ico">🔢</div>
+      <div><p class="num">Unitat 1–3</p><h2>Els números</h2><p class="sub">Para la edad, el teléfono y la dirección</p></div>
+    </div>
+
+    <div class="numgrid">
+      <div class="nb"><span class="d">0</span><span class="t">zero</span></div>
+      <div class="nb hl"><span class="d">1</span><span class="t">u · un · una</span></div>
+      <div class="nb hl"><span class="d">2</span><span class="t">dos · dues</span></div>
+      <div class="nb"><span class="d">3</span><span class="t">tres</span></div>
+      <div class="nb"><span class="d">4</span><span class="t">quatre</span></div>
+      <div class="nb"><span class="d">5</span><span class="t">cinc</span></div>
+      <div class="nb"><span class="d">6</span><span class="t">sis</span></div>
+      <div class="nb"><span class="d">7</span><span class="t">set</span></div>
+      <div class="nb"><span class="d">8</span><span class="t">vuit</span></div>
+      <div class="nb"><span class="d">9</span><span class="t">nou</span></div>
+      <div class="nb"><span class="d">10</span><span class="t">deu</span></div>
+      <div class="nb"><span class="d">11</span><span class="t">onze</span></div>
+      <div class="nb"><span class="d">12</span><span class="t">dotze</span></div>
+      <div class="nb"><span class="d">13</span><span class="t">tretze</span></div>
+      <div class="nb"><span class="d">14</span><span class="t">catorze</span></div>
+      <div class="nb"><span class="d">15</span><span class="t">quinze</span></div>
+      <div class="nb"><span class="d">16</span><span class="t">setze</span></div>
+      <div class="nb hl"><span class="d">17</span><span class="t">disset</span></div>
+      <div class="nb hl"><span class="d">18</span><span class="t">divuit</span></div>
+      <div class="nb hl"><span class="d">19</span><span class="t">dinou</span></div>
+      <div class="nb"><span class="d">20</span><span class="t">vint</span></div>
+      <div class="nb hl"><span class="d">21</span><span class="t">vint-i-u</span></div>
+      <div class="nb hl"><span class="d">22</span><span class="t">vint-i-dos</span></div>
+      <div class="nb"><span class="d">30</span><span class="t">trenta</span></div>
+      <div class="nb"><span class="d">31</span><span class="t">trenta-u</span></div>
+      <div class="nb"><span class="d">40</span><span class="t">quaranta</span></div>
+      <div class="nb"><span class="d">50</span><span class="t">cinquanta</span></div>
+      <div class="nb"><span class="d">60</span><span class="t">seixanta</span></div>
+      <div class="nb"><span class="d">70</span><span class="t">setanta</span></div>
+      <div class="nb"><span class="d">80</span><span class="t">vuitanta</span></div>
+      <div class="nb"><span class="d">90</span><span class="t">noranta</span></div>
+      <div class="nb"><span class="d">100</span><span class="t">cent</span></div>
+    </div>
+
+    <div class="grid wide">
+      <div class="rule"><b>💡</b><div class="t"><strong>Decenas–unidades: con guion</strong><p>trenta-dos · quaranta-set · setanta-cinc</p><p>Solo los <b>veintes</b> llevan la <b>-i-</b>: vint-i-u, vint-i-quatre, vint-i-nou</p></div></div>
+      <div class="rule"><b>💡</b><div class="t"><strong>1 y 2 cambian con el género</strong><p><b>un</b> germà · <b>una</b> germana</p><p><b>dos</b> germans · <b>dues</b> germanes</p><p>Contando o en el teléfono: u, dos.</p></div></div>
+      <div class="rule"><b>💡</b><div class="t"><strong>Centenas: con guion</strong><p>dos-cents · tres-cents · cinc-cents</p><p>Pero centenas + unidades, sin guion: <b>cent u</b> (101), <b>tres-cents u</b> (301)</p></div></div>
+    </div>
+
+    <div class="numgrid">
+      <div class="nb"><span class="d">200</span><span class="t">dos-cents</span></div>
+      <div class="nb"><span class="d">300</span><span class="t">tres-cents</span></div>
+      <div class="nb"><span class="d">400</span><span class="t">quatre-cents</span></div>
+      <div class="nb"><span class="d">500</span><span class="t">cinc-cents</span></div>
+      <div class="nb"><span class="d">600</span><span class="t">sis-cents</span></div>
+      <div class="nb"><span class="d">700</span><span class="t">set-cents</span></div>
+      <div class="nb"><span class="d">800</span><span class="t">vuit-cents</span></div>
+      <div class="nb"><span class="d">900</span><span class="t">nou-cents</span></div>
+      <div class="nb"><span class="d">1.000</span><span class="t">mil</span></div>
+      <div class="nb"><span class="d">1.250</span><span class="t">mil dos-cents cinquanta</span></div>
+      <div class="nb"><span class="d">1.000.000</span><span class="t">un milió</span></div>
+    </div>
+
+    <div class="group">
+      <h3>📞 Decir un teléfono</h3>
+      <p>Cifra a cifra: <b>696 87 42 80</b> → sis, nou, sis, vuit, set, quatre, dos, vuit, zero.</p>
+      <p>Pregunta: <b>Quin és el teu telèfon?</b> → <b>És el…</b> / <b>Quin número de telèfon tens?</b></p>
+    </div>
+
+    <div class="group">
+      <h3>🥇 Els ordinals (para el piso y la puerta)</h3>
+      <div class="tw"><table>
+        <thead><tr><th>#</th><th><span class="art m">pis (masc.)</span></th><th><span class="art f">porta (fem.)</span></th></tr></thead>
+        <tbody>
+          <tr><td class="p">1</td><td><b>primer</b> · 1r</td><td><b>primera</b> · 1a</td></tr>
+          <tr><td class="p">2</td><td><b>segon</b> · 2n</td><td><b>segona</b> · 2a</td></tr>
+          <tr><td class="p">3</td><td><b>tercer</b> · 3r</td><td><b>tercera</b> · 3a</td></tr>
+          <tr><td class="p">4</td><td><b>quart</b> · 4t</td><td><b>quarta</b> · 4a</td></tr>
+          <tr><td class="p">5</td><td><b>cinquè</b> · 5è</td><td><b>cinquena</b> · 5a</td></tr>
+          <tr><td class="p">6</td><td><b>sisè</b> · 6è</td><td><b>sisena</b> · 6a</td></tr>
+          <tr><td class="p">7–10</td><td><b>setè, vuitè, novè, desè</b></td><td><b>setena, vuitena, novena, desena</b></td></tr>
+        </tbody>
+      </table></div>
+      <div class="rule"><b>💡</b><div class="t"><strong>Abreviar = número + última letra</strong><p>primer → 1<b>r</b> · segon → 2<b>n</b> · quart → 4<b>t</b> · sisena → 6<b>a</b></p></div></div>
+    </div>
+  </section>
+
+  <!-- ================= VIVIENDA ================= -->
+  <section class="block" id="vivienda">
+    <div class="bh">
+      <div class="ico">🏢</div>
+      <div><p class="num">Unitat 3</p><h2>On vius?</h2><p class="sub">Tipo de vivienda, calles, preposiciones y pisos</p></div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>🏠 Tipus d'habitatge</h3>
+        <ul class="list">
+          <li><span class="art m">un</span><span class="ca">bloc de pisos</span> <span class="es">bloque de pisos</span></li>
+          <li><span class="art m">un</span><span class="ca">pis</span> <span class="es">piso</span></li>
+          <li><span class="art f">una</span><span class="ca">casa</span></li>
+          <li><span class="art f">una</span><span class="ca">masia</span> <span class="es">casa de campo catalana</span></li>
+          <li><span class="art f">una</span><span class="ca">casa adossada</span> <span class="es">adosado</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>🛣️ Tipus de via</h3>
+        <ul class="list">
+          <li><span class="art m">un</span><span class="ca">carrer</span> <span class="es">calle</span></li>
+          <li><span class="art f">una</span><span class="ca">avinguda</span> <span class="es">avenida</span></li>
+          <li><span class="art f">una</span><span class="ca">plaça</span> <span class="es">plaza</span></li>
+          <li><span class="art m">un</span><span class="ca">passeig</span> <span class="es">paseo</span></li>
+          <li><span class="art f">una</span><span class="ca">rambla</span></li>
+          <li><span class="art m">un</span><span class="ca">passatge</span> <span class="es">pasaje, callejuela</span></li>
+          <li><span class="art m">el</span><span class="ca">barri</span> <span class="es">barrio</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>🧭 Visc a… / al… / a la…</h3>
+      <div class="tw"><table>
+        <thead><tr><th>Delante de…</th><th>Se dice</th><th>Ejemplo</th></tr></thead>
+        <tbody>
+          <tr><td class="p">ciudad, pueblo</td><td class="ca">a</td><td>Visc <b>a</b> Girona · <b>a</b> Lloret de Mar · <b>a</b> Blanes</td></tr>
+          <tr><td class="p"><span class="art m">el</span></td><td class="ca">al</td><td>Visc <b>al</b> carrer Sant Sebastià · <b>al</b> passeig · <b>al</b> centre</td></tr>
+          <tr><td class="p"><span class="art f">la</span></td><td class="ca">a la</td><td>Visc <b>a la</b> plaça París</td></tr>
+          <tr><td class="p"><span class="art a">l'</span></td><td class="ca">a l'</td><td>Visc <b>a l'</b>avinguda de Tossa</td></tr>
+          <tr><td class="p"><span class="art m">un</span> / <span class="art f">una</span></td><td class="ca">en</td><td>Visc <b>en un</b> carrer · <b>en una</b> plaça · <b>en un</b> passeig</td></tr>
+        </tbody>
+      </table></div>
+      <div class="model">
+        Visc al carrer Riera, número 15, de Girona.<br>
+        Visc a Ciutat Vella, al barri del Raval.<br>
+        Vivim al carrer de Verdi. És al barri de Gràcia.
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>🏢 A quin pis vius?</h3>
+      <div class="grid wide">
+        <div class="building" aria-label="Edificio de arriba a abajo">
+          <div class="floor roof"><span class="k">⌂</span><span><b>sobreàtic</b></span></div>
+          <div class="floor"><span class="k">⌂</span><span><b>àtic</b> <span class="es">ático</span></span></div>
+          <div class="floor dots"><span class="k">⋮</span><span>4t, 5è, 6è…</span></div>
+          <div class="floor"><span class="k">3r</span><span><b>tercer</b></span></div>
+          <div class="floor"><span class="k">2n</span><span><b>segon</b></span></div>
+          <div class="floor"><span class="k">1r</span><span><b>primer</b></span></div>
+          <div class="floor"><span class="k">pral</span><span><b>principal</b></span></div>
+          <div class="floor"><span class="k">entl</span><span><b>entresòl</b> <span class="es">entresuelo</span></span></div>
+          <div class="floor ground"><span class="k">bx</span><span><b>baixos</b> <span class="es">bajos</span></span></div>
+        </div>
+        <div class="group">
+          <div class="tip"><b>🚪</b><div class="t"><strong>Piso (masc.) + puerta (fem.)</strong><p><b>3r 2a</b> = tercer segona</p><p><b>1r 2a</b> = primer segona</p><p><b>2n 4a</b> = segon quarta</p></div></div>
+          <ul class="list">
+            <li>La Fabiana viu <b>a l'àtic segona</b>.</li>
+            <li>En Robert i en Daniel viuen <b>a l'entresòl segona</b>.</li>
+            <li>La Valentina i en Jose viuen <b>al segon segona</b> (2n 2a).</li>
+          </ul>
+          <p><b>veí · veïna</b> <span class="es">vecino · vecina</span> → <b>els veïns · les veïnes</b></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CASA ================= -->
+  <section class="block" id="casa">
+    <div class="bh">
+      <div class="ico">🛋️</div>
+      <div><p class="num">Unitat 3</p><h2>La casa</h2><p class="sub">Habitaciones, muebles y plurales</p></div>
+    </div>
+
+    <div class="legend"><span class="art m">el</span> masculino <span class="art f">la</span> femenino <span class="art a">l'</span> vocal</div>
+
+    <div class="group">
+      <h3>🚪 Parts de la casa</h3>
+      <div class="grid tight">
+        <div class="w"><span class="ca"><span class="art m">el</span>rebedor</span><span class="es">recibidor</span></div>
+        <div class="w"><span class="ca"><span class="art m">el</span>passadís</span><span class="es">pasillo</span></div>
+        <div class="w"><span class="ca"><span class="art f">la</span>cuina</span><span class="es">cocina</span></div>
+        <div class="w"><span class="ca"><span class="art m">el</span>menjador</span><span class="es">comedor</span></div>
+        <div class="w"><span class="ca"><span class="art f">la</span>sala d'estar</span><span class="es">salón</span></div>
+        <div class="w"><span class="ca"><span class="art m">el</span>dormitori</span><span class="es">dormitorio</span></div>
+        <div class="w"><span class="ca"><span class="art a">l'</span>habitació</span><span class="es">habitación</span></div>
+        <div class="w"><span class="ca"><span class="art m">el</span>bany</span><span class="es">baño (ny = ñ)</span></div>
+        <div class="w"><span class="ca"><span class="art a">l'</span>estudi</span><span class="es">estudio, despacho</span></div>
+        <div class="w"><span class="ca"><span class="art m">el</span>safareig</span><span class="es">lavadero</span></div>
+        <div class="w"><span class="ca"><span class="art m">el</span>rebost</span><span class="es">despensa</span></div>
+        <div class="w"><span class="ca"><span class="art f">la</span>terrassa</span><span class="es">terraza</span></div>
+        <div class="w"><span class="ca"><span class="art m">el</span>balcó</span><span class="es">balcón</span></div>
+        <div class="w"><span class="ca"><span class="art m">el</span>garatge</span><span class="es">garaje</span></div>
+        <div class="w"><span class="ca"><span class="art m">el</span>jardí</span><span class="es">jardín</span></div>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>🛏️ Objectes de la casa (por habitación)</h3>
+      <div class="grid">
+        <div class="card">
+          <h3>🛏️ Dormitori</h3>
+          <ul class="list">
+            <li><span class="art m">el</span><span class="ca">llit</span> <span class="es">cama</span></li>
+            <li><span class="art f">la</span><span class="ca">tauleta de nit</span> <span class="es">mesita de noche</span></li>
+            <li><span class="art a">l'</span><span class="ca">armari</span> <span class="es">armario</span></li>
+            <li><span class="art f">la</span><span class="ca">calaixera</span> <span class="es">cómoda</span></li>
+            <li><span class="art m">el</span><span class="ca">calaix</span> <span class="es">cajón</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>🛋️ Sala d'estar</h3>
+          <ul class="list">
+            <li><span class="art m">el</span><span class="ca">sofà</span> <span class="es">sofá</span></li>
+            <li><span class="art f">la</span><span class="ca">butaca</span> <span class="es">sillón</span></li>
+            <li><span class="art f">la</span><span class="ca">catifa</span> <span class="es">alfombra</span></li>
+            <li><span class="art m">el</span><span class="ca">llum</span> <span class="es">lámpara, luz</span></li>
+            <li><span class="art f">la</span><span class="ca">prestatgeria</span> <span class="es">estantería</span></li>
+            <li><span class="art m">el</span><span class="ca">prestatge</span> <span class="es">estante</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>🍳 Cuina i menjador</h3>
+          <ul class="list">
+            <li><span class="art f">la</span><span class="ca">nevera</span> <span class="es">nevera</span></li>
+            <li><span class="art m">el</span><span class="ca">forn</span> <span class="es">horno</span></li>
+            <li><span class="art f">la</span><span class="ca">pica</span> <span class="es">fregadero</span></li>
+            <li><span class="art f">la</span><span class="ca">rentadora</span> <span class="es">lavadora</span></li>
+            <li><span class="art f">la</span><span class="ca">taula</span> <span class="es">mesa</span></li>
+            <li><span class="art f">la</span><span class="ca">cadira</span> <span class="es">silla</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>🚿 Bany</h3>
+          <ul class="list">
+            <li><span class="art f">la</span><span class="ca">dutxa</span> <span class="es">ducha</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>➕ El plural</h3>
+      <p><span class="art m">el</span> / <span class="art a">l'</span> masc. → <span class="art m">els</span> · <span class="art f">la</span> / <span class="art a">l'</span> fem. → <span class="art f">les</span></p>
+      <div class="grid wide">
+        <div class="card"><h3>Lo normal: + s</h3>
+          <ul class="list"><li>el llit → <b>els llits</b></li><li>el llum → <b>els llums</b></li><li>l'armari → <b>els armaris</b></li><li>el prestatge → <b>els prestatges</b></li></ul></div>
+        <div class="card"><h3>-a → -es</h3>
+          <ul class="list"><li>la cadira → <b>les cadires</b></li><li>la dutxa → <b>les dutxes</b></li><li>la taula → <b>les taules</b></li><li>la rentadora → <b>les rentadores</b></li></ul></div>
+        <div class="card"><h3>Los diferentes</h3>
+          <ul class="list"><li>el passadís → <b>els passadissos</b></li><li>el calaix → <b>els calaixos</b></li><li>l'habitació → <b>les habitacions</b></li><li>el balcó → <b>els balcons</b></li></ul>
+          <p class="es">-ís / -x → -os · -ó → -ons</p></div>
+      </div>
+      <div class="ojo"><b>⚠️</b><div class="t"><strong>Ojo con la -a</strong><p><span class="good">les cadires</span> · <span class="bad">les cadiras</span> — en catalán el plural femenino es <b>-es</b>, no -as.</p></div></div>
+    </div>
+
+    <div class="group">
+      <h3>🔢 Hi ha… quants / quantes?</h3>
+      <div class="grid wide">
+        <div class="w"><span class="ca">A casa teva, quants llits hi ha?</span><span class="es">quants → masculino</span></div>
+        <div class="w"><span class="ca">A casa teva, quantes cadires hi ha?</span><span class="es">quantes → femenino</span></div>
+        <div class="w"><span class="ca">Hi ha sis cadires. → N'hi ha sis.</span><span class="es">Hay seis sillas → Hay seis.</span></div>
+        <div class="w"><span class="ca">Hi ha dues dutxes i dos llits.</span><span class="es">dues (fem.) · dos (masc.)</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SITUAR ================= -->
+  <section class="block" id="situar">
+    <div class="bh">
+      <div class="ico">📍</div>
+      <div><p class="num">Unitat 3</p><h2>On és? · Situar a l'espai</h2><p class="sub">Dónde está cada cosa · el cuadrado lila es la referencia, el punto rosa lo que sitúas</p></div>
+    </div>
+
+    <div class="grid tight">
+      <div class="pos"><div class="sc s-davant"><i></i><b></b></div><div><b>davant</b><br><span class="es">delante</span></div></div>
+      <div class="pos"><div class="sc s-darrere"><i></i><b></b></div><div><b>darrere</b><br><span class="es">detrás</span></div></div>
+      <div class="pos"><div class="sc s-dins"><i></i><b></b></div><div><b>dins</b><br><span class="es">dentro</span></div></div>
+      <div class="pos"><div class="sc s-fora"><i></i><b></b></div><div><b>fora</b><br><span class="es">fuera</span></div></div>
+      <div class="pos"><div class="sc s-entre"><i></i><i class="r2"></i><b></b></div><div><b>entre</b><br><span class="es">entre</span></div></div>
+      <div class="pos"><div class="sc s-costat"><i></i><b></b></div><div><b>al costat</b><br><span class="es">al lado</span></div></div>
+      <div class="pos"><div class="sc s-dreta"><i></i><b></b></div><div><b>a la dreta</b><br><span class="es">a la derecha</span></div></div>
+      <div class="pos"><div class="sc s-esq"><i></i><b></b></div><div><b>a l'esquerra</b><br><span class="es">a la izquierda</span></div></div>
+      <div class="pos"><div class="sc s-sobre"><i></i><b></b></div><div><b>a sobre</b><br><span class="es">encima (tocando)</span></div></div>
+      <div class="pos"><div class="sc s-sota"><i></i><b></b></div><div><b>a sota</b><br><span class="es">debajo</span></div></div>
+      <div class="pos"><div class="sc s-dalt"><i></i><b></b></div><div><b>a dalt</b><br><span class="es">arriba (sin tocar)</span></div></div>
+      <div class="pos"><div class="sc s-baix"><i></i><b></b></div><div><b>a baix</b><br><span class="es">abajo</span></div></div>
+      <div class="pos"><div class="sc s-prop"><i></i><b></b></div><div><b>a prop · a la vora</b><br><span class="es">cerca</span></div></div>
+      <div class="pos"><div class="sc s-lluny"><i></i><b></b></div><div><b>lluny</b><br><span class="es">lejos</span></div></div>
+      <div class="pos"><div class="sc s-fons"><i></i><b></b></div><div><b>al fons</b><br><span class="es">al fondo</span></div></div>
+    </div>
+    <p>También: <b>a mà dreta</b> / <b>a mà esquerra</b> <span class="es">(a mano derecha / izquierda)</span> · <b>entrant</b> <span class="es">(entrando)</span> · <b>al costat dret</b> <span class="es">(en el lado derecho)</span></p>
+
+    <div class="grid wide">
+      <div class="rule"><b>1</b><div class="t"><strong>Cosa + SER + lugar</strong>
+        <p>Para decir dónde está algo concreto:</p>
+        <p><b>El dormitori és a mà esquerra.</b></p>
+        <p><b>El bany és al fons del passadís.</b></p>
+        <p><b>La cuina és davant del menjador.</b></p>
+      </div></div>
+      <div class="rule"><b>2</b><div class="t"><strong>Lugar + HI HA + cosa</strong>
+        <p>Empiezas por el sitio y dices qué hay:</p>
+        <p><b>Entrant, hi ha el rebedor.</b></p>
+        <p><b>Al costat de la sala d'estar hi ha la cuina.</b></p>
+        <p><b>A la dreta hi ha el menjador.</b></p>
+      </div></div>
+    </div>
+    <div class="ojo"><b>⚠️</b><div class="t"><strong>de + el = del</strong><p>davant <b>del</b> menjador · al fons <b>del</b> passadís · al costat <b>de la</b> cuina</p></div></div>
+  </section>
+
+  <!-- ================= BARRIO ================= -->
+  <section class="block" id="barrio">
+    <div class="bh">
+      <div class="ico">🏙️</div>
+      <div><p class="num">Unitat 3</p><h2>Llocs del barri</h2><p class="sub">Tiendas y sitios de la ciudad</p></div>
+    </div>
+    <div class="grid tight">
+      <div class="w"><span class="ca"><span class="art m">el</span>mercat</span><span class="es">mercado</span></div>
+      <div class="w"><span class="ca"><span class="art m">el</span>supermercat</span><span class="es">supermercado</span></div>
+      <div class="w"><span class="ca"><span class="art f">la</span>farmàcia</span><span class="es">farmacia</span></div>
+      <div class="w"><span class="ca"><span class="art m">el</span>banc</span><span class="es">banco</span></div>
+      <div class="w"><span class="ca"><span class="art m">el</span>caixer automàtic</span><span class="es">cajero</span></div>
+      <div class="w"><span class="ca"><span class="art f">la</span>perruqueria</span><span class="es">peluquería</span></div>
+      <div class="w"><span class="ca"><span class="art f">la</span>sabateria</span><span class="es">zapatería</span></div>
+      <div class="w"><span class="ca"><span class="art f">la</span>botiga de roba</span><span class="es">tienda de ropa</span></div>
+      <div class="w"><span class="ca"><span class="art f">la</span>llibreria</span><span class="es">librería</span></div>
+      <div class="w"><span class="ca"><span class="art a">l'</span>església</span><span class="es">iglesia</span></div>
+      <div class="w"><span class="ca"><span class="art a">l'</span>ajuntament</span><span class="es">ayuntamiento</span></div>
+      <div class="w"><span class="ca"><span class="art m">el</span>bar</span><span class="es">bar</span></div>
+      <div class="w"><span class="ca"><span class="art m">el</span>restaurant</span><span class="es">restaurante</span></div>
+      <div class="w"><span class="ca"><span class="art m">el</span>pàrquing</span><span class="es">parking</span></div>
+      <div class="w"><span class="ca"><span class="art f">la</span>parada de taxis</span><span class="es">parada de taxis</span></div>
+      <div class="w"><span class="ca"><span class="art m">el</span>parc infantil</span><span class="es">parque infantil</span></div>
+      <div class="w"><span class="ca"><span class="art m">el</span>CAP</span><span class="es">centro de salud</span></div>
+    </div>
+  </section>
+
+  <!-- ================= EXTRA ================= -->
+  <section class="block" id="extra">
+    <div class="bh">
+      <div class="ico">✨</div>
+      <div><p class="num">Sueltas</p><h2>Altres paraules i accents</h2><p class="sub">Lo que salió suelto en clase</p></div>
+    </div>
+
+    <div class="grid tight">
+      <div class="w"><span class="ca">si us plau</span><span class="es">por favor</span></div>
+      <div class="w"><span class="ca">gràcies · mercès</span><span class="es">gracias</span></div>
+      <div class="w"><span class="ca">molt de gust</span><span class="es">encantado/a</span></div>
+      <div class="w"><span class="ca">molt bé</span><span class="es">muy bien</span></div>
+      <div class="w"><span class="ca">amb</span><span class="es">con</span></div>
+      <div class="w"><span class="ca">dilluns</span><span class="es">lunes</span></div>
+      <div class="w"><span class="ca">l'entrepà</span><span class="es">bocadillo</span></div>
+      <div class="w"><span class="ca">la tonyina</span><span class="es">atún</span></div>
+      <div class="w"><span class="ca">la samarreta</span><span class="es">camiseta</span></div>
+      <div class="w"><span class="ca">els mitjons</span><span class="es">calcetines</span></div>
+      <div class="w"><span class="ca">vermell</span><span class="es">rojo</span></div>
+      <div class="w"><span class="ca">arrossegar</span><span class="es">arrastrar</span></div>
+      <div class="w"><span class="ca">la pel·lícula</span><span class="es">película</span></div>
+      <div class="w"><span class="ca">el cap</span><span class="es">jefe</span></div>
+      <div class="w"><span class="ca">el cognom</span><span class="es">apellido</span></div>
+      <div class="w"><span class="ca">l'adreça electrònica</span><span class="es">email</span></div>
+      <div class="w"><span class="ca">llegir</span><span class="es">leer</span></div>
+      <div class="w"><span class="ca">la tasca</span><span class="es">tarea</span></div>
+      <div class="w"><span class="ca">els deures</span><span class="es">deberes</span></div>
+      <div class="w"><span class="ca">un cotxe</span><span class="es">un coche</span></div>
+    </div>
+
+    <div class="group">
+      <h3>✏️ Los acentos</h3>
+      <div class="grid">
+        <div class="card"><h3>è · ò → abierta</h3><p>cafè, cinquè, això, Colòmbia</p><p class="es">la rayita baja hacia la derecha</p></div>
+        <div class="card"><h3>é · ó → cerrada</h3><p>també, és, camió, balcó</p><p class="es">la rayita sube hacia la derecha</p></div>
+        <div class="card"><h3>à · í · ú</h3><p>català, jardí, Perú, ningú</p><p class="es">la a siempre lleva à</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Fet amb 💗 per estudiar · Bona sort a l'examen!</footer>
+</div>
+
+<script>
+(function () {
+  // Modo memorizar: el castellano se emborrona y se destapa al tocarlo
+  var KEY = 'catala-hide-es';
+  var btn = document.getElementById('toggle-es');
+  var on = false;
+  try { on = localStorage.getItem(KEY) === '1'; } catch (e) {}
+  function apply() {
+    document.body.classList.toggle('hide-es', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.textContent = on ? '👀 Mostrar castellano' : '🙈 Ocultar castellano';
+    if (!on) document.querySelectorAll('.es.peek').forEach(function (el) { el.classList.remove('peek'); });
+  }
+  apply();
+  btn.addEventListener('click', function () {
+    on = !on; apply();
+    try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
+  });
+  document.addEventListener('click', function (e) {
+    if (!on) return;
+    var t = e.target.closest('.es');
+    if (t) { e.preventDefault(); t.classList.toggle('peek'); }
+  });
+
+  // Cuenta atrás al examen (28 de octubre)
+  var exam = new Date(2026, 9, 28);
+  var today = new Date(); today.setHours(0, 0, 0, 0);
+  var d = Math.round((exam - today) / 86400000);
+  var n = document.getElementById('days'), l = document.getElementById('days-l');
+  if (d > 1) { n.textContent = d; l.textContent = 'días para el examen'; }
+  else if (d === 1) { n.textContent = '1'; l.textContent = 'día · ¡es mañana!'; }
+  else if (d === 0) { n.textContent = '💪'; l.textContent = '¡Hoy es el examen!'; }
+  else { n.textContent = '✨'; l.textContent = 'Examen hecho'; }
+
+  // Checklist del examen
+  document.querySelectorAll('.checks input').forEach(function (c) {
+    try { c.checked = localStorage.getItem('catala-' + c.id) === '1'; } catch (e) {}
+    c.addEventListener('change', function () {
+      try { localStorage.setItem('catala-' + c.id, c.checked ? '1' : '0'); } catch (e) {}
+    });
+  });
+})();
+</script>
