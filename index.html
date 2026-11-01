@@ -781,7 +781,8 @@
         e.preventDefault();
         const inp = e.target.querySelector("input"), title = inp.value.trim();
         if (!title) { inp.focus(); return; }
-        data.tasks.push({ id: uid(), title, cat: b.add, time: "", repeat: "once", date: ymd(d) });
+        const q = quickTime(title);
+        data.tasks.push({ id: uid(), title: q.title, cat: b.add, time: q.time, repeat: "once", date: ymd(d) });
         save();
         renderAll();
         const again = document.querySelector(`.box[data-id="${b.id}"] form input`);
@@ -798,6 +799,23 @@
       : k === n ? `¡${k}/${n} hecho! Día perfecto 🌈`
       : k === 0 ? `0/${n} · ¡Tú puedes! 🎀`
       : pct >= 50 ? `${k}/${n} · ¡Ya casi! 🍰` : `${k}/${n} · ¡Vas genial! 🌸`;
+  }
+
+  // Saca la hora de lo escrito rápido: "Dentista a las 10" → título "Dentista", hora 10:00.
+  // Entiende "a las 10", "10:30", "10h", "a las 10 y media/cuarto", "menos cuarto", "de la tarde/noche".
+  function quickTime(text) {
+    const re = /(?:\s*(?:a\s+las|a\s+la|sobre\s+las|desde\s+las)\s+)?\b(\d{1,2})(?:[:.](\d{2})|\s*h\b)?(?:\s+(y\s+media|y\s+cuarto|menos\s+cuarto))?(?:\s+de\s+la\s+(mañana|tarde|noche))?/i;
+    const m = text.match(re);
+    // Sin "a las", ":" ni "h" un número suelto no es hora ("Tema 3")
+    if (!m || !(/a\s+la|sobre|desde/i.test(m[0]) || m[2] || /h\b/i.test(m[0]))) return { title: text, time: "" };
+    let h = Number(m[1]), min = m[2] ? Number(m[2]) : 0;
+    const extra = (m[3] || "").toLowerCase().replace(/\s+/g, " ");
+    if (extra === "y media") min = 30; else if (extra === "y cuarto") min = 15; else if (extra === "menos cuarto") { h -= 1; min = 45; }
+    const part = (m[4] || "").toLowerCase();
+    if ((part === "tarde" || part === "noche") && h < 12) h += 12;
+    if (h < 0 || h > 23 || min > 59) return { title: text, time: "" };
+    const title = (text.slice(0, m.index) + " " + text.slice(m.index + m[0].length)).replace(/\s+/g, " ").replace(/\s+([,.;])/g, "$1").replace(/^[\s,.;:-]+|[\s,.;:-]+$/g, "").trim();
+    return { title: title || text, time: `${pad(h)}:${pad(min)}` };
   }
 
   // Una tarea de la lista del día (con tachar, editar y borrar)
