@@ -3,6 +3,7 @@
 App rosa y kawaii para organizar el día a día y **tachar** lo que vas haciendo.
 
 ## Qué hace
+- **🕒 Mi horario**: arriba en Mi día, la hora a la izquierda y lo que vas a hacer al lado, en orden. Se añade con [hora] [qué] ♡ y la hora salta sola a la siguiente.
 - **Mi día**: el día dividido en cuadraditos (🧺 Casa, 📚 Estudios, 💪 Deporte, 🧁 Vida social y otros); en cada uno añades lo que toca ese día y lo tachas, barra de progreso y corazoncitos al completar. Navega a días anteriores o siguientes.
 - **📖 Lectura**: marca cada día que lees y qué has leído; lleva la racha de días seguidos.
 - **🥦 Fruta y verdura**: marca los días que comes fruta y/o verdura; en **Mes** ves cuántos días llevas.

@@ -66,6 +66,7 @@ Cómo rellenar cada tarea:
 - Fechas concretas o rangos ("el 3, 4 y 10", "del 3 al 7", "este jueves y el siguiente") → repeat "dates" con todas las fechas YYYY-MM-DD ya expandidas. Si es una única fecha, repeat "once" con date.
 - Si no dice el mes, es el mes actual, salvo que ese día ya haya pasado este mes: entonces es el mes siguiente. "Mañana", "pasado mañana", "el viernes", "la semana que viene" se calculan desde la fecha de hoy que te doy.
 - Horas en formato 24 h: "a las 6 de la tarde" → "18:00"; "a las 9" sin más contexto → "09:00"; si no hay hora, "".
+- Si una hora acompaña a varias actividades unidas por "y" ("leer tranquila y desayunar a las 10"), cada actividad es una tarea y todas llevan esa hora.
 - Si dice un horario "de 2 a 5" (por la tarde salvo que diga lo contrario), time es la hora de inicio ("14:00") y añade el horario al final del title: "Catalán (14:00–17:00)".
 - title corto, con mayúscula inicial, sin la fecha ni la hora (por ejemplo "Pilates", "Turno de trabajo", "Cita con la dentista").
 - Usa las palabras de la usuaria y no añadas datos que no dice: si escribe "con vosotros al cine", el title es "Cine con vosotros", no "Cine con amigas". Respeta emojis y aclaraciones suyas importantes, como "(pendiente, igual cancelo)".

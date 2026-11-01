@@ -446,6 +446,19 @@
   .pill, .msum .t, .msum .d, .clog .t, .clog .d, .alert, .stat { overflow-wrap: anywhere; min-width: 0; max-width: 100%; }
   .wday, .week, .monthsum, .clog, .cols > section { min-width: 0; }
   .edit { font-size: 18px; color: var(--pink-300); }
+  /* ---------- Mi horario: hora a la izquierda, qué hacer a la derecha ---------- */
+  .sched .tasks { gap: 6px; }
+  .sched .task { padding: 8px 10px; gap: 10px; }
+  .sched .stime { flex: none; width: 54px; font: 400 16px "Mochiy Pop One", sans-serif; color: var(--pink-500); text-align: left; }
+  .sched .task.done .stime { color: var(--muted); }
+  .sched .check { width: 28px; height: 28px; font-size: 15px; }
+  .sched .emoji { font-size: 18px; }
+  .sched .empty { padding: 4px 4px 8px; font-size: 14px; }
+  #schedAdd { grid-template-columns: 118px 1fr auto; gap: 8px; margin-top: 10px; }
+  #schedAdd input { padding: 10px 8px; font-size: 15px; }
+  #schedAdd .btn { padding: 10px 16px; }
+  .timed-note { font-size: 13px; color: var(--muted); font-weight: 600; padding: 2px 4px 8px; }
+  @media (max-width: 360px) { #schedAdd { grid-template-columns: 104px 1fr auto; } }
   .task .meta:empty { display: none; }
 </style>
 </head>
@@ -504,6 +517,16 @@
         <div class="bar"><div id="barFill"></div></div>
         <div class="msg" id="progressMsg"></div>
       </div>
+    </div>
+
+    <div class="card sched" id="schedCard">
+      <h2>🕒 Mi horario</h2>
+      <ul class="tasks" id="schedList"></ul>
+      <form id="schedAdd">
+        <input type="time" id="schedTime" aria-label="Hora">
+        <input type="text" id="schedText" maxlength="80" placeholder="¿Qué vas a hacer?" aria-label="Qué vas a hacer">
+        <button class="btn" type="submit" aria-label="Añadir al horario">♡</button>
+      </form>
     </div>
 
     <div id="dayBoxes"></div>
@@ -765,15 +788,24 @@
 
     const list = tasksOn(d);
     const inBox = (b, t) => b.cats ? b.cats.includes(t.cat) : !BOXES.some(o => o.cats && o.cats.includes(t.cat));
+    // Lo que tiene hora va en "Mi horario"; en cada cuadradito solo se recuerda
+    const sl = $("#schedList");
+    sl.innerHTML = "";
+    const order = new Map(data.tasks.map((t, i) => [t.id, i])); // a la misma hora, en el orden en que se apuntaron
+    const timed = list.filter(t => t.time).sort((a, b) => a.time.localeCompare(b.time) || order.get(a.id) - order.get(b.id));
+    if (!timed.length) sl.innerHTML = `<li class="empty">Pon una hora y lo que vas a hacer ♡</li>`;
+    for (const t of timed) sl.appendChild(taskItem(t, d, true));
     for (const b of BOXES) {
-      const items = list.filter(t => inBox(b, t));
-      const k = items.filter(t => isDone(t, d)).length;
+      const all = list.filter(t => inBox(b, t));
+      const items = all.filter(t => !t.time), timedHere = all.filter(t => t.time);
+      const k = all.filter(t => isDone(t, d)).length;
       const card = document.createElement("div");
       card.className = "card box" + (b.cats ? " plain" : "");
       card.style.setProperty("--c", catOf(b.add).color);
       card.innerHTML = `
-        <h2><span>${b.emoji} ${b.name}</span><span class="count${items.length && k === items.length ? " full" : ""}">${items.length ? `${k}/${items.length}${k === items.length ? " ✓" : ""}` : "—"}</span></h2>
-        <ul class="tasks">${items.length ? "" : `<li class="empty">${b.empty}</li>`}</ul>
+        <h2><span>${b.emoji} ${b.name}</span><span class="count${all.length && k === all.length ? " full" : ""}">${all.length ? `${k}/${all.length}${k === all.length ? " ✓" : ""}` : "—"}</span></h2>
+        ${timedHere.length ? `<div class="timed-note">🕒 En tu horario: ${timedHere.map(t => `${esc(t.time)} ${esc(t.title)}${isDone(t, d) ? " ✓" : ""}`).join(" · ")}</div>` : ""}
+        <ul class="tasks">${items.length || timedHere.length ? "" : `<li class="empty">${b.empty}</li>`}</ul>
         <form><input type="text" maxlength="80" placeholder="${b.ph}" aria-label="Añadir a ${b.name}"><button class="btn" type="submit" aria-label="Añadir a ${b.name}">♡</button></form>`;
       const ul = card.querySelector("ul");
       for (const t of items) ul.appendChild(taskItem(t, d));
@@ -801,6 +833,38 @@
       : pct >= 50 ? `${k}/${n} · ¡Ya casi! 🍰` : `${k}/${n} · ¡Vas genial! 🌸`;
   }
 
+  // Categoría aproximada por palabras clave (para lo añadido en "Mi horario")
+  const CAT_WORDS = [
+    ["ejercicio", /pilates|gym|gimnasio|yoga|correr|nadar|natación|paseo|caminar|bici|entren/i],
+    ["medico", /médic|medic|dentista|fisio|psic|doctor|análisis|ginec|endodon|cita sanit/i],
+    ["estudio", /estudi|clase|examen|tema|catal|inglés|ingles|academia|deberes|trabajo de|proyecto|uni\b|universidad/i],
+    ["trabajo", /trabaj|turno|curro|oficina|guardia/i],
+    ["compras", /compra|súper|super\b|mercado|tienda/i],
+    ["casa", /limpi|lavadora|cocin|fregar|tender|plancha|barrer|ordenar|cama/i],
+    ["cuidado", /desayun|comer|cena\b|merendar|dormir|siesta|ducha|skincare|agua|medicaci|pastilla/i],
+    ["social", /quedar|quedada|café|cine|cumple|amig|cena con|reunión|asociaci|feminis|plan\b/i],
+  ];
+  const guessCat = text => (CAT_WORDS.find(([, re]) => re.test(text)) || ["general"])[0];
+  // Hora propuesta al abrir: la siguiente hora en punto
+  { const h = new Date().getHours(); $("#schedTime").value = `${pad(Math.min(h + 1, 23))}:00`; }
+  $("#schedAdd").addEventListener("submit", e => {
+    e.preventDefault();
+    const timeInp = $("#schedTime"), textInp = $("#schedText");
+    let text = textInp.value.trim(), time = timeInp.value;
+    if (!text) { textInp.focus(); return; }
+    const q = quickTime(text);
+    if (q.time) { time = q.time; text = q.title; } // la hora escrita en el texto manda
+    if (!time) { toast("Pon la hora ⏰"); timeInp.focus(); return; }
+    data.tasks.push({ id: uid(), title: text, cat: guessCat(text), time, repeat: "once", date: ymd(current) });
+    save();
+    renderAll();
+    // La siguiente, una hora más tarde: "a las 10 esto, a las 11 aquello"
+    const [h, m] = time.split(":").map(Number);
+    $("#schedTime").value = h < 23 ? `${pad(h + 1)}:${pad(m)}` : time;
+    $("#schedText").value = "";
+    $("#schedText").focus();
+  });
+
   // Saca la hora de lo escrito rápido: "Dentista a las 10" → título "Dentista", hora 10:00.
   // Entiende "a las 10", "10:30", "10h", "a las 10 y media/cuarto", "menos cuarto", "de la tarde/noche".
   function quickTime(text) {
@@ -819,18 +883,19 @@
   }
 
   // Una tarea de la lista del día (con tachar, editar y borrar)
-  function taskItem(t, d) {
+  function taskItem(t, d, sched = false) {
       const done = isDone(t, d);
       const c = catOf(t.cat);
       const li = document.createElement("li");
       li.className = "task" + (done ? " done" : "");
       li.style.setProperty("--c", c.color);
       li.innerHTML = `
+        ${sched ? `<span class="stime">${esc(t.time)}</span>` : ""}
         <button class="check" aria-label="${done ? "Desmarcar" : "Tachar"}">${done ? "✓" : ""}</button>
         <span class="emoji">${c.emoji}</span>
         <div class="info">
           <div class="title">${esc(t.title)}</div>
-          <div class="meta">${[t.time && "⏰ " + esc(t.time), t.repeat !== "once" && "🔁 " + repeatText(t)].filter(Boolean).join(" · ")}</div>
+          <div class="meta">${[!sched && t.time && "⏰ " + esc(t.time), t.repeat !== "once" && "🔁 " + repeatText(t)].filter(Boolean).join(" · ")}</div>
         </div>
         <button class="edit" aria-label="Editar">✎</button>
         <button class="del" aria-label="Borrar">✕</button>`;
