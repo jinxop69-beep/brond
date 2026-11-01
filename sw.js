@@ -1,6 +1,7 @@
 // Service worker: guarda la app para que funcione sin conexión.
-const CACHE = "mi-dia-kawaii-v16";
-const FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png"];
+const CACHE = "mi-dia-kawaii-v17";
+const FILES = ["./", "index.html", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png",
+  "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
@@ -28,6 +29,8 @@ self.addEventListener("fetch", e => {
         }
         return res;
       })
-      .catch(() => caches.match(e.request).then(r => r || caches.match("index.html")))
+      .catch(() => caches.match(e.request, { ignoreSearch: url.startsWith(self.location.origin) })
+        // La página de la app solo se usa como respuesta para abrir la app, nunca para un script o un estilo
+        .then(r => r || (e.request.mode === "navigate" ? caches.match("index.html") : Response.error())))
   );
 });

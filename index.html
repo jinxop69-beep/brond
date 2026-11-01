@@ -12,7 +12,7 @@
 <title>Mi Día Kawaii</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet" crossorigin="anonymous">
 <style>
   :root {
     --bg: #fff0f6;
@@ -103,7 +103,7 @@
   .round:active { transform: scale(.94); }
   .today-btn {
     display: block; margin: 10px auto 0; border: 0; background: var(--pink-100); color: var(--pink-500);
-    font: 700 13px "Quicksand"; padding: 6px 14px; border-radius: 999px; cursor: pointer;
+    font: 700 13px "Quicksand", sans-serif; padding: 6px 14px; border-radius: 999px; cursor: pointer;
   }
 
   /* ---------- Progress ---------- */
@@ -155,7 +155,7 @@
   .cats, .repeat, .days { display: flex; flex-wrap: wrap; gap: 8px; }
   .chip {
     border: 2px solid var(--pink-200); background: #fff; color: var(--text);
-    border-radius: 999px; padding: 8px 12px; font: 700 14px "Quicksand"; cursor: pointer;
+    border-radius: 999px; padding: 8px 12px; font: 700 14px "Quicksand", sans-serif; cursor: pointer;
   }
   .chip.on { background: var(--pink-400); color: #fff; border-color: var(--pink-400); }
   .days { flex-wrap: nowrap; gap: 6px; }
@@ -255,7 +255,7 @@
   .picker .hint { font-size: 13px; color: var(--muted); font-weight: 700; margin-top: 8px; text-align: center; }
   .editing-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--pink-100);
     border-radius: 14px; padding: 8px 12px; font-weight: 700; color: var(--pink-500); }
-  .editing-bar button { border: 0; background: #fff; color: var(--pink-500); border-radius: 999px; padding: 6px 12px; font: 700 13px "Quicksand"; cursor: pointer; }
+  .editing-bar button { border: 0; background: #fff; color: var(--pink-500); border-radius: 999px; padding: 6px 12px; font: 700 13px "Quicksand", sans-serif; cursor: pointer; }
 
   /* ---------- Cuadraditos del día ---------- */
   .box { border-color: color-mix(in srgb, var(--c) 45%, #fff); box-shadow: 0 6px 0 color-mix(in srgb, var(--c) 35%, #fff), 0 10px 24px rgba(255, 92, 154, .12); }
@@ -286,7 +286,7 @@
   .cycle-day .big { font-family: "Mochiy Pop One", sans-serif; font-size: 22px; color: color-mix(in srgb, var(--c) 80%, #6b3a52); }
   .cycle-day .small { font-size: 13px; color: var(--muted); font-weight: 600; }
   .day1 { display: block; margin: 0 auto; border: 2px solid color-mix(in srgb, var(--c) 40%, #fff); background: #fff; color: color-mix(in srgb, var(--c) 80%, #6b3a52);
-    border-radius: 999px; padding: 8px 14px; font: 700 14px "Quicksand"; cursor: pointer; }
+    border-radius: 999px; padding: 8px 14px; font: 700 14px "Quicksand", sans-serif; cursor: pointer; }
   .day1.on { background: var(--c); color: #fff; border-color: var(--c); }
   .saved { font-size: 12px; color: var(--muted); font-weight: 600; text-align: right; min-height: 1em; margin-top: 4px; }
   .food-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -308,7 +308,7 @@
   @keyframes wiggle { from { transform: rotate(-.6deg); } to { transform: rotate(.6deg); } }
   .extras-toggle button.order-on { background: var(--pink-500); color: #fff; border-color: var(--pink-500); }
   .extras-toggle { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: -6px 0 20px; font-size: 13px; color: var(--muted); font-weight: 700; }
-  .extras-toggle button { border: 2px solid var(--pink-200); background: #fff; color: var(--muted); border-radius: 999px; padding: 6px 12px; font: 700 13px "Quicksand"; cursor: pointer; }
+  .extras-toggle button { border: 2px solid var(--pink-200); background: #fff; color: var(--muted); border-radius: 999px; padding: 6px 12px; font: 700 13px "Quicksand", sans-serif; cursor: pointer; }
   .clog { display: grid; gap: 8px; }
   .clog .row { padding: 9px 12px; border-radius: 14px; background: color-mix(in srgb, var(--c) 9%, #fff); }
   .clog .row .t { font-weight: 700; }
@@ -443,6 +443,8 @@
   .stat, .pill { border-width: 1.5px; }
   .sheet { border-width: 1.5px; box-shadow: 0 10px 40px rgba(255, 92, 154, .18); }
   .alert { background: var(--pink-50); }
+  .pill, .msum .t, .msum .d, .clog .t, .clog .d, .alert, .stat { overflow-wrap: anywhere; min-width: 0; max-width: 100%; }
+  .wday, .week, .monthsum, .clog, .cols > section { min-width: 0; }
   .edit { font-size: 18px; color: var(--pink-300); }
   .task .meta:empty { display: none; }
 </style>
@@ -624,7 +626,7 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
 <script>
 (() => {
   /* ---------- Datos ---------- */
@@ -693,6 +695,8 @@
   function normalize(d) {
     d.tasks = d.tasks || []; d.done = d.done || {};
     d.log = d.log || {}; d.cycleStarts = d.cycleStarts || []; d.settings = d.settings || {};
+    d.deleted = d.deleted || [];
+    for (const t of d.tasks) if (t.time && !/^([01]\d|2[0-3]):[0-5]\d$/.test(t.time)) t.time = "";
     return d;
   }
   normalize(data);
@@ -808,7 +812,7 @@
         <span class="emoji">${c.emoji}</span>
         <div class="info">
           <div class="title">${esc(t.title)}</div>
-          <div class="meta">${[t.time && "⏰ " + t.time, t.repeat !== "once" && "🔁 " + repeatText(t)].filter(Boolean).join(" · ")}</div>
+          <div class="meta">${[t.time && "⏰ " + esc(t.time), t.repeat !== "once" && "🔁 " + repeatText(t)].filter(Boolean).join(" · ")}</div>
         </div>
         <button class="edit" aria-label="Editar">✎</button>
         <button class="del" aria-label="Borrar">✕</button>`;
@@ -843,7 +847,11 @@
       if (!choice) return;
       if (choice === "day") {
         const k = ymd(d);
-        t.skip = [...new Set([...(t.skip || []), k])];
+        // En "días elegidos" se quita la fecha (así se puede volver a marcar al editar)
+        if (t.repeat === "dates") {
+          t.dates = (t.dates || []).filter(x => x !== k);
+          if (!t.dates.length) data.tasks = data.tasks.filter(x => x.id !== t.id);
+        } else t.skip = [...new Set([...(t.skip || []), k])];
         if (data.done[k]) {
           data.done[k] = data.done[k].filter(id => id !== t.id);
           if (!data.done[k].length) delete data.done[k];
@@ -866,6 +874,7 @@
       if (!ok) return;
     }
     data.tasks = data.tasks.filter(x => x.id !== t.id);
+    data.deleted = [...(data.deleted || []), t.id].slice(-500); // para que no vuelva al juntar dispositivos
     for (const k of Object.keys(data.done)) {
       data.done[k] = data.done[k].filter(id => id !== t.id);
       if (!data.done[k].length) delete data.done[k];
@@ -905,14 +914,14 @@
           <span class="count">${list.length ? `${doneN}/${list.length} ✓` : "libre 🍡"}</span>
         </div>
         <div class="pills">${list.map(t =>
-          `<span class="pill${isDone(t, d) ? " done" : ""}" style="--c:${catOf(t.cat).color}">${catOf(t.cat).emoji} ${esc(t.title)}${t.time ? " · " + t.time : ""}</span>`
+          `<span class="pill${isDone(t, d) ? " done" : ""}" style="--c:${catOf(t.cat).color}">${catOf(t.cat).emoji} ${esc(t.title)}${t.time ? " · " + esc(t.time) : ""}</span>`
         ).join("")}</div>`;
       box.addEventListener("click", () => { current = d; switchTab("day"); });
       grid.appendChild(box);
     }
 
     const alerts = $("#weekAlerts");
-    const fmt = ({ t, d }) => `${DAY_LONG[weekIdx(d)]}${t.time ? " a las " + t.time : ""}${isDone(t, d) ? " ✓" : ""}`;
+    const fmt = ({ t, d }) => `${DAY_LONG[weekIdx(d)]}${t.time ? " a las " + esc(t.time) : ""}${isDone(t, d) ? " ✓" : ""}`;
     let html = "";
     if (special.medico.length) {
       html += `<div class="alert"><span class="emoji">🩺</span><div>¡Tienes médico esta semana!
@@ -969,7 +978,10 @@
   }
   function nextPeriod() {
     const avg = avgCycle(), last = [...data.cycleStarts].sort().pop();
-    return avg && last ? addDays(parseYmd(last), avg) : null;
+    if (!avg || !last) return null;
+    let np = addDays(parseYmd(last), avg);
+    while (np < today()) np = addDays(np, avg); // si ya pasó, la siguiente estimada
+    return np;
   }
   const isRead = k => !!(getLog(k).read && getLog(k).read.done);
   function readStreak(k) {
@@ -1041,7 +1053,12 @@
     layoutBoxes();
   });
 
+  // Notas escritas hace menos de 700 ms que aún no se han guardado
+  let flushers = [];
+  const flushNotes = () => { const f = flushers; flushers = []; f.forEach(fn => fn()); };
+
   function renderExtras() {
+    flushNotes();
     const d = current, k = ymd(d);
     const st = data.settings;
     for (const id of ["read", "food", "cycle"]) delete boxEls[id];
@@ -1060,19 +1077,30 @@
         <input class="xinput" maxlength="120" placeholder="¿Qué has leído? (libro, páginas, minutos…)" value="${esc(r.note || "")}">
         <div class="saved"></div>`;
       card.querySelector("[data-a=read]").addEventListener("click", e => {
-        const was = !!r.done;
+        flushNotes();
+        const was = isRead(k);
         setLog(k, "read", x => ({ ...x, done: !was }));
         if (!was) { hearts(e.clientX, e.clientY, 8); toast(`¡A leer! ${readStreak(k) > 1 ? `🔥 ${readStreak(k)} días seguidos` : "📚"}`); }
         renderExtras(); renderMonth();
       });
       const inp = card.querySelector("input");
       // Se guarda mientras escribes (sin redibujar para no perder el foco)
-      let rt;
+      // Se guarda mientras escribes, sin redibujar (si no, el siguiente toque se perdería)
+      const saveRead = () => {
+        setLog(k, "read", x => ({ ...x, note: inp.value.trim(), done: x.done || !!inp.value.trim() }));
+        const on = isRead(k), btn = card.querySelector("[data-a=read]");
+        btn.classList.toggle("on", on);
+        btn.textContent = on ? "✓ ¡Hoy has leído! 📚" : "📖 Hoy he leído";
+        r.done = on;
+      };
+      let rt, rFlush;
       inp.addEventListener("input", () => {
         clearTimeout(rt);
-        rt = setTimeout(() => { setLog(k, "read", x => ({ ...x, note: inp.value.trim(), done: x.done || !!inp.value.trim() })); renderMonth(); }, 700);
+        flushers = flushers.filter(f => f !== rFlush);
+        rFlush = () => { clearTimeout(rt); saveRead(); };
+        flushers.push(rFlush);
+        rt = setTimeout(() => { flushers = flushers.filter(f => f !== rFlush); saveRead(); renderMonth(); }, 700);
       });
-      inp.addEventListener("change", () => { clearTimeout(rt); setLog(k, "read", x => ({ ...x, note: inp.value.trim(), done: x.done || !!inp.value.trim() })); renderExtras(); renderMonth(); });
       putBox("read", card);
     }
 
@@ -1091,15 +1119,22 @@
         </div>
         <input class="xinput" maxlength="120" placeholder="¿Qué has comido? (opcional: manzana, ensalada…)" value="${esc(f.note || "")}">`;
       card.querySelectorAll("[data-f]").forEach(b => b.addEventListener("click", e => {
-        const key = b.dataset.f, was = !!f[key];
+        flushNotes();
+        const key = b.dataset.f, was = !!foodOf(k)[key];
         setLog(k, "food", x => ({ ...x, [key]: !was }));
         if (!was) hearts(e.clientX, e.clientY, 6);
         renderExtras(); renderMonth();
       }));
       const inp = card.querySelector("input");
-      let ft;
-      inp.addEventListener("input", () => { clearTimeout(ft); ft = setTimeout(() => { setLog(k, "food", x => ({ ...x, note: inp.value.trim() })); renderMonth(); }, 700); });
-      inp.addEventListener("change", () => { clearTimeout(ft); setLog(k, "food", x => ({ ...x, note: inp.value.trim() })); renderMonth(); });
+      const saveFood = () => setLog(k, "food", x => ({ ...x, note: inp.value.trim() }));
+      let ft, fFlush;
+      inp.addEventListener("input", () => {
+        clearTimeout(ft);
+        flushers = flushers.filter(f => f !== fFlush);
+        fFlush = () => { clearTimeout(ft); saveFood(); };
+        flushers.push(fFlush);
+        ft = setTimeout(() => { flushers = flushers.filter(f => f !== fFlush); saveFood(); renderMonth(); }, 700);
+      });
       putBox("food", card);
     }
 
@@ -1127,16 +1162,17 @@
         <div class="saved"></div>`;
       card.addEventListener("click", e => {
         const b = e.target.closest("button"); if (!b) return;
+        flushNotes(); // guarda primero la nota que estabas escribiendo
         if (b.dataset.a === "start") {
           data.cycleStarts = isStart ? data.cycleStarts.filter(x => x !== k) : [...new Set([...data.cycleStarts, k])].sort();
-          if (!isStart) setLog(k, "cycle", x => ({ ...x, flow: x.flow || 2 }));
-          else save();
+          if (!isStart) setLog(k, "cycle", x => (x.flow === undefined ? { ...x, flow: 2, autoFlow: true } : x));
+          else setLog(k, "cycle", x => { const y = { ...x }; if (y.autoFlow) { delete y.flow; delete y.autoFlow; } return y; });
           toast(isStart ? "Día 1 quitado 🫧" : "Día 1 apuntado 🩸 ¡cuídate mucho!");
         } else if (b.dataset.mood) {
           setLog(k, "cycle", x => ({ ...x, mood: x.mood === b.dataset.mood ? undefined : b.dataset.mood }));
         } else if (b.dataset.flow !== undefined) {
           const f = Number(b.dataset.flow);
-          setLog(k, "cycle", x => ({ ...x, flow: x.flow === f ? undefined : f }));
+          setLog(k, "cycle", x => ({ ...x, flow: x.flow === f ? undefined : f, autoFlow: undefined }));
         } else if (b.dataset.sym) {
           const sym = b.dataset.sym;
           setLog(k, "cycle", x => { const set = new Set(x.symptoms || []); set.has(sym) ? set.delete(sym) : set.add(sym); return { ...x, symptoms: [...set] }; });
@@ -1144,11 +1180,15 @@
         renderExtras(); renderMonth();
       });
       const ta = card.querySelector("textarea"), saved = card.querySelector(".saved");
-      let tmr;
+      const saveNote = () => setLog(k, "cycle", x => ({ ...x, note: ta.value.trim() }));
+      let tmr, cFlush;
       ta.addEventListener("input", () => {
         clearTimeout(tmr);
         saved.textContent = "…";
-        tmr = setTimeout(() => { setLog(k, "cycle", x => ({ ...x, note: ta.value.trim() })); saved.textContent = "Guardado ♡"; renderMonth(); }, 700);
+        flushers = flushers.filter(f => f !== cFlush);
+        cFlush = () => { clearTimeout(tmr); saveNote(); };
+        flushers.push(cFlush);
+        tmr = setTimeout(() => { flushers = flushers.filter(f => f !== cFlush); saveNote(); saved.textContent = "Guardado ♡"; renderMonth(); }, 700);
       });
       putBox("cycle", card);
     }
@@ -1240,7 +1280,7 @@
     let best = 0, run = 0;
     for (const d of monthDays(monthCursor).filter(x => x.getMonth() === m)) { run = isRead(ymd(d)) ? run + 1 : 0; best = Math.max(best, run); }
     $("#monthRead").innerHTML = reads.length ? `
-      <div class="statline"><span class="stat">📚 ${reads.length} días leyendo</span>${best > 1 ? `<span class="stat">🔥 Mejor racha: ${best} días</span>` : ""}</div>
+      <div class="statline"><span class="stat">📚 ${reads.length} ${reads.length === 1 ? "día" : "días"} leyendo</span>${best > 1 ? `<span class="stat">🔥 Mejor racha: ${best} días</span>` : ""}</div>
       <div class="clog">${reads.map(k => `<div class="row"><div class="t">${fmtDay(k)}</div>${data.log[k].read.note ? `<div class="d">${esc(data.log[k].read.note)}</div>` : ""}</div>`).join("")}</div>`
       : `<div class="empty">Ningún día de lectura apuntado este mes 📖</div>`;
   }
@@ -1368,6 +1408,7 @@
   $("#pNext").onclick = () => { pickMonth = new Date(pickMonth.getFullYear(), pickMonth.getMonth() + 1, 1); buildPicker(); };
 
   function resetForm() {
+    if (editingId) { fCat = "general"; fRepeat = "once"; fDays = new Set([weekIdx(current)]); }
     editingId = null;
     $("#fTitle").value = ""; $("#fTime").value = "";
     $("#fDate").value = ymd(current);
@@ -1417,7 +1458,7 @@
     else if (fRepeat === "dates") task.dates = [...fDates].sort();
     else task.from = date;
     if (fRepeat === "weekly") task.days = [...fDays].sort();
-    if (old && old.skip && fRepeat !== "once") task.skip = old.skip;
+    if (old && old.skip && fRepeat !== "once") task.skip = fRepeat === "dates" ? old.skip.filter(x => !fDates.has(x)) : old.skip;
     if (old) data.tasks[data.tasks.indexOf(old)] = task; else data.tasks.push(task);
     save();
     const wasEdit = !!old;
@@ -1467,9 +1508,15 @@
   document.querySelector(".tabs").addEventListener("click", e => {
     const b = e.target.closest("button"); if (b) switchTab(b.dataset.tab);
   });
-  $("#prevDay").onclick = () => { current = addDays(current, -1); renderDay(); renderExtras(); };
-  $("#nextDay").onclick = () => { current = addDays(current, 1); renderDay(); renderExtras(); };
-  $("#goToday").onclick = () => { current = today(); renderDay(); renderExtras(); };
+  // Al cambiar de día, la semana y el mes de al lado (pantalla ancha) le siguen
+  function goDay(d) {
+    current = d;
+    weekStart = startOfWeek(d); monthCursor = firstOfMonth(d);
+    renderDay(); renderExtras(); renderWeek(); renderMonth(); layoutBoxes();
+  }
+  $("#prevDay").onclick = () => goDay(addDays(current, -1));
+  $("#nextDay").onclick = () => goDay(addDays(current, 1));
+  $("#goToday").onclick = () => goDay(today());
   $("#prevWeek").onclick = () => { weekStart = addDays(weekStart, -7); renderWeek(); };
   $("#nextWeek").onclick = () => { weekStart = addDays(weekStart, 7); renderWeek(); };
 
@@ -1507,20 +1554,35 @@
     auth: { persistSession: true, autoRefreshToken: true, storageKey: "miDiaKawaii.auth" }
   }) : null;
 
-  // Junta lo usado sin cuenta en este dispositivo con lo que ya había en la nube
-  function mergeData(remote, local) {
+  // Junta dos versiones de los datos sin perder nada:
+  // - anon: lo usado sin cuenta se suma a la nube (sin las tareas de ejemplo)
+  // - localWins: en un choque entre dispositivos, lo de este dispositivo manda en lo que se editó en los dos
+  function mergeData(remote, local, opts = {}) {
     const r = normalize(JSON.parse(JSON.stringify(remote)));
-    const ids = new Set(r.tasks.map(t => t.id));
-    for (const t of local.tasks || []) if (!t.seed && !ids.has(t.id)) r.tasks.push(t);
+    const del = new Set([...(r.deleted || []), ...(local.deleted || [])]);
+    const map = new Map(r.tasks.map(t => [t.id, t]));
+    for (const t of local.tasks || []) {
+      if (opts.anon && t.seed) continue;
+      if (!map.has(t.id) || opts.localWins) map.set(t.id, t);
+    }
+    r.tasks = [...map.values()].filter(t => !del.has(t.id));
+    r.deleted = [...del].slice(-500);
     for (const [k, v] of Object.entries(local.done || {})) r.done[k] = [...new Set([...(r.done[k] || []), ...v])];
-    for (const [k, v] of Object.entries(local.log || {})) r.log[k] = { ...v, ...(r.log[k] || {}) };
+    for (const [k, v] of Object.entries(local.log || {})) {
+      const rem = r.log[k] || {}, out = {};
+      for (const part of new Set([...Object.keys(rem), ...Object.keys(v)])) {
+        out[part] = opts.localWins ? { ...(rem[part] || {}), ...(v[part] || {}) } : { ...(v[part] || {}), ...(rem[part] || {}) };
+      }
+      r.log[k] = out;
+    }
     r.cycleStarts = [...new Set([...r.cycleStarts, ...(local.cycleStarts || [])])].sort();
+    if (opts.localWins) r.settings = { ...r.settings, ...(local.settings || {}) };
     r.updatedAt = Date.now();
     return r;
   }
 
   const cloud = {
-    user: null, timer: null, pending: false, busy: false,
+    user: null, timer: null, pending: false, busy: false, ready: false, lastRemote: 0,
     status(kind) {
       const btn = $("#cloudBtn"), txt = $("#cloudText");
       btn.classList.toggle("on", !!this.user);
@@ -1539,24 +1601,54 @@
       this.pending = true;
       this.status("saving");
       clearTimeout(this.timer);
-      this.timer = setTimeout(() => this.push(), 800);
+      // Hasta la primera lectura de la nube no se sube nada: pull() se encarga de juntar
+      if (this.ready) this.timer = setTimeout(() => this.push(), 800);
     },
     async push() {
-      if (!this.user || !sb) return;
+      if (!this.user || !sb || !this.ready) return;
       if (!navigator.onLine) { this.status("offline"); return; }
+      if (this.busy) { clearTimeout(this.timer); this.timer = setTimeout(() => this.push(), 600); return; }
+      this.busy = true;
+      try { await this.write(); } finally { this.busy = false; }
+    },
+    // Sube los datos; si otro dispositivo guardó algo desde la última vez, primero lo junta
+    async write(remoteKnown) {
+      let remote = remoteKnown;
+      if (remote === undefined) {
+        const { data: row, error } = await sb.from("kawaii_state").select("data").maybeSingle();
+        if (error) return this.retry();
+        remote = row && row.data;
+      }
+      const rt = remote ? remote.updatedAt || 0 : 0;
+      if (remote && rt > this.lastRemote && rt !== data.updatedAt) {
+        data = mergeData(remote, data, { localWins: true });
+        data.owner = this.user.id;
+        store.save(data);
+        renderAll();
+      }
       this.pending = false;
+      data.updatedAt = Math.max(Date.now(), rt + 1);
+      store.save(data);
       const { error } = await sb.from("kawaii_state")
         .upsert({ user_id: this.user.id, data, updated_at: new Date().toISOString() });
-      if (error) { this.pending = true; this.status("error"); setTimeout(() => this.pending && this.push(), 5000); }
-      else this.status(this.pending ? "saving" : "ok");
+      if (error) return this.retry();
+      this.lastRemote = data.updatedAt;
+      this.status(this.pending ? "saving" : "ok");
+      return true;
+    },
+    retry() {
+      this.pending = true;
+      this.status("error");
+      setTimeout(() => this.pending && this.push(), 5000);
+      return false;
     },
     async pull() {
-      if (!this.user || !sb || this.busy) return;
-      if (!navigator.onLine) { this.status("offline"); return; }
+      if (!this.user || !sb || this.busy) return false;
+      if (!navigator.onLine) { this.status("offline"); return false; }
       this.busy = true;
       try {
         const { data: row, error } = await sb.from("kawaii_state").select("data").maybeSingle();
-        if (error) { this.status("error"); return; }
+        if (error) { this.status("error"); return false; }
         const remote = row && row.data;
         const uidNow = this.user.id, owner = data.owner;
         const lt = data.updatedAt || 0, rt = remote ? remote.updatedAt || 0 : 0;
@@ -1567,24 +1659,38 @@
           upload = !remote;
         } else if (!remote) {
           upload = true;
+        } else if (!owner) {
+          // Datos usados sin cuenta: se suman a la nube (si solo hay ejemplos, se queda lo de la nube)
+          if (lt > 0) { next = mergeData(remote, data, { anon: true }); upload = true; }
+          else next = normalize({ ...remote });
         } else if (rt > lt) {
-          next = normalize({ ...remote });
+          if (this.pending) { next = mergeData(remote, data, { localWins: true }); upload = true; }
+          else next = normalize({ ...remote });
         } else if (lt > rt || this.pending) {
-          if (owner === uidNow) upload = true;
-          else { next = mergeData(remote, data); upload = true; } // datos usados sin cuenta: se suman, no pisan la nube
+          upload = true;
         }
-        if (next) { data = next; }
-        if (data.owner !== uidNow) { data.owner = uidNow; }
+        if (next) data = next;
+        data.owner = uidNow;
         store.save(data);
+        this.lastRemote = rt;
+        this.ready = true;
         if (next) renderAll();
-        if (upload) await this.push(); else this.status("ok");
+        if (upload) return await this.write(remote || null);
+        this.status("ok");
+        return true;
       } finally { this.busy = false; }
     },
     async setUser(user) {
       const was = this.user && this.user.id;
       this.user = user || null;
+      if (!this.user || this.user.id !== was) { this.ready = false; this.lastRemote = 0; }
       this.status("ok");
       if (this.user && this.user.id !== was) await this.pull();
+    },
+    // Antes de cerrar sesión, sube lo que quede pendiente
+    async flush() {
+      clearTimeout(this.timer);
+      if (this.pending && this.ready) await this.push();
     }
   };
 
@@ -1593,6 +1699,8 @@
     // Fuera del callback: llamar a Supabase dentro de onAuthStateChange bloquea la sesión
     sb.auth.onAuthStateChange((_e, session) => { setTimeout(() => cloud.setUser(session && session.user), 0); });
     addEventListener("online", () => cloud.pull());
+    // Con la app abierta mucho rato, trae de vez en cuando lo hecho en otro dispositivo
+    setInterval(() => { if (!document.hidden) cloud.pull(); }, 120000);
   }
 
   function accountSheet() {
@@ -1651,8 +1759,8 @@
       if (e.target === back) return close();
       const a = e.target.closest("button") && e.target.closest("button").dataset.a;
       if (a === "close") close();
-      if (a === "sync") { close(); await cloud.pull(); toast("¡Sincronizado! ☁️"); }
-      if (a === "out") { close(); await sb.auth.signOut({ scope: "local" }); toast("Sesión cerrada 🫧 (tus tareas siguen en este móvil)"); }
+      if (a === "sync") { close(); toast(await cloud.pull() ? "¡Sincronizado! ☁️" : "No se ha podido sincronizar ahora 🥺"); }
+      if (a === "out") { close(); await cloud.flush(); await sb.auth.signOut({ scope: "local" }); toast("Sesión cerrada 🫧 (tus tareas siguen en este móvil)"); }
     });
     document.body.appendChild(back);
     requestAnimationFrame(() => back.classList.add("show"));
@@ -1668,6 +1776,7 @@
     no_credit: "Se ha acabado el saldo de la API de Claude 🥺",
     workspace: "Falta el workspace de Claude en Supabase (ANTHROPIC_WORKSPACE_ID) 🔑",
     quota: "Demasiadas peticiones seguidas, espera un momentito ⏳",
+    daily_limit: "Has llegado al máximo de hoy. Mañana más ✨",
     refusal: "Claude no ha querido procesar ese texto 🥺",
     too_long: "El texto es demasiado largo, prueba por partes ✂️",
   };
@@ -1680,6 +1789,24 @@
     return `${when}${t.time ? " · ⏰ " + t.time : ""}`;
   }
   // Añade las tareas; si ya hay una con el mismo nombre y categoría en días sueltos, junta los días
+  // Solo se aceptan tareas bien formadas del servidor (título, categoría, hora y fechas válidas)
+  const okTime = x => typeof x === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(x);
+  const okYmd = x => typeof x === "string" && /^\d{4}-\d{2}-\d{2}$/.test(x) && ymd(parseYmd(x)) === x;
+  function cleanParsed(list) {
+    const out = [];
+    for (const p of Array.isArray(list) ? list : []) {
+      if (!p || typeof p.title !== "string" || !p.title.trim()) continue;
+      const t = { title: p.title.trim().slice(0, 80), cat: CATS.some(c => c.id === p.cat) ? p.cat : "general",
+        time: okTime(p.time) ? p.time : "", repeat: p.repeat };
+      if (p.repeat === "once" && okYmd(p.date)) t.date = p.date;
+      else if (p.repeat === "dates" && Array.isArray(p.dates) && p.dates.filter(okYmd).length) t.dates = [...new Set(p.dates.filter(okYmd))].sort();
+      else if (p.repeat === "weekly" && Array.isArray(p.days) && p.days.some(x => Number.isInteger(x) && x >= 0 && x <= 6))
+        t.days = [...new Set(p.days.filter(x => Number.isInteger(x) && x >= 0 && x <= 6))].sort((a, b) => a - b);
+      else if (p.repeat !== "daily") continue;
+      out.push(t);
+    }
+    return out;
+  }
   function addParsed(list) {
     let added = 0, merged = 0;
     const same = (a, b) => a.cat === b.cat && a.title.trim().toLowerCase() === b.title.trim().toLowerCase();
@@ -1687,11 +1814,12 @@
       const prevDates = p.repeat === "dates" && data.tasks.find(x => x.repeat === "dates" && same(x, p));
       if (prevDates) {
         prevDates.dates = [...new Set([...prevDates.dates, ...p.dates])].sort();
-        if (p.time) prevDates.time = p.time;
+        if (prevDates.skip) prevDates.skip = prevDates.skip.filter(x => !p.dates.includes(x));
+        if (p.time && !prevDates.time) prevDates.time = p.time; // no cambia la hora de los días que ya tenías
         merged++; continue;
       }
       const dup = data.tasks.find(x => same(x, p) && x.repeat === p.repeat &&
-        (p.repeat === "once" ? x.date === p.date : p.repeat === "weekly" ? String(x.days) === String(p.days) : p.repeat === "daily"));
+        (p.repeat === "once" ? x.date === p.date : p.repeat === "weekly" ? String([...(x.days || [])].sort((a, b) => a - b)) === String(p.days) : p.repeat === "daily"));
       if (dup) continue;
       const task = { id: uid(), title: p.title, cat: p.cat, time: p.time || "", repeat: p.repeat };
       if (p.repeat === "once") task.date = p.date;
@@ -1760,13 +1888,15 @@
         toast(MAGIC_ERRORS[code] || "Uy, algo ha fallado. Prueba otra vez 🥺");
         return;
       }
-      if (!res || !res.tasks || !res.tasks.length) { toast(res && res.note ? "💭 " + res.note : "No he encontrado ninguna tarea en el texto 🥺"); return; }
-      previewSheet(res);
+      const tasks = cleanParsed(res && res.tasks);
+      if (!tasks.length) { toast(res && typeof res.note === "string" && res.note ? "💭 " + res.note.slice(0, 200) : "No he encontrado ninguna tarea en el texto 🥺"); return; }
+      previewSheet({ tasks, note: res && typeof res.note === "string" ? res.note.slice(0, 200) : "" });
     } finally { btn.disabled = false; btn.textContent = label; }
   });
 
   /* ---------- Ventanita kawaii (en lugar de confirm) ---------- */
   function sheet({ emoji, title, text, buttons }) {
+    if (document.querySelector(".sheet-back")) return Promise.resolve(null); // ya hay una abierta (doble toque)
     return new Promise(resolve => {
       const back = document.createElement("div");
       back.className = "sheet-back";
@@ -1805,6 +1935,8 @@
     if (ymd(now) === lastToday) { greet(); return; }
     if (ymd(current) === lastToday) current = now;
     if (ymd(weekStart) === ymd(startOfWeek(parseYmd(lastToday)))) weekStart = startOfWeek(now);
+    if (ymd(monthCursor) === ymd(firstOfMonth(parseYmd(lastToday)))) monthCursor = firstOfMonth(now);
+    if (!editingId && $("#fDate").value === lastToday) $("#fDate").value = ymd(now);
     lastToday = ymd(now);
     greet();
     renderAll();
@@ -1817,7 +1949,7 @@
   greet();
   $("#fDate").value = ymd(current);
   switchTab("day");
-  matchMedia("(min-width: 600px)").addEventListener("change", () => switchTab(document.body.dataset.tab));
+  matchMedia("(min-width: 600px)").addEventListener("change", e => switchTab(e.matches ? document.body.dataset.tab : "day"));
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
     navigator.serviceWorker.register("sw.js").catch(() => {});

@@ -79,7 +79,12 @@ const API_KEY = (Deno.env.get("ANTHROPIC_API_KEY") || "").trim();
 const WORKSPACE = (Deno.env.get("ANTHROPIC_WORKSPACE_ID") || "").trim();
 const client = new Anthropic({ apiKey: API_KEY, defaultHeaders: WORKSPACE ? { "anthropic-workspace-id": WORKSPACE } : undefined });
 
-const okDate = (s: unknown) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(Date.parse(s));
+// Fecha real (rechaza "2026-04-31", que Date.parse acepta)
+const okDate = (s: unknown) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) &&
+  !isNaN(Date.parse(s + "T00:00:00Z")) && new Date(s + "T00:00:00Z").toISOString().slice(0, 10) === s;
+// Usos al día por cuenta, para que nadie pueda gastar el saldo de la API
+const DAILY_LIMIT = Number(Deno.env.get("KAWAII_DAILY_LIMIT") || 60);
+const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
 // Revisa lo que devuelve el modelo antes de mandarlo a la app
 function clean(raw: any) {
@@ -121,6 +126,10 @@ Deno.serve(async (req) => {
 
   if (!API_KEY) return json({ error: "no_key" }, 500);
 
+  const { data: used, error: usageErr } = await admin.rpc("kawaii_bump_usage", { p_user: u.user.id });
+  if (usageErr) { console.error("usage counter:", usageErr.message); return json({ error: "claude" }, 502); }
+  if ((used as number) > DAILY_LIMIT) return json({ error: "daily_limit" }, 429);
+
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "bad_json" }, 400); }
   const text = String(body?.text ?? "").trim().slice(0, 3000);
@@ -131,7 +140,7 @@ Deno.serve(async (req) => {
   try {
     const response = await client.beta.messages.create({
       model: MODEL,
-      max_tokens: 16000,
+      max_tokens: 4000,
       system: SYSTEM,
       messages: [{ role: "user", content: `Hoy es ${DAYS[weekday]} ${today}.\n\nTexto:\n${text}` }],
       output_config: { effort: "low", format: { type: "json_schema", schema: SCHEMA } },
