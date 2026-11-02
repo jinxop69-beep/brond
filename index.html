@@ -482,6 +482,8 @@
   .share-toggle { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--pink-500); padding: 10px 12px;
     border-radius: 14px; background: var(--pink-50); cursor: pointer; }
   .share-toggle input { width: 20px; height: 20px; accent-color: var(--pink-500); }
+  a.sbtn { display: block; text-align: center; text-decoration: none; }
+  .sbtn.wa { background: #25d366; box-shadow: none; }
   .pair-code { font: 400 34px "Mochiy Pop One", sans-serif; letter-spacing: 6px; color: var(--pink-500); margin: 6px 0 0; }
   .task.gcal { cursor: default; opacity: .92; }
   .task.gcal .stime { color: #5b8fdc; }
@@ -2212,6 +2214,12 @@
     return r;
   }
 
+  let pendingPair = (() => {
+    const c = (new URLSearchParams(location.search).get("pareja") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+    if (c) { try { history.replaceState(null, "", location.pathname); } catch {} }
+    return c;
+  })();
+
   const cloud = {
     user: null, timer: null, pending: false, busy: false, ready: false, lastRemote: 0,
     status(kind) {
@@ -2318,6 +2326,8 @@
       if (!this.user || this.user.id !== was) { this.ready = false; this.lastRemote = 0; }
       this.status("ok");
       if (this.user && this.user.id !== was) await this.pull();
+      // Se abrió con un enlace de invitación: al entrar, se ofrece unirse con el código ya puesto
+      if (this.user && pendingPair) { const c = pendingPair; pendingPair = ""; setTimeout(() => { if (!paired()) pairSheet(c); }, 600); }
     },
     // Antes de cerrar sesión, sube lo que quede pendiente
     async flush() {
@@ -2452,7 +2462,10 @@
   }
 
   // Ventanita para unirse en pareja
-  async function pairSheet() {
+  // Mensaje para invitar a la pareja (con enlace que abre la app con el código puesto)
+  const APP_URL = "https://mi-dia-kawaii.vercel.app/";
+  const inviteText = code => `💞 ¿Compartimos agenda en Mi Día Kawaii? Abre este enlace, entra en tu cuenta y pulsa "Unirme": ${APP_URL}?pareja=${code}\n(o escribe el código ${code} en ☁️ → Compartir con mi pareja)`;
+  async function pairSheet(prefill = "") {
     if (!sb || !cloud.user) { toast("Primero entra en tu cuenta ☁️"); return; }
     const back = document.createElement("div");
     back.className = "sheet-back";
@@ -2466,10 +2479,14 @@
           ${p2 ? `<p>Compartes con <b>${esc(shared.partnerName())}</b>. Las tareas marcadas 💞 salen en las dos cuentas y si una la tacha, se tacha para las dos.</p>
             <div class="sheet-btns"><button class="sbtn soft" data-a="leave">Dejar de compartir</button><button class="sbtn soft" data-a="close">Cerrar ♡</button></div>`
           : `<p>Una crea el código y la otra lo escribe en su cuenta. Solo se comparte lo que marquéis con 💞.</p>
-            ${space && space.code ? `<p class="pair-code">${esc(space.code)}</p><p>Dale este código a tu pareja ♡</p>` : ""}
+            ${space && space.code ? `<p class="pair-code">${esc(space.code)}</p><p>Dale este código a tu pareja ♡</p>
+              <div class="sheet-btns" style="margin-bottom:10px">
+                <a class="sbtn wa" href="https://wa.me/?text=${encodeURIComponent(inviteText(space.code))}" target="_blank" rel="noopener">📲 Enviar por WhatsApp</a>
+                ${navigator.share ? `<button class="sbtn" data-a="share">📤 Compartir…</button>` : ""}
+              </div>` : ""}
             <div class="sheet-btns">
               <button class="sbtn" data-a="create">✨ ${space && space.code ? "Ver mi código otra vez" : "Crear mi código"}</button>
-              <input type="text" name="code" maxlength="6" placeholder="Código de tu pareja" autocapitalize="characters" style="text-align:center;text-transform:uppercase">
+              <input type="text" name="code" maxlength="6" placeholder="Código de tu pareja" autocapitalize="characters" style="text-align:center;text-transform:uppercase" value="${esc(prefill)}">
               <button class="sbtn danger" data-a="join">💞 Unirme con su código</button>
               <button class="sbtn soft" data-a="close">Cerrar ♡</button>
             </div>`}
@@ -2480,6 +2497,7 @@
       if (e.target === back) return close();
       const a = e.target.closest("button") && e.target.closest("button").dataset.a;
       if (a === "close") close();
+      if (a === "share") { try { await navigator.share({ title: "Mi Día Kawaii 💞", text: inviteText(space.code) }); } catch {} }
       if (a === "create") {
         const { data: r, error } = await sb.rpc("kawaii_create_space");
         if (error) return toast("No se ha podido crear el código 🥺");
@@ -2506,7 +2524,10 @@
   }
 
   if (sb) {
-    sb.auth.getSession().then(({ data: d }) => cloud.setUser(d.session && d.session.user));
+    sb.auth.getSession().then(({ data: d }) => {
+      cloud.setUser(d.session && d.session.user);
+      if (!d.session && pendingPair) { toast("Entra o crea tu cuenta para uniros 💞"); setTimeout(accountSheet, 400); }
+    });
     // Fuera del callback: llamar a Supabase dentro de onAuthStateChange bloquea la sesión
     sb.auth.onAuthStateChange((_e, session) => { setTimeout(() => cloud.setUser(session && session.user), 0); });
     addEventListener("online", () => cloud.pull());
