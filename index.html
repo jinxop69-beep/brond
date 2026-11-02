@@ -485,6 +485,35 @@
   .timed-note { font-size: 13px; color: var(--muted); font-weight: 600; padding: 2px 4px 8px; }
   @media (max-width: 360px) { #schedAdd { grid-template-columns: 104px 1fr auto; } }
   .task .meta:empty { display: none; }
+  /* ---------- Modo noche rosa ---------- */
+  .theme-btn { flex: none; width: 46px; height: 46px; border-radius: 50%; border: 1.5px solid var(--pink-100); background: var(--card);
+    font-size: 20px; cursor: pointer; align-self: flex-start; margin-top: 6px; position: relative; }
+  .theme-btn small { position: absolute; right: -2px; bottom: -4px; font: 700 9px "Quicksand", sans-serif; background: var(--pink-400);
+    color: #fff; border-radius: 999px; padding: 1px 4px; }
+  body.night {
+    --bg: #1d1320; --card: #2a1a2a; --pink-50: #33202f; --pink-100: #45283c; --pink-200: #643650; --pink-300: #d873a3;
+    --pink-400: #ff7eb0; --pink-500: #ff97c2; --text: #f7dfea; --muted: #c99db4;
+    --shadow: 0 2px 14px rgba(0, 0, 0, .35); color-scheme: dark;
+  }
+  body.night .check, body.night .chip, body.night .cloud, body.night .day1, body.night .extras-toggle button, body.night .ord button,
+  body.night .editing-bar button, body.night .to-day, body.night .toast-act, body.night .sbtn.soft, body.night .picker .cell,
+  body.night .task.done, body.night .sheet, body.night .alert { background-color: var(--card); }
+  body.night input:focus, body.night select:focus, body.night textarea:focus { background: var(--card) !important; }
+  body.night .task { background: color-mix(in srgb, var(--c, #ffc6dc) 12%, var(--card)); }
+  body.night .pill, body.night .msum, body.night .clog .row, body.night .stat, body.night .cell.hit, body.night .pv,
+  body.night .legend .chip:not(.on), body.night .toggle-big:not(.on) { background: color-mix(in srgb, var(--c, #ff7eb0) 14%, var(--card)); }
+  body.night .cell { background: var(--pink-50); border-color: var(--pink-100); }
+  body.night .box { border-color: color-mix(in srgb, var(--c) 35%, var(--card)); }
+  body.night .box h2, body.night .box .toggle-big:not(.on) { color: color-mix(in srgb, var(--c) 70%, #fff); }
+  body.night .task.rest { background: linear-gradient(120deg, #2f2442, #3b2236); }
+  body.night .task.rest .title, body.night .sched .task.rest .stime { color: #cdbaff; }
+  body.night .task.rest .meta { color: #b9a6ea; }
+  body.night .sched .task.lifted { background: var(--card); }
+  body.night .box h2 .count:not(.full) { background: color-mix(in srgb, var(--c) 18%, var(--card)); color: var(--muted); }
+  body.night input[type=text], body.night input[type=email], body.night input[type=password], body.night input[type=time],
+  body.night input[type=date], body.night select, body.night textarea, body.night .box .xinput { border-color: var(--pink-100) !important; }
+  body.night .box form input { border-color: color-mix(in srgb, var(--c) 30%, var(--card)) !important; }
+  body.night .kitty ellipse[fill="#fff"], body.night .kitty path[fill="#fff"] { fill: #fff3f8; }
 </style>
 </head>
 <body data-tab="day">
@@ -513,6 +542,7 @@
     <div class="htext">
       <p id="greeting">¡Hola, preciosa! ♡</p>
     </div>
+    <button class="theme-btn" id="themeBtn" aria-label="Modo día o noche">🌙</button>
     <button class="cloud" id="cloudBtn" aria-label="Cuenta y nube">
       <span class="cloud-ico">☁️</span><span id="cloudText">Guardar en la nube</span>
     </button>
@@ -2302,6 +2332,25 @@
     toast("¡Nuevo día, nuevas cositas! 🌞");
   }
   setInterval(checkNewDay, 30000);
+
+  // Modo noche: automático (de 21:00 a 7:00), siempre noche o siempre día; se guarda en este dispositivo
+  const THEME_KEY = "miDiaKawaii.theme";
+  const getTheme = () => { try { return localStorage.getItem(THEME_KEY) || "auto"; } catch { return "auto"; } };
+  function applyTheme() {
+    const mode = getTheme(), h = new Date().getHours();
+    const night = mode === "night" || (mode === "auto" && (h >= 21 || h < 7));
+    document.body.classList.toggle("night", night);
+    $("#themeBtn").innerHTML = (night ? "🌙" : "☀️") + (mode === "auto" ? "<small>auto</small>" : "");
+    document.querySelector('meta[name="theme-color"]').setAttribute("content", night ? "#1d1320" : "#ff8fb8");
+  }
+  $("#themeBtn").addEventListener("click", () => {
+    const next = { auto: "night", night: "day", day: "auto" }[getTheme()];
+    try { localStorage.setItem(THEME_KEY, next); } catch {}
+    applyTheme();
+    toast(next === "auto" ? "Automático: de noche se pone oscuro 🌙" : next === "night" ? "Modo noche 🌙" : "Modo día ☀️");
+  });
+  applyTheme();
+  setInterval(applyTheme, 60000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) { checkNewDay(); cloud.pull(); } });
   addEventListener("focus", checkNewDay);
 
