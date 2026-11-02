@@ -469,6 +469,14 @@
   .task.rest.done .check { background: #b79cf5; border-color: #b79cf5; }
   .to-day { border: 1.5px solid var(--pink-200); background: #fff; color: var(--pink-500); border-radius: 999px;
     padding: 5px 9px; font: 700 12px "Quicksand", sans-serif; cursor: pointer; white-space: nowrap; flex: none; }
+  .cycle-alert { margin: -6px 0 20px; padding: 12px 16px; border-radius: 18px; font-weight: 700; text-align: center;
+    background: color-mix(in srgb, #e05a8a 14%, var(--card)); color: color-mix(in srgb, #e05a8a 80%, var(--text)); border: 1.5px solid color-mix(in srgb, #e05a8a 30%, transparent); }
+  .phase { margin-top: 6px; font-weight: 700; color: color-mix(in srgb, var(--c) 80%, var(--text)); }
+  .cell.pred-period { border: 2px dashed #ff8fa8; }
+  .cell.pred-fertile:not(.pred-period) { background: #d8f5e6; border-color: #b4e9cf; }
+  body.night .cell.pred-fertile:not(.pred-period) { background: #23382f; border-color: #2f5443; }
+  .cal-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; font-size: 12px; font-weight: 700; color: var(--muted); }
+  .cal-legend i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 4px; }
   .task.star { box-shadow: inset 0 0 0 1.5px #ffd36e; }
   .task.star .title { font-weight: 800; }
   /* Arrastrar en el horario */
@@ -574,6 +582,7 @@
       </div>
     </div>
 
+    <div class="cycle-alert hidden" id="cycleAlert"></div>
     <div class="card sched" id="schedCard">
       <h2>🕒 Mi horario <span class="sched-hint" id="schedHint">mantén pulsado para mover ↕️</span></h2>
       <ul class="tasks" id="schedList"></ul>
@@ -613,6 +622,7 @@
     <div class="card">
       <div class="legend" id="monthLegend"></div>
       <div class="cal" id="monthGrid"></div>
+      <div class="cal-legend" id="calLegend"><span><i style="border:2px dashed #ff8fa8"></i>Regla prevista</span><span><i style="background:#d8f5e6;border:1px solid #b4e9cf"></i>Días fértiles (aprox.)</span></div>
     </div>
     <div class="card">
       <h2 id="monthSumTitle">✨ Este mes</h2>
@@ -896,6 +906,9 @@
     renderInbox(d);
     layoutBoxes();
 
+    const alertTxt = ymd(d) === ymd(today()) ? cycleAlert() : "";
+    $("#cycleAlert").textContent = alertTxt;
+    $("#cycleAlert").classList.toggle("hidden", !alertTxt);
     const n = list.length, k = list.filter(t => isDone(t, d)).length;
     const pct = n ? Math.round(k / n * 100) : 0;
     $("#barFill").style.width = pct + "%";
@@ -1385,6 +1398,45 @@
     while (np < today()) np = addDays(np, avg); // si ya pasó, la siguiente estimada
     return np;
   }
+  // Fase del ciclo (aprox.): ovulación unos 14 días antes de la siguiente regla
+  const cycleLen = () => avgCycle() || 28;
+  function periodLen() {
+    const st = [...data.cycleStarts].sort().slice(-6), lens = [];
+    for (const s0 of st) { let n = 0; for (let d = parseYmd(s0); n < 12 && (getLog(ymd(d)).cycle || {}).flow > 0; d = addDays(d, 1)) n++; if (n) lens.push(n); }
+    return lens.length ? Math.round(lens.reduce((a, b) => a + b, 0) / lens.length) : 5;
+  }
+  function phaseOf(k) {
+    const cd = cycleDay(k); if (!cd) return null;
+    const L = cycleLen(), ov = L - 14;
+    if (cd <= periodLen()) return { id: "menstrual", n: "Menstrual", e: "🩸" };
+    if (cd >= ov - 5 && cd <= ov + 1) return { id: "fertil", n: cd === ov ? "Ovulación (aprox.)" : "Días fértiles (aprox.)", e: "🌸" };
+    if (cd < ov - 5) return { id: "folicular", n: "Folicular", e: "🌱" };
+    return { id: "lutea", n: "Lútea", e: "🌙" };
+  }
+  const PHASES = [{ id: "menstrual", n: "Menstrual", e: "🩸" }, { id: "folicular", n: "Folicular", e: "🌱" }, { id: "fertil", n: "Fértil", e: "🌸" }, { id: "lutea", n: "Lútea", e: "🌙" }];
+  // Días previstos (próxima regla y ventana fértil) para marcarlos en el calendario
+  function predicted() {
+    const np = nextPeriod(); if (!np) return { period: new Set(), fertile: new Set() };
+    const L = cycleLen(), period = new Set(), fertile = new Set();
+    for (let c = 0; c < 2; c++) {
+      const start = addDays(np, c * L);
+      for (let i = 0; i < periodLen(); i++) period.add(ymd(addDays(start, i)));
+      const ov = addDays(start, -14);
+      for (let i = -5; i <= 1; i++) fertile.add(ymd(addDays(ov, i)));
+    }
+    const prevOv = addDays(np, -14); for (let i = -5; i <= 1; i++) fertile.add(ymd(addDays(prevOv, i)));
+    return { period, fertile };
+  }
+  // Aviso arriba en "Mi día": la regla está cerca o se retrasa
+  function cycleAlert() {
+    if (data.settings.hideCycle || !data.cycleStarts.length) return "";
+    const avg = avgCycle(), last = [...data.cycleStarts].sort().pop(), t0 = ymd(today());
+    if (!avg) return "";
+    const due = ymd(addDays(parseYmd(last), avg)), diff = daysBetween(t0, due);
+    if (diff >= 0 && diff <= 3) return diff === 0 ? "🩸 Hoy podría venirte la regla. Cuídate mucho 💗" : `🩸 Tu regla podría venir en ${diff} ${diff === 1 ? "día" : "días"}. Ten a mano lo que necesites 💗`;
+    if (diff < 0 && diff >= -10 && !data.cycleStarts.some(x => x > last)) return `🌙 Tu regla se retrasa ${-diff} ${diff === -1 ? "día" : "días"} respecto a lo habitual`;
+    return "";
+  }
   const isRead = k => !!(getLog(k).read && getLog(k).read.done);
   function readStreak(k) {
     let d = parseYmd(k), n = 0;
@@ -1552,6 +1604,10 @@
           <div class="big">${cd ? `Día ${cd} del ciclo` : "¿Cuándo te vino la regla?"}</div>
           <div class="small">${cd ? (np ? `Próxima regla aprox. ${fmtDay(ymd(np))} de ${MONTHS[np.getMonth()]}` : "Marca el día 1 cada vez que te venga para calcular la próxima")
             : "Ve al día en que empezó y pulsa el botón 🩸"}</div>
+          ${cd && phaseOf(k) ? `<div class="phase">${phaseOf(k).e} Fase ${phaseOf(k).n.toLowerCase()}</div>` : ""}
+          ${np ? (() => { let ov = addDays(np, -14); if (addDays(ov, 1) < today()) ov = addDays(ov, cycleLen()); // los próximos, no los ya pasados
+            const a = addDays(ov, -5), z = addDays(ov, 1);
+            return `<div class="small">🌸 Días fértiles aprox. ${fmtDay(ymd(a))}–${fmtDay(ymd(z))} · ovulación ~${fmtDay(ymd(ov))}</div>`; })() : ""}
         </div>
         <button class="day1${isStart ? " on" : ""}" data-a="start">${isStart ? "🩸 Día 1 marcado · quitar" : "🩸 Hoy es el día 1 de mi regla"}</button>
         <div class="xlabel">¿Cómo te sientes?</div>
@@ -1615,6 +1671,41 @@
     save(); renderExtras(); renderMonth();
   });
 
+  // Resumen imprimible (o para guardar en PDF) con los últimos ciclos
+  function gynReport() {
+    const st = [...data.cycleStarts].sort();
+    const rows = st.map((s0, i) => {
+      const next = st[i + 1], len = next ? daysBetween(s0, next) : null;
+      let bleed = 0; for (let d = parseYmd(s0); bleed < 12 && (getLog(ymd(d)).cycle || {}).flow > 0; d = addDays(d, 1)) bleed++;
+      return `<tr><td>${parseYmd(s0).toLocaleDateString("es-ES")}</td><td>${len ?? "—"}</td><td>${bleed || "—"}</td></tr>`;
+    }).join("");
+    const sy = {}, moods = {};
+    const since = ymd(addDays(today(), -120));
+    const notes = [];
+    for (const [k, v] of Object.entries(data.log).sort()) {
+      if (k < since || !v.cycle) continue;
+      for (const x of v.cycle.symptoms || []) sy[x] = (sy[x] || 0) + 1;
+      if (v.cycle.mood) moods[v.cycle.mood] = (moods[v.cycle.mood] || 0) + 1;
+      if (v.cycle.note) notes.push(`<li><b>${parseYmd(k).toLocaleDateString("es-ES")}${cycleDay(k) ? ` (día ${cycleDay(k)})` : ""}:</b> ${esc(v.cycle.note)}</li>`);
+    }
+    const list = o => Object.entries(o).sort((a, b) => b[1] - a[1]).map(([x, n]) => `<li>${esc(moodOf(x) ? moodOf(x).n : x)}: ${n} días</li>`).join("") || "<li>—</li>";
+    const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Resumen del ciclo</title><style>body{font-family:system-ui,sans-serif;max-width:720px;margin:24px auto;padding:0 16px;color:#333}
+      h1{color:#d0457f}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:6px;text-align:left}th{background:#fde7f0}</style></head><body>
+      <h1>Resumen del ciclo menstrual</h1><p>Generado el ${today().toLocaleDateString("es-ES")} desde Mi Día Kawaii.</p>
+      <p><b>Ciclo medio:</b> ${avgCycle() ? avgCycle() + " días" : "—"} · <b>Regla media:</b> ${periodLen()} días ·
+      <b>Próxima regla aprox.:</b> ${nextPeriod() ? nextPeriod().toLocaleDateString("es-ES") : "—"}</p>
+      <h2>Ciclos</h2><table><tr><th>Inicio de la regla</th><th>Duración del ciclo (días)</th><th>Días de sangrado</th></tr>${rows || "<tr><td colspan=3>—</td></tr>"}</table>
+      <h2>Últimos 4 meses</h2><h3>Síntomas</h3><ul>${list(sy)}</ul><h3>Estado de ánimo</h3><ul>${list(moods)}</ul>
+      <h3>Notas</h3><ul>${notes.join("") || "<li>—</li>"}</ul>
+      <p style="color:#888;font-size:12px">Las fechas previstas son estimaciones a partir de los ciclos apuntados.</p>
+      <script>setTimeout(()=>print(),400)<\/script></body></html>`;
+    const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+    const w = window.open(url, "_blank");
+    if (!w) { const a = document.createElement("a"); a.href = url; a.download = `resumen-ciclo-${ymd(today())}.html`; a.click(); }
+  }
+  $("#monthCycleCard").addEventListener("click", e => { if (e.target.closest("#gynBtn")) gynReport(); });
+
   function renderMonthLogs() {
     const m = monthCursor.getMonth(), key = ymd(monthCursor).slice(0, 7), mName = MONTHS[m];
     // Ciclo
@@ -1656,6 +1747,21 @@
             ${c.note ? `<div class="d">“${esc(c.note)}”</div>` : ""}</div>`;
         }).join("")}</div>`;
     }
+    // Cómo te sientes en cada fase (todos los registros) + resumen para la ginecóloga
+    const byPhase = {};
+    for (const [k, v] of Object.entries(data.log)) {
+      const c = v.cycle, ph = c && c.mood && phaseOf(k);
+      if (!ph) continue;
+      const id = ph.id; (byPhase[id] = byPhase[id] || {})[c.mood] = (byPhase[id][c.mood] || 0) + 1;
+    }
+    const phaseRows = PHASES.filter(p => byPhase[p.id]).map(p => {
+      const top = Object.entries(byPhase[p.id]).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([mid, n]) => `${moodOf(mid).e} ${moodOf(mid).n} ${n}`).join(" · ");
+      return `<div class="row"><div class="t">${p.e} ${p.n}</div><div class="d">${top}</div></div>`;
+    }).join("");
+    $("#monthCycle").insertAdjacentHTML("beforeend", `
+      ${phaseRows ? `<div class="xlabel">Cómo te sientes en cada fase (todos tus meses)</div><div class="clog">${phaseRows}</div>` : ""}
+      <p class="magic-hint" style="text-align:left;margin:12px 0 8px">Las fechas fértiles y de la próxima regla son una estimación: no sirven como método anticonceptivo.</p>
+      <button class="sbtn soft" type="button" id="gynBtn" style="width:100%">📄 Resumen para la ginecóloga</button>`);
     // Fruta y verdura
     $("#monthFoodCard").classList.toggle("hidden", !!data.settings.hideFood);
     const inMonth = monthDays(monthCursor).filter(x => x.getMonth() === m).map(ymd);
@@ -1711,6 +1817,8 @@
       `<button class="chip${monthFilter === c.id ? " on" : ""}" style="--c:${c.color}" data-v="${c.id}"><i></i>${c.emoji} ${c.name} · ${catDays[c.id].size}</button>`
     ).join("") || `<span class="empty" style="padding:0">Nada marcado este mes 🍓</span>`;
 
+    const pred = predicted();
+    $("#calLegend").classList.toggle("hidden", !!data.settings.hideCycle || !pred.period.size);
     $("#monthGrid").innerHTML = DAY_SHORT.map(x => `<div class="dow">${x}</div>`).join("") + days.map(d => {
       const k = ymd(d), list = tasksOn(d);
       // Las rutinas diarias no se pintan: estarían en todos los días
@@ -1723,7 +1831,9 @@
       if (!data.settings.hideFood && (foodOf(k).fruit || foodOf(k).veg)) marks.push(foodOf(k).fruit && foodOf(k).veg ? "🥗" : foodOf(k).fruit ? "🍎" : "🥦");
       const ems = [...marks, ...cats.map(c => c.emoji)].slice(0, 3).join("");
       const cls = ["cell", d.getMonth() !== m && "out", k === t && "today",
-        monthFilter && (hit ? "hit" : "dim")].filter(Boolean).join(" ");
+        monthFilter && (hit ? "hit" : "dim"),
+        !data.settings.hideCycle && k >= t && pred.period.has(k) && "pred-period",
+        !data.settings.hideCycle && pred.fertile.has(k) && "pred-fertile"].filter(Boolean).join(" ");
       const fc = monthFilter ? catOf(monthFilter).color : "";
       return `<button class="${cls}" data-k="${k}" style="${hit ? "--c:" + fc : ""}" aria-label="${d.getDate()} ${MONTHS[d.getMonth()]}: ${list.map(x => esc(x.title)).join(", ") || "libre"}">
         <span class="n">${d.getDate()}</span>
