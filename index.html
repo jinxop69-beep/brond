@@ -465,6 +465,15 @@
   .sched .task.rest .stime { font-size: 19px; color: #8a6fd6; }
   .task.rest .check { border-color: #c9b5f7; }
   .task.rest.done .check { background: #b79cf5; border-color: #b79cf5; }
+  /* Arrastrar en el horario */
+  .sched-hint { margin-left: auto; font: 600 12px "Quicksand", sans-serif; color: var(--muted); }
+  .sched .task { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; touch-action: pan-y; cursor: grab; position: relative; }
+  .sched .task.lifted { z-index: 5; cursor: grabbing; transition: box-shadow .2s;
+    box-shadow: 0 14px 30px rgba(255, 92, 154, .28), 0 0 0 2px var(--pink-300); background: #fff; }
+  .sched .task.swap-target { box-shadow: 0 0 0 3px var(--pink-400); transform: scale(.97); transition: transform .2s, box-shadow .2s; }
+  .sched .task.swapped { animation: swapglow 1.2s ease-out; }
+  @keyframes swapglow { 0% { box-shadow: 0 0 0 4px var(--pink-300); } 100% { box-shadow: 0 0 0 0 transparent; } }
+  body.dragging { user-select: none; -webkit-user-select: none; }
   .task.flash { animation: kflash 1.4s ease-in-out 3; }
   @keyframes kflash { 50% { box-shadow: 0 0 0 3px var(--pink-300); } }
   .timed-note { font-size: 13px; color: var(--muted); font-weight: 600; padding: 2px 4px 8px; }
@@ -530,7 +539,7 @@
     </div>
 
     <div class="card sched" id="schedCard">
-      <h2>🕒 Mi horario</h2>
+      <h2>🕒 Mi horario <span class="sched-hint" id="schedHint">mantén pulsado para mover ↕️</span></h2>
       <ul class="tasks" id="schedList"></ul>
       <form id="schedAdd">
         <input type="time" id="schedTime" aria-label="Hora">
@@ -753,6 +762,8 @@
     .filter(t => occursOn(t, date))
     .sort((a, b) => (a.time || "99").localeCompare(b.time || "99") || a.title.localeCompare(b.title));
   const isDone = (task, date) => (data.done[ymd(date)] || []).includes(task.id);
+  // Hora de una tarea ese día: si se movió en el horario solo ese día, manda ese cambio
+  const effTime = (t, d) => (t.times && t.times[ymd(d)]) || t.time || "";
   function toggleDone(task, date) {
     const k = ymd(date);
     const list = new Set(data.done[k] || []);
@@ -802,19 +813,20 @@
     const sl = $("#schedList");
     sl.innerHTML = "";
     const order = new Map(data.tasks.map((t, i) => [t.id, i])); // a la misma hora, en el orden en que se apuntaron
-    const timed = list.filter(t => t.time).sort((a, b) => a.time.localeCompare(b.time) || order.get(a.id) - order.get(b.id));
+    const timed = list.filter(t => effTime(t, d)).sort((a, b) => effTime(a, d).localeCompare(effTime(b, d)) || order.get(a.id) - order.get(b.id));
     if (!timed.length) sl.innerHTML = `<li class="empty">Pon una hora y lo que vas a hacer ♡</li>`;
     for (const t of timed) sl.appendChild(taskItem(t, d, true));
+    $("#schedHint").classList.toggle("hidden", timed.length < 2);
     for (const b of BOXES) {
       const all = list.filter(t => inBox(b, t));
-      const items = all.filter(t => !t.time), timedHere = all.filter(t => t.time);
+      const items = all.filter(t => !effTime(t, d)), timedHere = all.filter(t => effTime(t, d));
       const k = all.filter(t => isDone(t, d)).length;
       const card = document.createElement("div");
       card.className = "card box" + (b.cats ? " plain" : "");
       card.style.setProperty("--c", catOf(b.add).color);
       card.innerHTML = `
         <h2><span>${b.emoji} ${b.name}</span><span class="count${all.length && k === all.length ? " full" : ""}">${all.length ? `${k}/${all.length}${k === all.length ? " ✓" : ""}` : "—"}</span></h2>
-        ${timedHere.length ? `<div class="timed-note">🕒 En tu horario: ${timedHere.map(t => `${esc(t.time)} ${esc(t.title)}${isDone(t, d) ? " ✓" : ""}`).join(" · ")}</div>` : ""}
+        ${timedHere.length ? `<div class="timed-note">🕒 En tu horario: ${timedHere.map(t => `${esc(effTime(t, d))} ${esc(t.title)}${isDone(t, d) ? " ✓" : ""}`).join(" · ")}</div>` : ""}
         <ul class="tasks">${items.length || timedHere.length ? "" : `<li class="empty">${b.empty}</li>`}</ul>
         <form><input type="text" maxlength="80" placeholder="${b.ph}" aria-label="Añadir a ${b.name}"><button class="btn" type="submit" aria-label="Añadir a ${b.name}">♡</button></form>`;
       const ul = card.querySelector("ul");
@@ -893,6 +905,109 @@
   }
 
   // Una tarea de la lista del día (con tachar, editar y borrar)
+  /* ---------- Mover tareas del horario: mantener pulsado, arrastrar y soltar encima de otra ---------- */
+  // Anima el paso de cada fila de su sitio viejo al nuevo (técnica FLIP)
+  function flipSched(mutate) {
+    const before = new Map([...document.querySelectorAll("#schedList .task")].map(r => [r.dataset.id, r.getBoundingClientRect().top]));
+    mutate();
+    for (const r of document.querySelectorAll("#schedList .task")) {
+      const old = before.get(r.dataset.id);
+      if (old === undefined) continue;
+      const dy = old - r.getBoundingClientRect().top;
+      if (!dy) continue;
+      r.style.transition = "none";
+      r.style.transform = `translateY(${dy}px)`;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        r.style.transition = "transform .55s cubic-bezier(.3,1.35,.5,1)";
+        r.style.transform = "";
+      }));
+    }
+  }
+  function swapTasks(aId, bId) {
+    const d = current, k = ymd(d);
+    const a = data.tasks.find(t => t.id === aId), b = data.tasks.find(t => t.id === bId);
+    if (!a || !b) return;
+    const ta = effTime(a, d), tb = effTime(b, d);
+    const setTime = (t, v) => {
+      if (t.repeat === "once") t.time = v;                    // tarea de un día: cambia su hora
+      else t.times = { ...(t.times || {}), [k]: v };           // rutina: solo cambia este día
+    };
+    flipSched(() => {
+      if (ta === tb) {                                         // misma hora: se cambia el orden
+        const ia = data.tasks.indexOf(a), ib = data.tasks.indexOf(b);
+        [data.tasks[ia], data.tasks[ib]] = [data.tasks[ib], data.tasks[ia]];
+      } else { setTime(a, tb); setTime(b, ta); }
+      save();
+      renderDay(); renderWeek(); layoutBoxes();
+    });
+    for (const id of [aId, bId]) {
+      const r = document.querySelector(`#schedList .task[data-id="${id}"]`);
+      if (r) r.classList.add("swapped");
+    }
+    const r = document.querySelector(`#schedList .task[data-id="${aId}"]`);
+    if (r) { const rc = r.getBoundingClientRect(); hearts(rc.left + rc.width / 2, rc.top + rc.height / 2, 8); }
+    toast(ta === tb ? "Cambiado de orden 💫" : `Intercambiado 💫 ${ta} ↔ ${tb}`);
+  }
+  (function enableSchedDrag() {
+    const list = $("#schedList");
+    let drag = null;
+    const rowsExcept = el => [...list.querySelectorAll(".task")].filter(r => r !== el);
+    const start = () => {
+      drag.on = true;
+      drag.li.classList.add("lifted");
+      document.body.classList.add("dragging");
+      if (navigator.vibrate) navigator.vibrate(12);
+    };
+    list.addEventListener("pointerdown", e => {
+      const li = e.target.closest(".task[data-id]");
+      if (!li || e.target.closest("button") || ordering) return;
+      drag = { li, id: li.dataset.id, y0: e.clientY, x0: e.clientX, on: false, target: null, pid: e.pointerId };
+      if (e.pointerType === "mouse") return; // con ratón empieza al moverse
+      drag.timer = setTimeout(() => { if (drag && !drag.on) { start(); try { li.setPointerCapture(drag.pid); } catch {} } }, 280);
+    });
+    document.addEventListener("pointermove", e => {
+      if (!drag) return;
+      const dy = e.clientY - drag.y0, dx = e.clientX - drag.x0;
+      if (!drag.on) {
+        if (e.pointerType === "mouse" && Math.hypot(dx, dy) > 6) { start(); try { drag.li.setPointerCapture(drag.pid); } catch {} }
+        else if (e.pointerType !== "mouse" && Math.hypot(dx, dy) > 10) { clearTimeout(drag.timer); drag = null; } // está desplazando la página
+        return;
+      }
+      drag.li.style.transform = `translateY(${dy}px) scale(1.04) rotate(-1.2deg)`;
+      let tgt = null;
+      for (const r of rowsExcept(drag.li)) {
+        const rc = r.getBoundingClientRect();
+        if (e.clientY >= rc.top && e.clientY <= rc.bottom) { tgt = r; break; }
+      }
+      if (tgt !== drag.target) {
+        if (drag.target) drag.target.classList.remove("swap-target");
+        if (tgt) tgt.classList.add("swap-target");
+        drag.target = tgt;
+      }
+    });
+    // Mientras se arrastra con el dedo, la página no se desplaza
+    document.addEventListener("touchmove", e => { if (drag && drag.on) e.preventDefault(); }, { passive: false });
+    const end = () => {
+      if (!drag) return;
+      clearTimeout(drag.timer);
+      const d0 = drag; drag = null;
+      document.body.classList.remove("dragging");
+      if (!d0.on) return;
+      d0.li.classList.remove("lifted");
+      if (d0.target) {
+        d0.target.classList.remove("swap-target");
+        d0.li.style.transform = "";
+        swapTasks(d0.id, d0.target.dataset.id);
+      } else {
+        d0.li.style.transition = "transform .3s cubic-bezier(.3,1.35,.5,1)";
+        d0.li.style.transform = "";
+        setTimeout(() => { d0.li.style.transition = ""; }, 320);
+      }
+    };
+    document.addEventListener("pointerup", end);
+    document.addEventListener("pointercancel", end);
+  })();
+
   // Descansar es importante: se ve en grande
   const REST_RE = /descans|siesta|relax|relaj|medita|respira|pausa|dormir|tiempo para m[ií]/i;
   const isRest = t => REST_RE.test(t.title);
@@ -902,9 +1017,10 @@
       const c = catOf(t.cat), rest = isRest(t);
       const li = document.createElement("li");
       li.className = "task" + (done ? " done" : "") + (rest ? " rest" : "");
+      li.dataset.id = t.id;
       li.style.setProperty("--c", rest ? "#b79cf5" : c.color);
       li.innerHTML = `
-        ${sched ? `<span class="stime">${esc(t.time)}</span>` : ""}
+        ${sched ? `<span class="stime">${esc(effTime(t, d))}</span>` : ""}
         <button class="check" aria-label="${done ? "Desmarcar" : "Tachar"}">${done ? "✓" : ""}</button>
         ${rest ? "" : `<span class="emoji">${c.emoji}</span>`}
         <div class="info">
@@ -1011,7 +1127,7 @@
           <span class="count">${list.length ? `${doneN}/${list.length} ✓` : "libre 🍡"}</span>
         </div>
         <div class="pills">${list.map(t =>
-          `<span class="pill${isDone(t, d) ? " done" : ""}" style="--c:${catOf(t.cat).color}">${catOf(t.cat).emoji} ${esc(t.title)}${t.time ? " · " + esc(t.time) : ""}</span>`
+          `<span class="pill${isDone(t, d) ? " done" : ""}" style="--c:${catOf(t.cat).color}">${catOf(t.cat).emoji} ${esc(t.title)}${effTime(t, d) ? " · " + esc(effTime(t, d)) : ""}</span>`
         ).join("")}</div>`;
       box.addEventListener("click", () => { current = d; switchTab("day"); });
       grid.appendChild(box);
