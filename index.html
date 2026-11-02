@@ -822,9 +822,13 @@
   const startOfWeek = d => addDays(new Date(d.getFullYear(), d.getMonth(), d.getDate()), -weekIdx(d));
   const today = () => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); };
 
+  // Se empieza vacío. (Los ejemplos solo salen en modo demo, para pruebas: localStorage "miDiaKawaii.demo" = "1")
   function seed() {
     const t = today();
     const mon = startOfWeek(t);
+    let demo = false;
+    try { demo = localStorage.getItem("miDiaKawaii.demo") === "1"; } catch {}
+    if (!demo) return { tasks: [], done: {}, updatedAt: 0 };
     return {
       tasks: [
         { id: uid(), seed: true, title: "Beber 8 vasitos de agua", cat: "cuidado", time: "", repeat: "daily", from: ymd(t) },
@@ -2285,6 +2289,7 @@
           next = remote ? normalize({ ...remote }) : normalize(seed());
           upload = !remote;
         } else if (!remote) {
+          data.tasks = data.tasks.filter(t => !t.seed); // cuenta nueva: sin tareas de ejemplo
           upload = true;
         } else if (!owner) {
           // Datos usados sin cuenta: se suman a la nube (si solo hay ejemplos, se queda lo de la nube)
