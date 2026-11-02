@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">#ff8fb8</item>
+        <item name="android:colorPrimaryDark">#ff8fb8</item>
+        <item name="android:colorAccent">#ff5c9a</item>
+        <item name="android:statusBarColor">#ff8fb8</item>
+        <item name="android:navigationBarColor">#ff8fb8</item>
+        <item name="android:windowBackground">@color/pink_soft</item>
+    </style>
+    <color name="pink_soft">#ffc6dc</color>
+    <color name="ic_launcher_background">#ffc6dc</color>
+</resources>

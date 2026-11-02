@@ -477,6 +477,10 @@
   body.night .cell.pred-fertile:not(.pred-period) { background: #23382f; border-color: #2f5443; }
   .cal-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; font-size: 12px; font-weight: 700; color: var(--muted); }
   .cal-legend i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 4px; }
+  .share-toggle { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--pink-500); padding: 10px 12px;
+    border-radius: 14px; background: var(--pink-50); cursor: pointer; }
+  .share-toggle input { width: 20px; height: 20px; accent-color: var(--pink-500); }
+  .pair-code { font: 400 34px "Mochiy Pop One", sans-serif; letter-spacing: 6px; color: var(--pink-500); margin: 6px 0 0; }
   .task.star { box-shadow: inset 0 0 0 1.5px #ffd36e; }
   .task.star .title { font-weight: 800; }
   /* Arrastrar en el horario */
@@ -698,6 +702,7 @@
           <div class="days" id="fDays"></div>
         </div>
 
+        <label class="share-toggle hidden" id="shareWrap"><input type="checkbox" id="fShared"> 💞 Compartir con mi pareja</label>
         <button class="btn" type="submit" id="saveBtn">Guardar ♡</button>
       </form>
     </div>
@@ -803,7 +808,13 @@
     data.updatedAt = Date.now();
     store.save(data);
     cloud.schedule();
+    if (typeof shared !== "undefined") shared.maybeSave();
   }
+  // Tareas compartidas en pareja: viven en el espacio común (space.data), no en tus datos
+  let space = (() => { try { return JSON.parse(localStorage.getItem("miDiaKawaii.space")) || null; } catch { return null; } })();
+  const spaceData = () => space && space.data ? space.data : null;
+  const own = t => (t.shared && spaceData()) ? spaceData() : data;
+  const allTasks = () => spaceData() ? data.tasks.concat(spaceData().tasks || []) : data.tasks;
 
   function occursOn(task, date) {
     const key = ymd(date);
@@ -816,17 +827,18 @@
     if (task.repeat === "weekly") return (task.days || []).includes(weekIdx(date));
     return false;
   }
-  const tasksOn = date => data.tasks
+  const tasksOn = date => allTasks()
     .filter(t => occursOn(t, date))
     .sort((a, b) => (a.time || "99").localeCompare(b.time || "99") || a.title.localeCompare(b.title));
-  const isDone = (task, date) => (data.done[ymd(date)] || []).includes(task.id);
+  const isDone = (task, date) => ((own(task).done || {})[ymd(date)] || []).includes(task.id);
   // Hora de una tarea ese día: si se movió en el horario solo ese día, manda ese cambio
   const effTime = (t, d) => (t.times && t.times[ymd(d)]) || t.time || "";
   function toggleDone(task, date) {
-    const k = ymd(date);
-    const list = new Set(data.done[k] || []);
+    const k = ymd(date), C = own(task);
+    C.done = C.done || {};
+    const list = new Set(C.done[k] || []);
     list.has(task.id) ? list.delete(task.id) : list.add(task.id);
-    if (list.size) data.done[k] = [...list]; else delete data.done[k];
+    if (list.size) C.done[k] = [...list]; else delete C.done[k];
     save();
     return list.has(task.id);
   }
@@ -871,7 +883,7 @@
     // Lo que tiene hora va en "Mi horario"; en cada cuadradito solo se recuerda
     const sl = $("#schedList");
     sl.innerHTML = "";
-    const order = new Map(data.tasks.map((t, i) => [t.id, i])); // a la misma hora, en el orden en que se apuntaron
+    const order = new Map(allTasks().map((t, i) => [t.id, i])); // a la misma hora, en el orden en que se apuntaron
     const timed = list.filter(t => effTime(t, d)).sort((a, b) => effTime(a, d).localeCompare(effTime(b, d)) || order.get(a.id) - order.get(b.id));
     if (!timed.length) sl.innerHTML = `<li class="empty">Pon una hora y lo que vas a hacer ♡</li>`;
     for (const t of timed) sl.appendChild(taskItem(t, d, true));
@@ -988,7 +1000,7 @@
   }
   function swapTasks(aId, bId) {
     const d = current, k = ymd(d);
-    const a = data.tasks.find(t => t.id === aId), b = data.tasks.find(t => t.id === bId);
+    const a = allTasks().find(t => t.id === aId), b = allTasks().find(t => t.id === bId);
     if (!a || !b) return;
     const ta = effTime(a, d), tb = effTime(b, d);
     const setTime = (t, v) => {
@@ -997,8 +1009,8 @@
     };
     flipSched(() => {
       if (ta === tb) {                                         // misma hora: se cambia el orden
-        const ia = data.tasks.indexOf(a), ib = data.tasks.indexOf(b);
-        [data.tasks[ia], data.tasks[ib]] = [data.tasks[ib], data.tasks[ia]];
+        const C = own(a), ia = C.tasks.indexOf(a), ib = C.tasks.indexOf(b);
+        if (ia >= 0 && ib >= 0) [C.tasks[ia], C.tasks[ib]] = [C.tasks[ib], C.tasks[ia]];
       } else { setTime(a, tb); setTime(b, ta); }
       save();
       renderDay(); renderWeek(); layoutBoxes();
@@ -1088,7 +1100,7 @@
         ${rest ? "" : `<span class="emoji">${c.emoji}</span>`}
         <div class="info">
           <div class="title">${t.star ? "⭐ " : ""}${esc(t.title)}</div>
-          <div class="meta">${[rest && "☁️ Tiempo para ti", !sched && t.time && "⏰ " + esc(t.time), t.repeat !== "once" && "🔁 " + repeatText(t)].filter(Boolean).join(" · ")}</div>
+          <div class="meta">${[t.shared && "💞 compartida", rest && "☁️ Tiempo para ti", !sched && t.time && "⏰ " + esc(t.time), t.repeat !== "once" && "🔁 " + repeatText(t)].filter(Boolean).join(" · ")}</div>
         </div>
         <button class="edit" aria-label="Editar">✎</button>
         <button class="del" aria-label="Borrar">✕</button>`;
@@ -1191,11 +1203,22 @@
         { v: "star", label: t.star ? "☆ Quitar de importantes" : "⭐ Marcar como importante" },
         { v: "tomorrow", label: `➡️ Pasar a mañana (${DAY_LONG[weekIdx(tomorrow)]} ${tomorrow.getDate()})` },
         { v: "other", label: "📅 Pasar a otro día…" },
+        ...(paired() && t.repeat !== "none" ? [{ v: "share", label: t.shared ? "🔒 Dejar solo para mí" : "💞 Compartir con mi pareja" }] : []),
         { v: "edit", label: "✎ Editar" },
         { v: null, label: "Cerrar", cls: "soft" },
       ]
     });
     if (choice === "edit") return startEdit(t);
+    if (choice === "share") {
+      const from = own(t);
+      from.tasks = from.tasks.filter(x => x !== t);
+      from.deleted = [...(from.deleted || []), t.id].slice(-500);
+      const moved = { ...t, id: uid() };
+      if (t.shared) delete moved.shared; else moved.shared = true;
+      own(moved).tasks.push(moved);
+      save(); renderAll();
+      return toast(moved.shared ? "Compartida con tu pareja 💞" : "Ahora es solo tuya 🔒");
+    }
     if (choice === "star") {
       t.star = !t.star;
       save(); renderAll();
@@ -1231,15 +1254,15 @@
     });
   }
   function moveTask(t, d, newK) {
-    const k = ymd(d), snap = snapshot();
-    const unmark = key => { if (data.done[key]) { data.done[key] = data.done[key].filter(id => id !== t.id); if (!data.done[key].length) delete data.done[key]; } };
+    const k = ymd(d), snap = snapshot(), C = own(t);
+    const unmark = key => { const D = C.done || {}; if (D[key]) { D[key] = D[key].filter(id => id !== t.id); if (!D[key].length) delete D[key]; } };
     if (t.repeat === "once") { t.date = newK; unmark(k); }
     else if (t.repeat === "dates") { t.dates = [...new Set([...(t.dates || []).filter(x => x !== k), newK])].sort(); unmark(k); }
     else {
       // Rutina: se quita de este día y se pone una vez el día nuevo
       t.skip = [...new Set([...(t.skip || []), k])];
       unmark(k);
-      data.tasks.push({ id: uid(), title: t.title, cat: t.cat, time: effTime(t, d), repeat: "once", date: newK, ...(t.star ? { star: true } : {}) });
+      C.tasks.push({ id: uid(), title: t.title, cat: t.cat, time: effTime(t, d), repeat: "once", date: newK, ...(t.star ? { star: true } : {}), ...(t.shared ? { shared: true } : {}) });
     }
     save(); renderAll();
     const nd = parseYmd(newK);
@@ -1265,11 +1288,12 @@
         // En "días elegidos" se quita la fecha (así se puede volver a marcar al editar)
         if (t.repeat === "dates") {
           t.dates = (t.dates || []).filter(x => x !== k);
-          if (!t.dates.length) data.tasks = data.tasks.filter(x => x.id !== t.id);
+          if (!t.dates.length) { const C = own(t); C.tasks = C.tasks.filter(x => x.id !== t.id); }
         } else t.skip = [...new Set([...(t.skip || []), k])];
-        if (data.done[k]) {
-          data.done[k] = data.done[k].filter(id => id !== t.id);
-          if (!data.done[k].length) delete data.done[k];
+        const D = own(t).done || {};
+        if (D[k]) {
+          D[k] = D[k].filter(id => id !== t.id);
+          if (!D[k].length) delete D[k];
         }
         save();
         toast(`Quitada solo del ${DAY_LONG[weekIdx(d)]} 🫧`, { label: "Deshacer", fn: () => undoTo(snap) });
@@ -1288,11 +1312,13 @@
       });
       if (!ok) return;
     }
-    data.tasks = data.tasks.filter(x => x.id !== t.id);
-    data.deleted = [...(data.deleted || []), t.id].slice(-500); // para que no vuelva al juntar dispositivos
-    for (const k of Object.keys(data.done)) {
-      data.done[k] = data.done[k].filter(id => id !== t.id);
-      if (!data.done[k].length) delete data.done[k];
+    const C = own(t);
+    C.tasks = C.tasks.filter(x => x.id !== t.id);
+    C.deleted = [...(C.deleted || []), t.id].slice(-500); // para que no vuelva al juntar dispositivos
+    C.done = C.done || {};
+    for (const k of Object.keys(C.done)) {
+      C.done[k] = C.done[k].filter(id => id !== t.id);
+      if (!C.done[k].length) delete C.done[k];
     }
     save();
     toast("Tarea borrada 🫧", { label: "Deshacer", fn: () => undoTo(snap) });
@@ -1877,7 +1903,7 @@
   $("#nextMonth").onclick = () => { monthCursor = new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 1); renderMonth(); };
 
   /* ---------- Formulario ---------- */
-  let fCat = "general", fRepeat = "once", fDays = new Set([weekIdx(today())]);
+  let fCat = "general", fRepeat = "once", fDays = new Set([weekIdx(today())]), fShared = false;
   let fDates = new Set(), pickMonth = firstOfMonth(today()), editingId = null;
 
   function buildPicker() {
@@ -1895,6 +1921,8 @@
   }
 
   function buildForm() {
+    $("#shareWrap").classList.toggle("hidden", !paired() || fRepeat === "none");
+    $("#fShared").checked = fShared;
     $("#fCats").innerHTML = CATS.map(c =>
       `<button type="button" class="chip${c.id === fCat ? " on" : ""}" data-v="${c.id}">${c.emoji} ${c.name}</button>`).join("");
     $("#fDays").innerHTML = DAY_SHORT.map((s, i) =>
@@ -1910,6 +1938,7 @@
     if (fRepeat === "dates") buildPicker();
   }
 
+  $("#fShared").addEventListener("change", e => { fShared = e.target.checked; });
   $("#pGrid").addEventListener("click", e => {
     const b = e.target.closest(".cell"); if (!b) return;
     const k = b.dataset.k;
@@ -1920,7 +1949,7 @@
   $("#pNext").onclick = () => { pickMonth = new Date(pickMonth.getFullYear(), pickMonth.getMonth() + 1, 1); buildPicker(); };
 
   function resetForm() {
-    if (editingId) { fCat = "general"; fRepeat = "once"; fDays = new Set([weekIdx(current)]); }
+    if (editingId) { fCat = "general"; fRepeat = "once"; fDays = new Set([weekIdx(current)]); fShared = false; }
     editingId = null;
     $("#fTitle").value = ""; $("#fTime").value = "";
     $("#fDate").value = ymd(current);
@@ -1929,7 +1958,7 @@
   }
   function startEdit(t) {
     editingId = t.id;
-    fCat = t.cat; fRepeat = t.repeat;
+    fCat = t.cat; fRepeat = t.repeat; fShared = !!t.shared;
     fDays = new Set(t.days || [weekIdx(current)]);
     fDates = new Set(t.dates || []);
     pickMonth = firstOfMonth(current);
@@ -1964,18 +1993,24 @@
     const date = $("#fDate").value || ymd(current);
     if (fRepeat === "weekly" && !fDays.size) { toast("Elige al menos un día 🗓️"); return; }
     if (fRepeat === "dates" && !fDates.size) { toast("Toca al menos un día en el calendario 📅"); return; }
-    const old = editingId && data.tasks.find(x => x.id === editingId);
+    const old = editingId && allTasks().find(x => x.id === editingId);
     const task = { id: old ? old.id : uid(), title, cat: fCat, time: $("#fTime").value, repeat: fRepeat };
+    if (old && old.star) task.star = true;
+    if (old && old.times && fRepeat !== "once") task.times = old.times;
+    const wantShared = fShared && spaceData() && fRepeat !== "none";
+    if (wantShared) task.shared = true;
     if (fRepeat === "once") task.date = date;
     else if (fRepeat === "none") { /* bandeja sin fecha */ }
     else if (fRepeat === "dates") task.dates = [...fDates].sort();
     else task.from = date;
     if (fRepeat === "weekly") task.days = [...fDays].sort();
     if (old && old.skip && fRepeat !== "once") task.skip = fRepeat === "dates" ? old.skip.filter(x => !fDates.has(x)) : old.skip;
-    if (old) data.tasks[data.tasks.indexOf(old)] = task; else data.tasks.push(task);
+    if (old) { const C = own(old); C.tasks = C.tasks.filter(x => x !== old); }
+    own(task).tasks.push(task);
     save();
     const wasEdit = !!old;
     resetForm();
+    fShared = false; buildForm();
     toast(wasEdit ? `${catOf(fCat).emoji} ¡"${title}" actualizado!` : `${catOf(fCat).emoji} ¡"${title}" guardado!`);
     hearts(innerWidth / 2, innerHeight * .6, 10);
     renderAll();
@@ -1984,7 +2019,7 @@
 
   function renderRoutines() {
     const ul = $("#routineList");
-    const list = data.tasks.filter(t => t.repeat !== "once" && t.repeat !== "none");
+    const list = allTasks().filter(t => t.repeat !== "once" && t.repeat !== "none");
     ul.innerHTML = list.length ? "" : `<li class="empty"><span class="pop">🧸</span>Aún no tienes rutinas</li>`;
     for (const t of list) {
       const c = catOf(t.cat);
@@ -2065,10 +2100,11 @@
     toastTimer = setTimeout(() => t.classList.remove("show"), action ? 6000 : 2400);
   }
   // Deshacer: se guarda cómo estaban las tareas antes del cambio
-  const snapshot = () => JSON.stringify({ tasks: data.tasks, done: data.done, deleted: data.deleted });
+  const snapshot = () => JSON.stringify({ tasks: data.tasks, done: data.done, deleted: data.deleted, space: spaceData() });
   function undoTo(snap, msg = "Deshecho ↩️") {
     const s0 = JSON.parse(snap);
     data.tasks = s0.tasks; data.done = s0.done; data.deleted = s0.deleted;
+    if (s0.space && space) space.data = s0.space;
     save(); renderAll(); toast(msg);
   }
 
@@ -2207,7 +2243,7 @@
         if (upload) return await this.write(remote || null);
         this.status("ok");
         return true;
-      } finally { this.busy = false; }
+      } finally { this.busy = false; if (this.user) shared.load(); }
     },
     async setUser(user) {
       const was = this.user && this.user.id;
@@ -2222,6 +2258,123 @@
       if (this.pending && this.ready) await this.push();
     }
   };
+
+  /* ---------- Espacio en pareja: tareas compartidas entre dos cuentas ---------- */
+  const paired = () => !!(space && space.members && space.members.length > 1);
+  const shared = {
+    lastRemote: 0, lastJSON: "", timer: null, busy: false,
+    store() { try { space ? localStorage.setItem("miDiaKawaii.space", JSON.stringify(space)) : localStorage.removeItem("miDiaKawaii.space"); } catch {} },
+    norm(d) { d = d || {}; d.tasks = d.tasks || []; d.done = d.done || {}; d.deleted = d.deleted || []; d.names = d.names || {}; return d; },
+    // Tras cualquier cambio: si lo compartido cambió, se sube
+    maybeSave() {
+      if (!space || !space.data) return;
+      const { updatedAt, ...rest } = space.data, j = JSON.stringify(rest);
+      if (j === this.lastJSON) return;
+      this.lastJSON = j;
+      space.data.updatedAt = Date.now();
+      this.store();
+      clearTimeout(this.timer);
+      this.timer = setTimeout(() => this.push(), 800);
+    },
+    async load() {
+      if (!sb || !cloud.user || this.busy || !navigator.onLine) return;
+      this.busy = true;
+      try {
+        const { data: rows, error } = await sb.from("kawaii_space").select("id,members,code,data").order("updated_at", { ascending: false });
+        if (error) return;
+        const row = (rows || []).find(r => (r.members || []).includes(cloud.user.id));
+        if (!row) { if (space) { space = null; this.store(); renderAll(); } return; }
+        const remote = this.norm(row.data), local = space && space.id === row.id ? this.norm(space.data) : null;
+        let next = remote, upload = false;
+        if (local && (local.updatedAt || 0) > (remote.updatedAt || 0)) { next = mergeData(remote, local, { localWins: true }); upload = true; }
+        next = this.norm(next);
+        if (next.names[cloud.user.id] !== cloud.user.email) { next.names[cloud.user.id] = cloud.user.email; upload = true; }
+        const before = JSON.stringify(space);
+        space = { id: row.id, members: row.members, code: row.code, data: next };
+        this.lastRemote = remote.updatedAt || 0;
+        const { updatedAt, ...rest } = next; this.lastJSON = JSON.stringify(rest);
+        this.store();
+        if (JSON.stringify(space) !== before) renderAll();
+        if (upload) { this.busy = false; await this.push(); }
+      } finally { this.busy = false; }
+    },
+    async push() {
+      if (!sb || !space || !cloud.user || !navigator.onLine) return;
+      if (this.busy) { clearTimeout(this.timer); this.timer = setTimeout(() => this.push(), 600); return; }
+      this.busy = true;
+      try {
+        const { data: row } = await sb.from("kawaii_space").select("data").eq("id", space.id).maybeSingle();
+        const remote = row && this.norm(row.data);
+        if (remote && (remote.updatedAt || 0) > this.lastRemote && remote.updatedAt !== space.data.updatedAt) {
+          space.data = this.norm(mergeData(remote, space.data, { localWins: true }));
+          renderAll();
+        }
+        space.data.updatedAt = Math.max(Date.now(), (remote && remote.updatedAt || 0) + 1);
+        const { error } = await sb.from("kawaii_space").update({ data: space.data, updated_at: new Date().toISOString() }).eq("id", space.id);
+        if (!error) { this.lastRemote = space.data.updatedAt; const { updatedAt, ...rest } = space.data; this.lastJSON = JSON.stringify(rest); this.store(); }
+      } finally { this.busy = false; }
+    },
+    partnerName() {
+      if (!space || !cloud.user) return "";
+      const other = (space.members || []).find(m => m !== cloud.user.id);
+      return (other && space.data && space.data.names && space.data.names[other]) || "tu pareja";
+    },
+    reset() { space = null; this.lastJSON = ""; this.lastRemote = 0; this.store(); }
+  };
+
+  // Ventanita para unirse en pareja
+  async function pairSheet() {
+    if (!sb || !cloud.user) { toast("Primero entra en tu cuenta ☁️"); return; }
+    const back = document.createElement("div");
+    back.className = "sheet-back";
+    const close = () => { back.classList.remove("show"); setTimeout(() => back.remove(), 250); };
+    const draw = () => {
+      const p2 = paired();
+      back.innerHTML = `
+        <div class="sheet" role="dialog" aria-modal="true">
+          <div class="sheet-emoji">💞</div>
+          <h3>${p2 ? "Compartiendo en pareja" : "Compartir con tu pareja"}</h3>
+          ${p2 ? `<p>Compartes con <b>${esc(shared.partnerName())}</b>. Las tareas marcadas 💞 salen en las dos cuentas y si una la tacha, se tacha para las dos.</p>
+            <div class="sheet-btns"><button class="sbtn soft" data-a="leave">Dejar de compartir</button><button class="sbtn soft" data-a="close">Cerrar ♡</button></div>`
+          : `<p>Una crea el código y la otra lo escribe en su cuenta. Solo se comparte lo que marquéis con 💞.</p>
+            ${space && space.code ? `<p class="pair-code">${esc(space.code)}</p><p>Dale este código a tu pareja ♡</p>` : ""}
+            <div class="sheet-btns">
+              <button class="sbtn" data-a="create">✨ ${space && space.code ? "Ver mi código otra vez" : "Crear mi código"}</button>
+              <input type="text" name="code" maxlength="6" placeholder="Código de tu pareja" autocapitalize="characters" style="text-align:center;text-transform:uppercase">
+              <button class="sbtn danger" data-a="join">💞 Unirme con su código</button>
+              <button class="sbtn soft" data-a="close">Cerrar ♡</button>
+            </div>`}
+        </div>`;
+    };
+    draw();
+    back.addEventListener("click", async e => {
+      if (e.target === back) return close();
+      const a = e.target.closest("button") && e.target.closest("button").dataset.a;
+      if (a === "close") close();
+      if (a === "create") {
+        const { data: r, error } = await sb.rpc("kawaii_create_space");
+        if (error) return toast("No se ha podido crear el código 🥺");
+        await shared.load(); draw();
+      }
+      if (a === "join") {
+        const code = (back.querySelector("input[name=code]").value || "").trim().toUpperCase();
+        if (code.length < 4) return toast("Escribe el código ✍️");
+        const { error } = await sb.rpc("kawaii_join_space", { p_code: code });
+        if (error) return toast(/bad_code/.test(error.message) ? "Ese código no existe 🥺" : /full/.test(error.message) ? "Ese código ya está usado" : /already/.test(error.message) ? "Ya compartes con alguien" : "No se ha podido unir 🥺");
+        await shared.load(); draw(); renderAll(); toast("¡Unidas! 💞");
+      }
+      if (a === "leave") {
+        close(); await new Promise(r => setTimeout(r, 300)); // primero se cierra esta ventanita
+        const ok = await sheet({ emoji: "💔", title: "¿Dejar de compartir?", text: "Las tareas compartidas dejarán de salirte (tu pareja las seguirá teniendo).",
+          buttons: [{ v: "yes", label: "Dejar de compartir", cls: "danger" }, { v: null, label: "Mejor no ♡", cls: "soft" }] });
+        if (!ok) return;
+        await sb.rpc("kawaii_leave_space");
+        shared.reset(); renderAll(); toast("Ya no compartes 🫧");
+      }
+    });
+    document.body.appendChild(back);
+    requestAnimationFrame(() => back.classList.add("show"));
+  }
 
   if (sb) {
     sb.auth.getSession().then(({ data: d }) => cloud.setUser(d.session && d.session.user));
@@ -2243,6 +2396,7 @@
           <h3>¡Tus cositas están a salvo!</h3>
           <p>Conectada como <b>${esc(cloud.user.email)}</b>. Entra con esta cuenta en otro móvil u ordenador y verás lo mismo.</p>
           <div class="sheet-btns">
+            <button class="sbtn" data-a="pair">💞 ${paired() ? "En pareja con " + esc(shared.partnerName()) : "Compartir con mi pareja"}</button>
             <button class="sbtn" data-a="sync">🔄 Sincronizar ahora</button>
             <button class="sbtn soft" data-a="out">Cerrar sesión</button>
             <button class="sbtn soft" data-a="close">Cerrar ♡</button>
@@ -2288,8 +2442,9 @@
       if (e.target === back) return close();
       const a = e.target.closest("button") && e.target.closest("button").dataset.a;
       if (a === "close") close();
+      if (a === "pair") { close(); pairSheet(); }
       if (a === "sync") { close(); toast(await cloud.pull() ? "¡Sincronizado! ☁️" : "No se ha podido sincronizar ahora 🥺"); }
-      if (a === "out") { close(); await cloud.flush(); await sb.auth.signOut({ scope: "local" }); toast("Sesión cerrada 🫧 (tus tareas siguen en este móvil)"); }
+      if (a === "out") { close(); await cloud.flush(); await sb.auth.signOut({ scope: "local" }); shared.reset(); renderAll(); toast("Sesión cerrada 🫧 (tus tareas siguen en este móvil)"); }
     });
     document.body.appendChild(back);
     requestAnimationFrame(() => back.classList.add("show"));
@@ -2465,7 +2620,24 @@
   }
 
   // layoutBoxes al final: mide las columnas cuando ya está todo dibujado
-  function renderAll() { renderDay(); renderExtras(); renderWeek(); renderMonth(); renderRoutines(); buildForm(); layoutBoxes(); }
+  // Widget de la pantalla de inicio (solo dentro de la app de Android): hoy y los 6 días siguientes
+  let widgetTimer;
+  function pushWidget() {
+    if (!window.KawaiiWidget) return;
+    clearTimeout(widgetTimer);
+    widgetTimer = setTimeout(() => {
+      const days = {};
+      for (let i = 0; i < 7; i++) {
+        const d = addDays(today(), i);
+        days[ymd(d)] = tasksOn(d).map(t => ({ time: effTime(t, d), title: t.title, emoji: isRest(t) ? "☁️" : catOf(t.cat).emoji,
+          done: isDone(t, d), rest: isRest(t), star: !!t.star }))
+          .sort((a, b) => (a.time ? 0 : 1) - (b.time ? 0 : 1) || a.time.localeCompare(b.time));
+      }
+      try { window.KawaiiWidget.update(JSON.stringify({ v: 1, updatedAt: Date.now(), night: document.body.classList.contains("night"), days })); } catch {}
+    }, 300);
+  }
+
+  function renderAll() { pushWidget(); renderDay(); renderExtras(); renderWeek(); renderMonth(); renderRoutines(); buildForm(); layoutBoxes(); }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => layoutBoxes());
 
   // Cambio de día automático: si la app sigue abierta a medianoche
