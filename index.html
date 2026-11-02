@@ -457,6 +457,14 @@
   #schedAdd { grid-template-columns: 118px 1fr auto; gap: 8px; margin-top: 10px; }
   #schedAdd input { padding: 10px 8px; font-size: 15px; }
   #schedAdd .btn { padding: 10px 16px; }
+  /* Descanso: más grande y suave */
+  .task.rest, .sched .task.rest { padding: 18px 14px; border-left-width: 6px;
+    background: linear-gradient(120deg, #f3ecff, #ffeaf4); }
+  .task.rest .title { font: 400 20px "Mochiy Pop One", sans-serif; color: #8a6fd6; line-height: 1.25; word-break: normal; overflow-wrap: break-word; }
+  .task.rest .meta { font-size: 13.5px; color: #a58bdc; }
+  .sched .task.rest .stime { font-size: 19px; color: #8a6fd6; }
+  .task.rest .check { border-color: #c9b5f7; }
+  .task.rest.done .check { background: #b79cf5; border-color: #b79cf5; }
   .task.flash { animation: kflash 1.4s ease-in-out 3; }
   @keyframes kflash { 50% { box-shadow: 0 0 0 3px var(--pink-300); } }
   .timed-note { font-size: 13px; color: var(--muted); font-weight: 600; padding: 2px 4px 8px; }
@@ -885,19 +893,23 @@
   }
 
   // Una tarea de la lista del día (con tachar, editar y borrar)
+  // Descansar es importante: se ve en grande
+  const REST_RE = /descans|siesta|relax|relaj|medita|respira|pausa|dormir|tiempo para m[ií]/i;
+  const isRest = t => REST_RE.test(t.title);
+
   function taskItem(t, d, sched = false) {
       const done = isDone(t, d);
-      const c = catOf(t.cat);
+      const c = catOf(t.cat), rest = isRest(t);
       const li = document.createElement("li");
-      li.className = "task" + (done ? " done" : "");
-      li.style.setProperty("--c", c.color);
+      li.className = "task" + (done ? " done" : "") + (rest ? " rest" : "");
+      li.style.setProperty("--c", rest ? "#b79cf5" : c.color);
       li.innerHTML = `
         ${sched ? `<span class="stime">${esc(t.time)}</span>` : ""}
         <button class="check" aria-label="${done ? "Desmarcar" : "Tachar"}">${done ? "✓" : ""}</button>
-        <span class="emoji">${c.emoji}</span>
+        ${rest ? "" : `<span class="emoji">${c.emoji}</span>`}
         <div class="info">
           <div class="title">${esc(t.title)}</div>
-          <div class="meta">${[!sched && t.time && "⏰ " + esc(t.time), t.repeat !== "once" && "🔁 " + repeatText(t)].filter(Boolean).join(" · ")}</div>
+          <div class="meta">${[rest && "☁️ Tiempo para ti", !sched && t.time && "⏰ " + esc(t.time), t.repeat !== "once" && "🔁 " + repeatText(t)].filter(Boolean).join(" · ")}</div>
         </div>
         <button class="edit" aria-label="Editar">✎</button>
         <button class="del" aria-label="Borrar">✕</button>`;
