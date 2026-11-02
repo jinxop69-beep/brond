@@ -210,6 +210,8 @@
     z-index: 60; max-width: calc(100% - 32px); text-align: center;
   }
   .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast { display: flex; align-items: center; gap: 12px; justify-content: center; }
+  .toast-act { border: 0; background: #fff; color: var(--pink-500); border-radius: 999px; padding: 6px 12px; font: 700 14px "Quicksand", sans-serif; cursor: pointer; }
   /* ---------- Colores por categoría ---------- */
   .task { border-left: 7px solid var(--c, var(--pink-300)); }
   .pill { background: color-mix(in srgb, var(--c, #ffc6dc) 18%, #fff); border-color: color-mix(in srgb, var(--c, #ffc6dc) 45%, #fff); }
@@ -465,6 +467,10 @@
   .sched .task.rest .stime { font-size: 19px; color: #8a6fd6; }
   .task.rest .check { border-color: #c9b5f7; }
   .task.rest.done .check { background: #b79cf5; border-color: #b79cf5; }
+  .to-day { border: 1.5px solid var(--pink-200); background: #fff; color: var(--pink-500); border-radius: 999px;
+    padding: 5px 9px; font: 700 12px "Quicksand", sans-serif; cursor: pointer; white-space: nowrap; flex: none; }
+  .task.star { box-shadow: inset 0 0 0 1.5px #ffd36e; }
+  .task.star .title { font-weight: 800; }
   /* Arrastrar en el horario */
   .sched-hint { margin-left: auto; font: 600 12px "Quicksand", sans-serif; color: var(--muted); }
   .sched .task { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; touch-action: pan-y; cursor: grab; position: relative; }
@@ -623,6 +629,7 @@
             <button type="button" class="chip" data-v="daily">Todos los días</button>
             <button type="button" class="chip" data-v="weekly">Algunos días de la semana</button>
             <button type="button" class="chip" data-v="dates">📅 Elegir días en el calendario</button>
+            <button type="button" class="chip" data-v="none">📥 Sin fecha</button>
           </div>
         </div>
 
@@ -751,6 +758,7 @@
   function occursOn(task, date) {
     const key = ymd(date);
     if (task.repeat === "once") return task.date === key;
+    if (task.repeat === "none") return false; // bandeja sin fecha
     if (task.repeat === "dates") return (task.dates || []).includes(key) && !(task.skip || []).includes(key);
     if (task.from && key < task.from) return false;
     if ((task.skip || []).includes(key)) return false;
@@ -775,6 +783,7 @@
   const repeatText = t => t.repeat === "daily" ? "todos los días"
     : t.repeat === "weekly" ? (t.days || []).slice().sort().map(i => DAY_SHORT[i]).join(" · ")
     : t.repeat === "dates" ? `${(t.dates || []).length} días marcados`
+    : t.repeat === "none" ? "sin fecha"
     : "un solo día";
   // Celdas de un mes (semanas completas, lunes primero)
   function monthDays(first) {
@@ -819,7 +828,7 @@
     $("#schedHint").classList.toggle("hidden", timed.length < 2);
     for (const b of BOXES) {
       const all = list.filter(t => inBox(b, t));
-      const items = all.filter(t => !effTime(t, d)), timedHere = all.filter(t => effTime(t, d));
+      const items = all.filter(t => !effTime(t, d)).sort((a, b) => (b.star ? 1 : 0) - (a.star ? 1 : 0)), timedHere = all.filter(t => effTime(t, d));
       const k = all.filter(t => isDone(t, d)).length;
       const card = document.createElement("div");
       card.className = "card box" + (b.cats ? " plain" : "");
@@ -844,6 +853,7 @@
       });
       putBox(b.id, card);
     }
+    renderInbox(d);
     layoutBoxes();
 
     const n = list.length, k = list.filter(t => isDone(t, d)).length;
@@ -1016,7 +1026,7 @@
       const done = isDone(t, d);
       const c = catOf(t.cat), rest = isRest(t);
       const li = document.createElement("li");
-      li.className = "task" + (done ? " done" : "") + (rest ? " rest" : "");
+      li.className = "task" + (done ? " done" : "") + (rest ? " rest" : "") + (t.star ? " star" : "");
       li.dataset.id = t.id;
       li.style.setProperty("--c", rest ? "#b79cf5" : c.color);
       li.innerHTML = `
@@ -1024,12 +1034,12 @@
         <button class="check" aria-label="${done ? "Desmarcar" : "Tachar"}">${done ? "✓" : ""}</button>
         ${rest ? "" : `<span class="emoji">${c.emoji}</span>`}
         <div class="info">
-          <div class="title">${esc(t.title)}</div>
+          <div class="title">${t.star ? "⭐ " : ""}${esc(t.title)}</div>
           <div class="meta">${[rest && "☁️ Tiempo para ti", !sched && t.time && "⏰ " + esc(t.time), t.repeat !== "once" && "🔁 " + repeatText(t)].filter(Boolean).join(" · ")}</div>
         </div>
         <button class="edit" aria-label="Editar">✎</button>
         <button class="del" aria-label="Borrar">✕</button>`;
-      li.querySelector(".edit").addEventListener("click", () => startEdit(t));
+      li.querySelector(".edit").addEventListener("click", () => taskMenu(t, d));
       li.querySelector(".check").addEventListener("click", e => {
         const nowDone = toggleDone(t, d);
         if (nowDone) hearts(e.clientX, e.clientY, 6);
@@ -1044,8 +1054,115 @@
       return li;
   }
 
+  /* ---------- Bandeja "sin fecha": ideas y pendientes para cuando se pueda ---------- */
+  function renderInbox(d) {
+    const items = data.tasks.filter(t => t.repeat === "none").sort((a, b) => (b.star ? 1 : 0) - (a.star ? 1 : 0));
+    const card = document.createElement("div");
+    card.className = "card box inbox";
+    card.style.setProperty("--c", "#e8a0c8");
+    const dayTxt = ymd(d) === ymd(today()) ? "hoy" : `el ${DAY_LONG[weekIdx(d)]} ${d.getDate()}`;
+    card.innerHTML = `
+      <h2><span>📥 Sin fecha</span><span class="count">${items.length || "—"}</span></h2>
+      <ul class="tasks">${items.length ? "" : `<li class="empty">Apunta aquí lo que quieres hacer algún día ✨</li>`}</ul>
+      <form><input type="text" maxlength="80" placeholder="Algo pendiente, sin día…" aria-label="Añadir sin fecha"><button class="btn" type="submit" aria-label="Añadir sin fecha">♡</button></form>`;
+    const ul = card.querySelector("ul");
+    for (const t of items) {
+      const li = document.createElement("li");
+      li.className = "task" + (t.star ? " star" : "");
+      li.style.setProperty("--c", catOf(t.cat).color);
+      li.innerHTML = `<span class="emoji">${t.star ? "⭐" : catOf(t.cat).emoji}</span>
+        <div class="info"><div class="title">${esc(t.title)}</div></div>
+        <button class="to-day" aria-label="Poner ${dayTxt}">📅 ${ymd(d) === ymd(today()) ? "Hoy" : `${DAY_SHORT[weekIdx(d)]} ${d.getDate()}`}</button>
+        <button class="del" aria-label="Borrar">✕</button>`;
+      li.querySelector(".to-day").addEventListener("click", () => {
+        const snap = snapshot();
+        t.repeat = "once"; t.date = ymd(d);
+        save(); renderAll();
+        toast(`Puesta para ${dayTxt} 📅`, { label: "Deshacer", fn: () => undoTo(snap) });
+      });
+      li.querySelector(".del").addEventListener("click", () => removeTask(t, d, true));
+      ul.appendChild(li);
+    }
+    card.querySelector("form").addEventListener("submit", e => {
+      e.preventDefault();
+      const inp = e.target.querySelector("input"), title = inp.value.trim();
+      if (!title) { inp.focus(); return; }
+      data.tasks.push({ id: uid(), title, cat: guessCat(title), time: "", repeat: "none" });
+      save(); renderAll();
+      const again = document.querySelector('.box[data-id="inbox"] form input');
+      if (again) again.focus();
+    });
+    putBox("inbox", card);
+  }
+
+  /* ---------- Menú de una tarea: editar, importante, pasar a otro día ---------- */
+  async function taskMenu(t, d) {
+    const tomorrow = addDays(d, 1);
+    const choice = await sheet({
+      emoji: t.star ? "⭐" : catOf(t.cat).emoji,
+      title: t.title,
+      text: t.repeat === "once" ? "¿Qué quieres hacer?" : `Es una rutina 🔁 (${repeatText(t)}). Pasarla a otro día solo cambia este ${DAY_LONG[weekIdx(d)]}.`,
+      buttons: [
+        { v: "star", label: t.star ? "☆ Quitar de importantes" : "⭐ Marcar como importante" },
+        { v: "tomorrow", label: `➡️ Pasar a mañana (${DAY_LONG[weekIdx(tomorrow)]} ${tomorrow.getDate()})` },
+        { v: "other", label: "📅 Pasar a otro día…" },
+        { v: "edit", label: "✎ Editar" },
+        { v: null, label: "Cerrar", cls: "soft" },
+      ]
+    });
+    if (choice === "edit") return startEdit(t);
+    if (choice === "star") {
+      t.star = !t.star;
+      save(); renderAll();
+      return toast(t.star ? "Marcada como importante ⭐" : "Ya no es importante");
+    }
+    if (choice === "tomorrow") return moveTask(t, d, ymd(tomorrow));
+    if (choice === "other") {
+      const k = await pickDate(t, d);
+      if (k && k !== ymd(d)) moveTask(t, d, k);
+    }
+  }
+  // Ventanita con un calendario para elegir el día nuevo
+  function pickDate(t, d) {
+    return new Promise(resolve => {
+      const back = document.createElement("div");
+      back.className = "sheet-back";
+      back.innerHTML = `
+        <form class="sheet" role="dialog" aria-modal="true">
+          <div class="sheet-emoji">📅</div>
+          <h3>¿A qué día lo pasas?</h3>
+          <p>${esc(t.title)}</p>
+          <input type="date" name="d" value="${ymd(addDays(d, 1))}" required>
+          <div class="sheet-btns" style="margin-top:10px">
+            <button class="sbtn danger" type="submit">➡️ Pasar</button>
+            <button class="sbtn soft" type="button" data-a="no">Mejor no ♡</button>
+          </div>
+        </form>`;
+      const close = v => { back.classList.remove("show"); setTimeout(() => back.remove(), 250); resolve(v); };
+      back.querySelector("form").addEventListener("submit", e => { e.preventDefault(); close(e.target.d.value || null); });
+      back.addEventListener("click", e => { if (e.target === back || e.target.closest("[data-a=no]")) close(null); });
+      document.body.appendChild(back);
+      requestAnimationFrame(() => back.classList.add("show"));
+    });
+  }
+  function moveTask(t, d, newK) {
+    const k = ymd(d), snap = snapshot();
+    const unmark = key => { if (data.done[key]) { data.done[key] = data.done[key].filter(id => id !== t.id); if (!data.done[key].length) delete data.done[key]; } };
+    if (t.repeat === "once") { t.date = newK; unmark(k); }
+    else if (t.repeat === "dates") { t.dates = [...new Set([...(t.dates || []).filter(x => x !== k), newK])].sort(); unmark(k); }
+    else {
+      // Rutina: se quita de este día y se pone una vez el día nuevo
+      t.skip = [...new Set([...(t.skip || []), k])];
+      unmark(k);
+      data.tasks.push({ id: uid(), title: t.title, cat: t.cat, time: effTime(t, d), repeat: "once", date: newK, ...(t.star ? { star: true } : {}) });
+    }
+    save(); renderAll();
+    const nd = parseYmd(newK);
+    toast(`Pasada al ${DAY_LONG[weekIdx(nd)]} ${nd.getDate()} ➡️`, { label: "Deshacer", fn: () => undoTo(snap) });
+  }
+
   async function removeTask(t, d, fromRoutines = false) {
-    const c = catOf(t.cat);
+    const c = catOf(t.cat), snap = snapshot();
     if (t.repeat !== "once" && !fromRoutines) {
       const choice = await sheet({
         emoji: c.emoji,
@@ -1070,7 +1187,7 @@
           if (!data.done[k].length) delete data.done[k];
         }
         save();
-        toast(`Quitada solo del ${DAY_LONG[weekIdx(d)]} 🫧`);
+        toast(`Quitada solo del ${DAY_LONG[weekIdx(d)]} 🫧`, { label: "Deshacer", fn: () => undoTo(snap) });
         renderAll();
         return;
       }
@@ -1093,7 +1210,7 @@
       if (!data.done[k].length) delete data.done[k];
     }
     save();
-    toast("Tarea borrada 🫧");
+    toast("Tarea borrada 🫧", { label: "Deshacer", fn: () => undoTo(snap) });
     renderAll();
   }
 
@@ -1127,7 +1244,7 @@
           <span class="count">${list.length ? `${doneN}/${list.length} ✓` : "libre 🍡"}</span>
         </div>
         <div class="pills">${list.map(t =>
-          `<span class="pill${isDone(t, d) ? " done" : ""}" style="--c:${catOf(t.cat).color}">${catOf(t.cat).emoji} ${esc(t.title)}${effTime(t, d) ? " · " + esc(effTime(t, d)) : ""}</span>`
+          `<span class="pill${isDone(t, d) ? " done" : ""}" style="--c:${catOf(t.cat).color}">${t.star ? "⭐" : catOf(t.cat).emoji} ${esc(t.title)}${effTime(t, d) ? " · " + esc(effTime(t, d)) : ""}</span>`
         ).join("")}</div>`;
       box.addEventListener("click", () => { current = d; switchTab("day"); });
       grid.appendChild(box);
@@ -1206,7 +1323,7 @@
   const fmtDay = k => { const d = parseYmd(k); return `${DAY_SHORT[weekIdx(d)]} ${d.getDate()}`; };
 
   /* ---------- Colocar los cuadraditos: orden propio, plegar y reparto en dos columnas ---------- */
-  const DEFAULT_ORDER = ["casa", "estudio", "deporte", "otros", "read", "food", "cycle"];
+  const DEFAULT_ORDER = ["casa", "estudio", "deporte", "otros", "inbox", "read", "food", "cycle"];
   const boxEls = {};
   let ordering = false;
   function putBox(id, card) { card.dataset.id = id; boxEls[id] = card; }
@@ -1603,7 +1720,7 @@
     $("#fRepeat").querySelectorAll(".chip").forEach(b => b.classList.toggle("on", b.dataset.v === fRepeat));
     $("#daysWrap").classList.toggle("hidden", fRepeat !== "weekly");
     $("#datesWrap").classList.toggle("hidden", fRepeat !== "dates");
-    $("#dateWrap").classList.toggle("hidden", fRepeat === "dates");
+    $("#dateWrap").classList.toggle("hidden", fRepeat === "dates" || fRepeat === "none");
     $("#dateWrap").firstChild.textContent = fRepeat === "once" ? "Día" : "Empieza el";
     $("#editingBar").classList.toggle("hidden", !editingId);
     $("#formTitle").textContent = editingId ? "✏️ Editar tarea" : "🌸 Nueva tarea";
@@ -1668,6 +1785,7 @@
     const old = editingId && data.tasks.find(x => x.id === editingId);
     const task = { id: old ? old.id : uid(), title, cat: fCat, time: $("#fTime").value, repeat: fRepeat };
     if (fRepeat === "once") task.date = date;
+    else if (fRepeat === "none") { /* bandeja sin fecha */ }
     else if (fRepeat === "dates") task.dates = [...fDates].sort();
     else task.from = date;
     if (fRepeat === "weekly") task.days = [...fDays].sort();
@@ -1684,7 +1802,7 @@
 
   function renderRoutines() {
     const ul = $("#routineList");
-    const list = data.tasks.filter(t => t.repeat !== "once");
+    const list = data.tasks.filter(t => t.repeat !== "once" && t.repeat !== "none");
     ul.innerHTML = list.length ? "" : `<li class="empty"><span class="pop">🧸</span>Aún no tienes rutinas</li>`;
     for (const t of list) {
       const c = catOf(t.cat);
@@ -1750,12 +1868,26 @@
     }
   }
   let toastTimer;
-  function toast(msg) {
+  function toast(msg, action) {
     const t = $("#toast");
     t.textContent = msg;
+    if (action) {
+      const b = document.createElement("button");
+      b.className = "toast-act";
+      b.textContent = action.label;
+      b.onclick = () => { t.classList.remove("show"); action.fn(); };
+      t.appendChild(b);
+    }
     t.classList.add("show");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove("show"), 2400);
+    toastTimer = setTimeout(() => t.classList.remove("show"), action ? 6000 : 2400);
+  }
+  // Deshacer: se guarda cómo estaban las tareas antes del cambio
+  const snapshot = () => JSON.stringify({ tasks: data.tasks, done: data.done, deleted: data.deleted });
+  function undoTo(snap, msg = "Deshecho ↩️") {
+    const s0 = JSON.parse(snap);
+    data.tasks = s0.tasks; data.done = s0.done; data.deleted = s0.deleted;
+    save(); renderAll(); toast(msg);
   }
 
   /* ---------- Nube (Supabase) ---------- */
@@ -1778,8 +1910,10 @@
       if (opts.anon && t.seed) continue;
       if (!map.has(t.id) || opts.localWins) map.set(t.id, t);
     }
-    r.tasks = [...map.values()].filter(t => !del.has(t.id));
-    r.deleted = [...del].slice(-500);
+    const mine = new Set((local.tasks || []).map(t => t.id));
+    const revived = id => opts.localWins && mine.has(id) && !(local.deleted || []).includes(id);
+    r.tasks = [...map.values()].filter(t => !del.has(t.id) || revived(t.id));
+    r.deleted = [...del].filter(id => !revived(id)).slice(-500);
     for (const [k, v] of Object.entries(local.done || {})) r.done[k] = [...new Set([...(r.done[k] || []), ...v])];
     for (const [k, v] of Object.entries(local.log || {})) {
       const rem = r.log[k] || {}, out = {};
