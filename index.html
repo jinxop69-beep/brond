@@ -42,7 +42,7 @@
   .cols > section { min-width: 0; }
   .cols > section { display: none; }
   body[data-tab=day] #tab-day, body[data-tab=week] #tab-week,
-  body[data-tab=month] #tab-month, body[data-tab=add] #tab-add { display: block; }
+  body[data-tab=month] #tab-month, body[data-tab=add] #tab-add, body[data-tab=pareja] #tab-pareja { display: block; }
   h1, h2, h3, .pop { font-family: "Mochiy Pop One", "Quicksand", sans-serif; font-weight: 400; }
 
   /* ---------- Header ---------- */
@@ -80,6 +80,8 @@
     border-radius: 999px; font: 700 15px "Quicksand", sans-serif; color: var(--muted); cursor: pointer;
   }
   @media (max-width: 400px) { .tabs { gap: 2px; } .tabs button { font-size: 13.5px; padding: 11px 2px; } }
+  body.has-pair .tabs button { font-size: 13px; padding: 11px 1px; }
+  @media (max-width: 400px) { body.has-pair .tabs button { font-size: 11.5px; } }
   .tabs button.active { background: var(--pink-400); color: #fff; box-shadow: inset 0 -3px 0 var(--pink-500); }
 
   /* ---------- Cards ---------- */
@@ -485,6 +487,15 @@
   .task.gcal .stime { color: #5b8fdc; }
   .gcal-all { list-style: none; padding: 8px 12px; border-radius: 14px; font-weight: 700; font-size: 14px;
     background: color-mix(in srgb, #7aa7e8 14%, var(--card)); color: color-mix(in srgb, #5b8fdc 80%, var(--text)); }
+  .pair-add { grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .pair-add #pairText { grid-column: 1 / 2; } .pair-add .btn { grid-column: 2 / 3; }
+  @media (min-width: 420px) { .pair-add { grid-template-columns: 1fr 96px; } .pair-add #pairDate { grid-column: 1; } .pair-add #pairTime { grid-column: 2; } .pair-add #pairText { grid-column: 1; } }
+  .in-pair .stime { flex: none; width: 54px; font: 400 16px "Mochiy Pop One", sans-serif; color: #ff6f9f; }
+  .in-pair .meta:empty { display: none; }
+  .pair-day { list-style: none; font: 400 14px "Mochiy Pop One", sans-serif; color: #ff6f9f; margin: 8px 0 -2px 4px; text-transform: capitalize; }
+  .cell.pair-on { background: color-mix(in srgb, #ff6f9f 16%, var(--pink-50)); border-color: #ffa3c6; }
+  .shop .title { font-size: 16px; }
+  .task.shop.done .title { color: var(--muted); }
   .task.star { box-shadow: inset 0 0 0 1.5px #ffd36e; }
   .task.star .title { font-weight: 800; }
   /* Arrastrar en el horario */
@@ -568,6 +579,7 @@
     <button class="active" data-tab="day" role="tab">🎀 Mi día</button>
     <button data-tab="week" role="tab">🗓️ Semana</button>
     <button data-tab="month" role="tab">📅 Mes</button>
+    <button data-tab="pareja" role="tab" class="hidden" id="pairTab">💞 Pareja</button>
     <button data-tab="add" role="tab">➕ Añadir</button>
   </nav>
 
@@ -647,6 +659,35 @@
     <div class="card box" id="monthReadCard" style="--c:#8f7cf0">
       <h2><span id="monthReadTitle">📖 Lectura</span></h2>
       <div id="monthRead"></div>
+    </div>
+  </section>
+
+  <!-- ============ PAREJA ============ -->
+  <section id="tab-pareja">
+    <div class="weeknav">
+      <button class="round" id="prevPairMonth" aria-label="Mes anterior">‹</button>
+      <div class="label" id="pairMonthLabel" style="text-transform:capitalize"></div>
+      <button class="round" id="nextPairMonth" aria-label="Mes siguiente">›</button>
+    </div>
+    <div class="card box" style="--c:#ff6f9f">
+      <h2><span id="pairTitle">💞 Nuestros planes</span></h2>
+      <div class="cal" id="pairGrid"></div>
+    </div>
+    <div class="card box" style="--c:#ff6f9f">
+      <h2><span id="pairListTitle">✨ Próximos planes</span></h2>
+      <ul class="tasks" id="pairList"></ul>
+      <form id="pairAdd" class="pair-add">
+        <input type="date" id="pairDate" aria-label="Día">
+        <input type="time" id="pairTime" aria-label="Hora (opcional)">
+        <input type="text" id="pairText" maxlength="80" placeholder="Plan de pareja (cine, cena…)" aria-label="Plan">
+        <button class="btn" type="submit" aria-label="Añadir plan">♡</button>
+      </form>
+    </div>
+    <div class="card box" style="--c:#f5bf3d">
+      <h2><span>🛒 Lista de la compra</span><span class="count" id="shopCount">—</span></h2>
+      <ul class="tasks" id="shopList"></ul>
+      <form id="shopAdd"><input type="text" id="shopText" maxlength="60" placeholder="Leche, plátanos…" aria-label="Añadir a la compra"><button class="btn" type="submit" aria-label="Añadir">♡</button></form>
+      <button class="sbtn soft hidden" type="button" id="shopClear" style="width:100%;margin-top:10px">🧹 Borrar lo comprado</button>
     </div>
   </section>
 
@@ -1847,7 +1888,7 @@
     // Días por categoría y por tarea en este mes
     const catDays = {}, taskDays = new Map();
     for (const d of inMonth) {
-      for (const task of tasksOn(d)) {
+      for (const task of tasksOn(d).filter(x => !x.shared)) {
         if (task.repeat !== "daily") (catDays[task.cat] = catDays[task.cat] || new Set()).add(ymd(d));
         if (!taskDays.has(task)) taskDays.set(task, []);
         taskDays.get(task).push(d);
@@ -1862,7 +1903,7 @@
     const pred = predicted();
     $("#calLegend").classList.toggle("hidden", !!data.settings.hideCycle || !pred.period.size);
     $("#monthGrid").innerHTML = DAY_SHORT.map(x => `<div class="dow">${x}</div>`).join("") + days.map(d => {
-      const k = ymd(d), list = tasksOn(d);
+      const k = ymd(d), list = tasksOn(d).filter(x => !x.shared);
       // Las rutinas diarias no se pintan: estarían en todos los días
       const cats = [...new Set(list.filter(x => x.repeat !== "daily").map(x => x.cat))].map(catOf);
       const hit = monthFilter && cats.some(c => c.id === monthFilter);
@@ -2059,7 +2100,7 @@
     // En pantalla ancha "Mi día" (y en escritorio "Añadir") se ven siempre;
     // si se pide uno de ellos, la columna central sigue mostrando lo que tenía.
     const prev = document.body.dataset.tab;
-    const mid = prev === "month" ? "month" : "week";
+    const mid = prev === "month" || prev === "pareja" ? prev : "week";
     if ((wide && name === "day") || (desk && name === "add")) name = mid;
     document.body.dataset.tab = name;
     document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
@@ -2157,6 +2198,11 @@
       r.log[k] = out;
     }
     r.cycleStarts = [...new Set([...r.cycleStarts, ...(local.cycleStarts || [])])].sort();
+    if (r.shopping || local.shopping) {  // lista de la compra de pareja
+      const sm = new Map((r.shopping || []).map(x => [x.id, x]));
+      for (const x of local.shopping || []) if (!sm.has(x.id) || opts.localWins) sm.set(x.id, x);
+      r.shopping = [...sm.values()].filter(x => !del.has(x.id) || revived(x.id));
+    }
     if (opts.localWins) r.settings = { ...r.settings, ...(local.settings || {}) };
     r.updatedAt = Date.now();
     return r;
@@ -2280,7 +2326,7 @@
   const shared = {
     lastRemote: 0, lastJSON: "", timer: null, busy: false,
     store() { try { space ? localStorage.setItem("miDiaKawaii.space", JSON.stringify(space)) : localStorage.removeItem("miDiaKawaii.space"); } catch {} },
-    norm(d) { d = d || {}; d.tasks = d.tasks || []; d.done = d.done || {}; d.deleted = d.deleted || []; d.names = d.names || {}; return d; },
+    norm(d) { d = d || {}; d.tasks = d.tasks || []; d.done = d.done || {}; d.deleted = d.deleted || []; d.names = d.names || {}; d.shopping = d.shopping || []; return d; },
     // Tras cualquier cambio: si lo compartido cambió, se sube
     maybeSave() {
       if (!space || !space.data) return;
@@ -2718,7 +2764,103 @@
     }, 300);
   }
 
-  function renderAll() { pushWidget(); renderDay(); renderExtras(); renderWeek(); renderMonth(); renderRoutines(); buildForm(); layoutBoxes(); }
+  /* ---------- 💞 Pareja: calendario solo de pareja y lista de la compra ---------- */
+  let pairMonth = firstOfMonth(today());
+  const sharedOn = d => tasksOn(d).filter(t => t.shared);
+  function renderPareja() {
+    const on = paired();
+    $("#pairTab").classList.toggle("hidden", !on);
+    document.body.classList.toggle("has-pair", on);
+    if (!on) { if (document.body.dataset.tab === "pareja") switchTab("day"); return; }
+    $("#pairTitle").textContent = `💞 Con ${shared.partnerName().split("@")[0]}`;
+    const m = pairMonth.getMonth(), t0 = ymd(today());
+    $("#pairMonthLabel").textContent = `${MONTHS[m]} ${pairMonth.getFullYear()}`;
+    $("#pairGrid").innerHTML = DAY_SHORT.map(x => `<div class="dow">${x}</div>`).join("") + monthDays(pairMonth).map(d => {
+      const k = ymd(d), list = sharedOn(d);
+      return `<button class="cell${d.getMonth() !== m ? " out" : ""}${k === t0 ? " today" : ""}${list.length ? " pair-on" : ""}" data-k="${k}" aria-label="${d.getDate()}: ${list.map(x => esc(x.title)).join(", ") || "libre"}">
+        <span class="n">${d.getDate()}</span><span class="ems">${list.length ? "💞".repeat(Math.min(list.length, 3)) : ""}</span></button>`;
+    }).join("");
+    // Próximos planes (30 días)
+    const ul = $("#pairList");
+    ul.innerHTML = "";
+    let any = false;
+    for (let i = 0; i < 30; i++) {
+      const d = addDays(today(), i), list = sharedOn(d);
+      if (!list.length) continue;
+      any = true;
+      ul.insertAdjacentHTML("beforeend", `<li class="pair-day">${i === 0 ? "Hoy" : i === 1 ? "Mañana" : `${DAY_LONG[weekIdx(d)]} ${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)}`}</li>`);
+      for (const t of list.sort((a, b) => (effTime(a, d) || "99").localeCompare(effTime(b, d) || "99"))) {
+        const li = taskItem(t, d, !!effTime(t, d));
+        li.classList.add("in-pair");
+        const meta = li.querySelector(".meta"); // aquí ya se sabe que es de pareja
+        if (meta) meta.textContent = meta.textContent.replace(/💞 compartida( · )?/, "");
+        ul.appendChild(li);
+      }
+    }
+    if (!any) ul.innerHTML = `<li class="empty">Aún no hay planes juntas ✨ ¡Apuntad el primero!</li>`;
+    if (!$("#pairDate").value) $("#pairDate").value = t0;
+    // Compra
+    const shop = (spaceData().shopping || []);
+    const pend = shop.filter(x => !x.done).length;
+    $("#shopCount").textContent = shop.length ? `${pend} por comprar` : "—";
+    const sl = $("#shopList");
+    sl.innerHTML = shop.length ? "" : `<li class="empty">La lista está vacía 🛒</li>`;
+    for (const x of [...shop].sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0))) {
+      const li = document.createElement("li");
+      li.className = "task shop" + (x.done ? " done" : "");
+      li.style.setProperty("--c", "#f5bf3d");
+      li.innerHTML = `<button class="check" aria-label="${x.done ? "Desmarcar" : "Comprado"}">${x.done ? "✓" : ""}</button>
+        <div class="info"><div class="title">${esc(x.text)}</div>${x.by ? `<div class="meta">${esc(x.by)}</div>` : ""}</div>
+        <button class="del" aria-label="Quitar">✕</button>`;
+      li.querySelector(".check").addEventListener("click", () => { x.done = !x.done; save(); renderPareja(); });
+      li.querySelector(".del").addEventListener("click", () => {
+        const sd = spaceData(); sd.shopping = sd.shopping.filter(y => y !== x); sd.deleted = [...(sd.deleted || []), x.id].slice(-500);
+        save(); renderPareja();
+      });
+      sl.appendChild(li);
+    }
+    $("#shopClear").classList.toggle("hidden", !shop.some(x => x.done));
+  }
+  $("#pairGrid").addEventListener("click", e => {
+    const b = e.target.closest(".cell"); if (!b) return;
+    $("#pairDate").value = b.dataset.k;
+    $("#pairText").focus();
+    const d = parseYmd(b.dataset.k), n = sharedOn(d).length;
+    toast(n ? `${n} ${n === 1 ? "plan" : "planes"} el ${DAY_LONG[weekIdx(d)]} ${d.getDate()} 💞` : `Apunta un plan para el ${DAY_LONG[weekIdx(d)]} ${d.getDate()} ✍️`);
+  });
+  $("#prevPairMonth").onclick = () => { pairMonth = new Date(pairMonth.getFullYear(), pairMonth.getMonth() - 1, 1); renderPareja(); };
+  $("#nextPairMonth").onclick = () => { pairMonth = new Date(pairMonth.getFullYear(), pairMonth.getMonth() + 1, 1); renderPareja(); };
+  $("#pairAdd").addEventListener("submit", e => {
+    e.preventDefault();
+    if (!spaceData()) return;
+    let text = $("#pairText").value.trim(), time = $("#pairTime").value;
+    if (!text) { $("#pairText").focus(); return; }
+    const q = quickTime(text); if (q.time) { time = q.time; text = q.title; }
+    const date = $("#pairDate").value || ymd(today());
+    spaceData().tasks.push({ id: uid(), title: text, cat: guessCat(text) === "general" ? "social" : guessCat(text), time, repeat: "once", date, shared: true });
+    save(); renderAll();
+    $("#pairText").value = ""; $("#pairTime").value = "";
+    const d = parseYmd(date);
+    toast(`Plan apuntado para el ${DAY_LONG[weekIdx(d)]} ${d.getDate()} 💞`);
+  });
+  $("#shopAdd").addEventListener("submit", e => {
+    e.preventDefault();
+    const sd = spaceData(); if (!sd) return;
+    const text = $("#shopText").value.trim(); if (!text) return;
+    sd.shopping = sd.shopping || [];
+    // Varias cosas de golpe separadas por comas: "leche, pan, huevos"
+    for (const part of text.split(/\s*,\s*/).filter(Boolean)) sd.shopping.push({ id: uid(), text: part.slice(0, 60), done: false, by: (cloud.user && cloud.user.email || "").split("@")[0] });
+    save(); renderPareja();
+    $("#shopText").value = ""; $("#shopText").focus();
+  });
+  $("#shopClear").addEventListener("click", () => {
+    const sd = spaceData(), gone = (sd.shopping || []).filter(x => x.done);
+    sd.shopping = sd.shopping.filter(x => !x.done);
+    sd.deleted = [...(sd.deleted || []), ...gone.map(x => x.id)].slice(-500);
+    save(); renderPareja(); toast("Lista limpia 🧹");
+  });
+
+  function renderAll() { pushWidget(); renderDay(); renderExtras(); renderWeek(); renderMonth(); renderPareja(); renderRoutines(); buildForm(); layoutBoxes(); }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => layoutBoxes());
 
   // Cambio de día automático: si la app sigue abierta a medianoche
