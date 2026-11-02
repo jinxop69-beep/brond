@@ -696,6 +696,16 @@
       <h2>🔁 Mis rutinas y días marcados</h2>
       <ul class="tasks" id="routineList"></ul>
     </div>
+
+    <div class="card">
+      <h2>💾 Copia de seguridad</h2>
+      <p class="magic-hint" style="text-align:left;margin:0 0 12px">Descarga un archivo con todas tus tareas, ciclo, lecturas… Guárdalo donde quieras y podrás recuperarlo.</p>
+      <div class="sheet-btns">
+        <button class="sbtn" type="button" id="backupBtn">⬇️ Descargar mis datos</button>
+        <button class="sbtn soft" type="button" id="restoreBtn">⬆️ Restaurar desde un archivo</button>
+      </div>
+      <input type="file" id="restoreFile" accept="application/json,.json" hidden>
+    </div>
   </section>
   </main>
   <div id="sideBoxes"></div>
@@ -1083,6 +1093,38 @@
       li.querySelector(".del").addEventListener("click", () => removeTask(t, d));
       return li;
   }
+
+  /* ---------- Copia de seguridad ---------- */
+  $("#backupBtn").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify({ app: "mi-dia-kawaii", version: 1, savedAt: new Date().toISOString(), data }, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `mi-dia-kawaii-${ymd(today())}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    toast("Copia descargada 💾");
+  });
+  $("#restoreBtn").addEventListener("click", () => $("#restoreFile").click());
+  $("#restoreFile").addEventListener("change", async e => {
+    const file = e.target.files[0]; e.target.value = "";
+    if (!file) return;
+    let incoming;
+    try {
+      const j = JSON.parse(await file.text());
+      incoming = j && j.app === "mi-dia-kawaii" ? j.data : j;
+      if (!incoming || !Array.isArray(incoming.tasks)) throw new Error("formato");
+    } catch { toast("Ese archivo no es una copia de Mi Día 🥺"); return; }
+    const ok = await sheet({ emoji: "💾", title: "¿Restaurar esta copia?",
+      text: `Tiene ${incoming.tasks.length} tareas. Lo que hay ahora se sustituye por la copia (podrás deshacerlo).`,
+      buttons: [{ v: "yes", label: "⬆️ Sí, restaurar", cls: "danger" }, { v: null, label: "Mejor no ♡", cls: "soft" }] });
+    if (!ok) return;
+    const before = JSON.stringify(data);
+    const owner = data.owner;
+    data = normalize(JSON.parse(JSON.stringify(incoming)));
+    data.owner = owner;
+    save(); renderAll();
+    toast("Copia restaurada 💖", { label: "Deshacer", fn: () => { data = normalize(JSON.parse(before)); save(); renderAll(); toast("Deshecho ↩️"); } });
+  });
 
   /* ---------- Bandeja "sin fecha": ideas y pendientes para cuando se pueda ---------- */
   function renderInbox(d) {
