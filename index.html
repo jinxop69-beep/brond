@@ -457,6 +457,8 @@
   #schedAdd { grid-template-columns: 118px 1fr auto; gap: 8px; margin-top: 10px; }
   #schedAdd input { padding: 10px 8px; font-size: 15px; }
   #schedAdd .btn { padding: 10px 16px; }
+  .task.flash { animation: kflash 1.4s ease-in-out 3; }
+  @keyframes kflash { 50% { box-shadow: 0 0 0 3px var(--pink-300); } }
   .timed-note { font-size: 13px; color: var(--muted); font-weight: 600; padding: 2px 4px 8px; }
   @media (max-width: 360px) { #schedAdd { grid-template-columns: 104px 1fr auto; } }
   .task .meta:empty { display: none; }
@@ -1946,8 +1948,20 @@
         const { added, merged } = addParsed(pick);
         close();
         $("#magicText").value = "";
+        // Te lleva a "Mi día" en el primer día de lo añadido (hoy si es una rutina) y lo resalta
+        const t0 = ymd(today());
+        const days = pick.map(t => t.repeat === "once" ? t.date : t.repeat === "dates" ? (t.dates.find(x => x >= t0) || t.dates[0]) : t0).sort();
+        const target = days.find(x => x >= t0) || days[0] || t0;
+        switchTab("day");
+        goDay(parseYmd(target));
+        const titles = new Set(pick.map(t => t.title));
+        document.querySelectorAll("#schedList .task, #dayBoxes .task, #sideBoxes .task").forEach(li => {
+          if (titles.has(li.querySelector(".title").textContent)) li.classList.add("flash");
+        });
+        scrollTo({ top: 0, behavior: "smooth" });
         hearts(innerWidth / 2, innerHeight * .6, 14);
-        toast(added || merged ? `¡Colocado! ${added ? added + " nuevas" : ""}${added && merged ? " · " : ""}${merged ? merged + " actualizadas" : ""} 💖` : "Ya lo tenías todo apuntado ♡");
+        const dd = parseYmd(target), when = target === t0 ? "hoy" : `el ${DAY_LONG[weekIdx(dd)]} ${dd.getDate()}`;
+        toast(added || merged ? `¡Colocado! Míralo ${when} 💖` : "Ya lo tenías todo apuntado ♡");
       }
     });
     document.body.appendChild(back);
