@@ -40,3 +40,13 @@ y Claude lo convierte en tareas. Antes de guardar se muestra una vista previa pa
   - `ANTHROPIC_WORKSPACE_ID` (solo si la clave es de organización y no de un workspace): el ID `wrkspc_…`.
   - `KAWAII_DAILY_LIMIT` (opcional): usos al día por cuenta, 60 por defecto (tabla `kawaii_usage`).
   - `CLAUDE_MODEL` (opcional): por defecto `claude-haiku-5-5` (barato y suficiente); `claude-opus-5-5` si hace falta más precisión.
+
+## Novedades
+- **Deshacer** tras borrar o mover, **⭐ importante**, **pasar a mañana / otro día** (menú ✎ de cada tarea).
+- **📥 Sin fecha**: bandeja para cosas pendientes sin día.
+- **🌙 Modo noche rosa**: automático de 21:00 a 7:00 o manual (botón de arriba).
+- **💾 Copia de seguridad** descargable y restaurable (en Añadir).
+- **Ciclo**: fase, días fértiles aprox., aviso antes de la regla, previsión en el calendario, ánimo por fase y resumen imprimible para la ginecóloga.
+- **💞 En pareja**: código para unir dos cuentas; las tareas marcadas 💞 salen en las dos (tabla `kawaii_space`).
+- **📆 Google Calendar**: enlace privado para suscribirse (función `kawaii-ical`, tabla `kawaii_ical`) y lectura de la dirección secreta iCal de Google.
+- **Widget de Android**: app en `android/` (ver `android/README.md`).

@@ -481,6 +481,10 @@
     border-radius: 14px; background: var(--pink-50); cursor: pointer; }
   .share-toggle input { width: 20px; height: 20px; accent-color: var(--pink-500); }
   .pair-code { font: 400 34px "Mochiy Pop One", sans-serif; letter-spacing: 6px; color: var(--pink-500); margin: 6px 0 0; }
+  .task.gcal { cursor: default; opacity: .92; }
+  .task.gcal .stime { color: #5b8fdc; }
+  .gcal-all { list-style: none; padding: 8px 12px; border-radius: 14px; font-weight: 700; font-size: 14px;
+    background: color-mix(in srgb, #7aa7e8 14%, var(--card)); color: color-mix(in srgb, #5b8fdc 80%, var(--text)); }
   .task.star { box-shadow: inset 0 0 0 1.5px #ffd36e; }
   .task.star .title { font-weight: 800; }
   /* Arrastrar en el horario */
@@ -885,8 +889,20 @@
     sl.innerHTML = "";
     const order = new Map(allTasks().map((t, i) => [t.id, i])); // a la misma hora, en el orden en que se apuntaron
     const timed = list.filter(t => effTime(t, d)).sort((a, b) => effTime(a, d).localeCompare(effTime(b, d)) || order.get(a.id) - order.get(b.id));
-    if (!timed.length) sl.innerHTML = `<li class="empty">Pon una hora y lo que vas a hacer ♡</li>`;
-    for (const t of timed) sl.appendChild(taskItem(t, d, true));
+    const gev = gcalOn(d), gAll = gev.filter(e => !e.time), gTimed = gev.filter(e => e.time);
+    if (gAll.length) sl.insertAdjacentHTML("beforeend", `<li class="gcal-all">📆 ${gAll.map(e => esc(e.title)).join(" · ")}</li>`);
+    if (!timed.length && !gTimed.length) sl.insertAdjacentHTML("beforeend", `<li class="empty">Pon una hora y lo que vas a hacer ♡</li>`);
+    // Tareas y eventos de Google Calendar (solo para ver) juntos por hora
+    const rows = [...timed.map(t => ({ time: effTime(t, d), t })), ...gTimed.map(e => ({ time: e.time, e }))].sort((a, b) => a.time.localeCompare(b.time));
+    for (const r of rows) {
+      if (r.t) { sl.appendChild(taskItem(r.t, d, true)); continue; }
+      const li = document.createElement("li");
+      li.className = "task gcal";
+      li.style.setProperty("--c", "#7aa7e8");
+      li.innerHTML = `<span class="stime">${esc(r.e.time)}</span><span class="emoji">📆</span>
+        <div class="info"><div class="title">${esc(r.e.title)}</div><div class="meta">Google Calendar</div></div>`;
+      sl.appendChild(li);
+    }
     $("#schedHint").classList.toggle("hidden", timed.length < 2);
     for (const b of BOXES) {
       const all = list.filter(t => inBox(b, t));
@@ -1356,7 +1372,7 @@
         </div>
         <div class="pills">${list.map(t =>
           `<span class="pill${isDone(t, d) ? " done" : ""}" style="--c:${catOf(t.cat).color}">${t.star ? "⭐" : catOf(t.cat).emoji} ${esc(t.title)}${effTime(t, d) ? " · " + esc(effTime(t, d)) : ""}</span>`
-        ).join("")}</div>`;
+        ).join("")}${gcalOn(d).map(e => `<span class="pill" style="--c:#7aa7e8">📆 ${esc(e.title)}${e.time ? " · " + esc(e.time) : ""}</span>`).join("")}</div>`;
       box.addEventListener("click", () => { current = d; switchTab("day"); });
       grid.appendChild(box);
     }
@@ -2243,7 +2259,7 @@
         if (upload) return await this.write(remote || null);
         this.status("ok");
         return true;
-      } finally { this.busy = false; if (this.user) shared.load(); }
+      } finally { this.busy = false; if (this.user) { shared.load(); refreshGcal(); } }
     },
     async setUser(user) {
       const was = this.user && this.user.id;
@@ -2322,6 +2338,68 @@
     reset() { space = null; this.lastJSON = ""; this.lastRemote = 0; this.store(); }
   };
 
+  /* ---------- Google Calendar: ver tus tareas allí y traer sus eventos aquí ---------- */
+  const GCAL_KEY = "miDiaKawaii.gcal";
+  let gcal = (() => { try { return JSON.parse(localStorage.getItem(GCAL_KEY)) || {}; } catch { return {}; } })();
+  const gcalOn = d => (gcal.url && gcal.url === data.settings.gcalUrl ? gcal.events || [] : []).filter(e => e.date === ymd(d));
+  async function refreshGcal(force) {
+    const url = data.settings.gcalUrl;
+    if (!url || !sb || !cloud.user || !navigator.onLine) return;
+    if (!force && gcal.url === url && Date.now() - (gcal.fetchedAt || 0) < 30 * 60000) return;
+    const { data: res, error } = await sb.functions.invoke("kawaii-ical", {
+      body: { url, from: ymd(addDays(today(), -7)), to: ymd(addDays(today(), 75)) } });
+    if (error || !res || !Array.isArray(res.events)) return false;
+    gcal = { url, fetchedAt: Date.now(), events: res.events.filter(e => e && typeof e.title === "string" && /^\d{4}-\d{2}-\d{2}$/.test(e.date) && (!e.time || /^\d{2}:\d{2}$/.test(e.time))) };
+    try { localStorage.setItem(GCAL_KEY, JSON.stringify(gcal)); } catch {}
+    renderAll();
+    return true;
+  }
+  async function gcalSheet() {
+    if (!sb || !cloud.user) { toast("Primero entra en tu cuenta ☁️"); return; }
+    // Enlace secreto de esta cuenta (se crea la primera vez)
+    let { data: rows } = await sb.from("kawaii_ical").select("token");
+    if (!rows || !rows.length) { await sb.from("kawaii_ical").insert({}); ({ data: rows } = await sb.from("kawaii_ical").select("token")); }
+    const link = rows && rows[0] ? `${SB_URL}/functions/v1/kawaii-ical?t=${rows[0].token}` : "";
+    const back = document.createElement("div");
+    back.className = "sheet-back";
+    back.innerHTML = `
+      <div class="sheet" role="dialog" aria-modal="true" style="text-align:left">
+        <div class="sheet-emoji" style="text-align:center">📆</div>
+        <h3 style="text-align:center">Google Calendar</h3>
+        <div class="xlabel">1 · Ver tus tareas en Google Calendar</div>
+        <p style="margin:0 0 8px">En Google Calendar (en el ordenador): <b>Otros calendarios ＋ → Desde URL</b> y pega este enlace. Es secreto: no lo compartas.</p>
+        <input type="text" readonly value="${esc(link)}" id="gcLink">
+        <button class="sbtn" data-a="copy" style="width:100%">📋 Copiar enlace</button>
+        <div class="xlabel">2 · Traer tus eventos de Google aquí</div>
+        <p style="margin:0 0 8px">En Google Calendar: <b>Configuración → tu calendario → Integrar el calendario → Dirección secreta en formato iCal</b>. Cópiala y pégala aquí:</p>
+        <input type="text" id="gcUrl" placeholder="https://calendar.google.com/calendar/ical/…/basic.ics" value="${esc(data.settings.gcalUrl || "")}">
+        <div class="sheet-btns">
+          <button class="sbtn danger" data-a="connect">📆 ${data.settings.gcalUrl ? "Actualizar" : "Conectar"}</button>
+          ${data.settings.gcalUrl ? `<button class="sbtn soft" data-a="disconnect">Quitar Google Calendar</button>` : ""}
+          <button class="sbtn soft" data-a="close">Cerrar ♡</button>
+        </div>
+      </div>`;
+    const close = () => { back.classList.remove("show"); setTimeout(() => back.remove(), 250); };
+    back.addEventListener("click", async e => {
+      if (e.target === back) return close();
+      const a = e.target.closest("button") && e.target.closest("button").dataset.a;
+      if (a === "close") close();
+      if (a === "copy") { try { await navigator.clipboard.writeText(link); toast("Enlace copiado 📋"); } catch { back.querySelector("#gcLink").select(); toast("Selecciónalo y cópialo ✍️"); } }
+      if (a === "connect") {
+        const url = back.querySelector("#gcUrl").value.trim();
+        if (!/^(https|webcal):\/\//i.test(url)) return toast("Pega la dirección secreta iCal 🔗");
+        data.settings.gcalUrl = url; save();
+        toast("Conectando… 📆");
+        const ok = await refreshGcal(true);
+        if (ok) { close(); toast(`¡Conectado! ${gcal.events.length} eventos 📆`); }
+        else { data.settings.gcalUrl = ""; save(); toast("No he podido leer ese calendario 🥺"); }
+      }
+      if (a === "disconnect") { data.settings.gcalUrl = ""; save(); gcal = {}; try { localStorage.removeItem(GCAL_KEY); } catch {} close(); renderAll(); toast("Google Calendar quitado 🫧"); }
+    });
+    document.body.appendChild(back);
+    requestAnimationFrame(() => back.classList.add("show"));
+  }
+
   // Ventanita para unirse en pareja
   async function pairSheet() {
     if (!sb || !cloud.user) { toast("Primero entra en tu cuenta ☁️"); return; }
@@ -2397,6 +2475,7 @@
           <p>Conectada como <b>${esc(cloud.user.email)}</b>. Entra con esta cuenta en otro móvil u ordenador y verás lo mismo.</p>
           <div class="sheet-btns">
             <button class="sbtn" data-a="pair">💞 ${paired() ? "En pareja con " + esc(shared.partnerName()) : "Compartir con mi pareja"}</button>
+            <button class="sbtn" data-a="gcal">📆 Google Calendar</button>
             <button class="sbtn" data-a="sync">🔄 Sincronizar ahora</button>
             <button class="sbtn soft" data-a="out">Cerrar sesión</button>
             <button class="sbtn soft" data-a="close">Cerrar ♡</button>
@@ -2443,6 +2522,7 @@
       const a = e.target.closest("button") && e.target.closest("button").dataset.a;
       if (a === "close") close();
       if (a === "pair") { close(); pairSheet(); }
+      if (a === "gcal") { close(); gcalSheet(); }
       if (a === "sync") { close(); toast(await cloud.pull() ? "¡Sincronizado! ☁️" : "No se ha podido sincronizar ahora 🥺"); }
       if (a === "out") { close(); await cloud.flush(); await sb.auth.signOut({ scope: "local" }); shared.reset(); renderAll(); toast("Sesión cerrada 🫧 (tus tareas siguen en este móvil)"); }
     });
@@ -2631,6 +2711,7 @@
         const d = addDays(today(), i);
         days[ymd(d)] = tasksOn(d).map(t => ({ time: effTime(t, d), title: t.title, emoji: isRest(t) ? "☁️" : catOf(t.cat).emoji,
           done: isDone(t, d), rest: isRest(t), star: !!t.star }))
+          .concat(gcalOn(d).map(e => ({ time: e.time, title: e.title, emoji: "📆", done: false, rest: false, star: false })))
           .sort((a, b) => (a.time ? 0 : 1) - (b.time ? 0 : 1) || a.time.localeCompare(b.time));
       }
       try { window.KawaiiWidget.update(JSON.stringify({ v: 1, updatedAt: Date.now(), night: document.body.classList.contains("night"), days })); } catch {}
